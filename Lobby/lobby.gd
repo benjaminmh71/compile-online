@@ -9,7 +9,7 @@ func _ready():
 	multiplayer.connected_to_server.connect(connected_to_server)
 
 	if ("--server" in OS.get_cmdline_args()):
-		var peer = ENetMultiplayerPeer.new()
+		var peer = WebSocketMultiplayerPeer.new()
 		var error = peer.create_server(port)
 		if (error != OK):
 			print("Error: " + str(error))
@@ -18,8 +18,8 @@ func _ready():
 		print("Start")
 	else:
 		print("Start")
-		var peer = ENetMultiplayerPeer.new()
-		peer.create_client(address, port)
+		var peer = WebSocketMultiplayerPeer.new()
+		peer.create_client("ws://" + address + ":" + str(port))
 		
 		multiplayer.multiplayer_peer = peer
 
