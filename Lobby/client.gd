@@ -14,7 +14,7 @@ func init() -> Client:
 	
 	peer.connect("peer_connected", peer_connected)
 	
-	print("Started Client")
+	print("Started Client 2")
 	
 	return self
 

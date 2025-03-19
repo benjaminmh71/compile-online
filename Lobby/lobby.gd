@@ -6,7 +6,8 @@ var address := "157.245.123.33"
 @export var text := 0
 var connectionManager
 enum Message {
-	BUTTON
+	BUTTON,
+	CREATE_ROOM
 }
 
 func _ready():
