@@ -1,0 +1,25 @@
+[gd_scene load_steps=2 format=3 uid="uid://cbg66a4o077cn"]
+
+[ext_resource type="Script" uid="uid://cn2wi6f4g2i3x" path="res://Game/Game.cs" id="1_hqwdr"]
+
+[node name="Game" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_hqwdr")
+
+[node name="VBoxContainer" type="VBoxContainer" parent="."]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="player 1" type="Label" parent="VBoxContainer"]
+layout_mode = 2
+text = "Waiting"
+
+[node name="player 2" type="Label" parent="VBoxContainer"]
+layout_mode = 2
+text = "Waiting"

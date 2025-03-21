@@ -1,0 +1,21 @@
+[gd_scene load_steps=2 format=3 uid="uid://c2nnjxxfa75bw"]
+
+[ext_resource type="Script" uid="uid://lhasie6vh81h" path="res://Lobby/ListRoom.cs" id="1_0fo8d"]
+
+[node name="ListRoom" type="HBoxContainer"]
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -4.0
+offset_right = 4.0
+offset_bottom = 8.0
+grow_horizontal = 2
+script = ExtResource("1_0fo8d")
+
+[node name="GameInfo" type="Label" parent="."]
+layout_mode = 2
+text = "Game 1:"
+
+[node name="JoinButton" type="Button" parent="."]
+layout_mode = 2
+text = "Join Game"
