@@ -127,6 +127,7 @@ public partial class Lobby : Control
     private void JoinGame(int p1Id, int p2Id)
     {
         Game game = GD.Load<PackedScene>("res://Game/Game.tscn").Instantiate<Game>();
+        game.Init(p1Id, p2Id);
         GetTree().Root.AddChild(game);
         game.GetNode<VBoxContainer>("VBoxContainer").GetNode<Label>("player 1").Text = p1Id.ToString();
         game.GetNode<VBoxContainer>("VBoxContainer").GetNode<Label>("player 2").Text = p2Id.ToString();
