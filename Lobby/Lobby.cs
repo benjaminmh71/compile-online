@@ -2,6 +2,7 @@ using Godot;
 using System;
 using System.Collections;
 using System.Linq;
+using System.Threading.Tasks;
 
 public partial class Lobby : Control
 {
@@ -10,12 +11,25 @@ public partial class Lobby : Control
     ENetMultiplayerPeer peer = new ENetMultiplayerPeer();
     bool isServer = false;
     ArrayList rooms = new ArrayList();
-
+    Game game;
     VBoxContainer roomListContainer;
 
     public override void _Ready()
     {
+        double x = 3.0;
+        double y = 2.0;
+        double total = x;
+        for (int i = 0; i < 20; i++)
+        {
+            double temp = y;
+            y = (x + y) / 2.0;
+            x = temp;
+            total += x;
+        }
+        GD.Print(x);
+        GD.Print(total - (7.0/3.0 * 21));
         roomListContainer = GetNode<VBoxContainer>("RoomListContainer");
+        game = GD.Load<PackedScene>("res://Game/Game.tscn").Instantiate<Game>();
 
         Multiplayer.PeerConnected += PeerConnected;
         Multiplayer.ConnectedToServer += ConnectedToServer;
@@ -100,6 +114,8 @@ public partial class Lobby : Control
             JoinGame(id, Multiplayer.GetUniqueId());
             RpcId(id, nameof(JoinGame), id, Multiplayer.GetUniqueId());
             Rpc(nameof(DeleteRoom), id);
+            StartGame();
+            RpcId(id, nameof(StartGame));
         };
     }
 
@@ -126,11 +142,14 @@ public partial class Lobby : Control
     [Rpc(MultiplayerApi.RpcMode.AnyPeer, CallLocal = false)]
     private void JoinGame(int p1Id, int p2Id)
     {
-        Game game = GD.Load<PackedScene>("res://Game/Game.tscn").Instantiate<Game>();
-        game.Init(p1Id, p2Id);
         GetTree().Root.AddChild(game);
-        game.GetNode<VBoxContainer>("VBoxContainer").GetNode<Label>("player 1").Text = p1Id.ToString();
-        game.GetNode<VBoxContainer>("VBoxContainer").GetNode<Label>("player 2").Text = p2Id.ToString();
+        game.Init(p1Id, p2Id);
+    }
+
+    [Rpc(MultiplayerApi.RpcMode.AnyPeer, CallLocal = false)]
+    private void StartGame()
+    {
+        game.Start();
         QueueFree();
     }
 }

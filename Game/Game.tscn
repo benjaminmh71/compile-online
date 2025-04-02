@@ -11,20 +11,7 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_hqwdr")
 
-[node name="VBoxContainer" type="VBoxContainer" parent="."]
-layout_mode = 0
-offset_right = 40.0
-offset_bottom = 40.0
-
-[node name="player 1" type="Label" parent="VBoxContainer"]
-layout_mode = 2
-text = "Waiting"
-
-[node name="player 2" type="Label" parent="VBoxContainer"]
-layout_mode = 2
-text = "Waiting"
-
-[node name="HandCardsContainer" type="HBoxContainer" parent="."]
+[node name="LocalHandCardsContainer" type="HBoxContainer" parent="."]
 layout_mode = 1
 anchors_preset = 7
 anchor_left = 0.5
@@ -36,3 +23,39 @@ offset_top = -200.0
 offset_right = 577.0
 grow_horizontal = 2
 grow_vertical = 0
+
+[node name="OppHandCardsContainer" type="HBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -575.5
+offset_right = 575.5
+offset_bottom = 200.0
+grow_horizontal = 2
+
+[node name="LocalProtocolsContainer" type="HBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 6
+anchor_left = 1.0
+anchor_top = 0.5
+anchor_right = 1.0
+anchor_bottom = 0.5
+offset_left = -502.0
+offset_right = -44.0
+offset_bottom = 75.0
+grow_horizontal = 0
+grow_vertical = 2
+
+[node name="OppProtocolsContainer" type="HBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 6
+anchor_left = 1.0
+anchor_top = 0.5
+anchor_right = 1.0
+anchor_bottom = 0.5
+offset_left = -502.0
+offset_top = -75.0
+offset_right = -44.0
+grow_horizontal = 0
+grow_vertical = 2

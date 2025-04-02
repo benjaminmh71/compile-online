@@ -1,0 +1,29 @@
+[gd_scene load_steps=3 format=3 uid="uid://cyagdyvoltnqq"]
+
+[ext_resource type="Script" uid="uid://bi52kra4wrhfv" path="res://Game/Protocol.cs" id="1_dgipo"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_7y3gs"]
+
+[node name="Protocol" type="Control"]
+custom_minimum_size = Vector2(150, 75)
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_dgipo")
+
+[node name="Panel" type="Panel" parent="."]
+layout_mode = 0
+offset_right = 150.0
+offset_bottom = 75.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_7y3gs")
+
+[node name="Name" type="Label" parent="."]
+layout_mode = 0
+offset_right = 150.0
+offset_bottom = 75.0
+text = "Protocol"
+horizontal_alignment = 1
+vertical_alignment = 1
