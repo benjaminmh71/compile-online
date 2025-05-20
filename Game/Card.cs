@@ -1,7 +1,7 @@
 using Godot;
 using System;
 
-public partial class Card : Node
+public partial class Card : Control
 {
     public CardInfo info;
     public bool flipped = false;
@@ -9,6 +9,11 @@ public partial class Card : Node
     public override void _Ready()
     {
         Render();
+    }
+
+    public override void _Input(InputEvent @event)
+    {
+        base._Input(@event);
     }
 
     public void Render()

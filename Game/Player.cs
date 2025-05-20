@@ -5,17 +5,15 @@ using System.Collections;
 public partial class Player : Node
 {
     public int id;
-    Game game;
-    ArrayList deck = new ArrayList();
-    ArrayList hand = new ArrayList();
+    public ArrayList deck = new ArrayList();
+    public ArrayList hand = new ArrayList();
     int oppId;
     int nOppCards = 0;
 
-    public Player(int id, int oppId, Game game)
+    public Player(int id, int oppId)
     {
         this.id = id;
         this.oppId = oppId;
-        this.game = game;
         for (int i = 0; i < 18; i++)
         {
             PackedScene cardScene = GD.Load("res://Game/Card.tscn") as PackedScene;
@@ -38,7 +36,7 @@ public partial class Player : Node
         Card card = deck[0] as Card;
         deck.Remove(card);
         hand.Add(card);
-        game.handCardsContainer.AddChild(card);
+        Game.instance.handCardsContainer.AddChild(card);
         RpcId(oppId, nameof(OppDraw));
     }
 
@@ -49,6 +47,6 @@ public partial class Player : Node
         Card card = cardScene.Instantiate<Card>();
         card.info = new CardInfo();
         card.flipped = true;
-        game.oppCardsContainer.AddChild(card);
+        Game.instance.oppCardsContainer.AddChild(card);
     }
 }

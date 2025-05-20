@@ -1,6 +1,7 @@
-[gd_scene load_steps=2 format=3 uid="uid://cbg66a4o077cn"]
+[gd_scene load_steps=3 format=3 uid="uid://cbg66a4o077cn"]
 
 [ext_resource type="Script" uid="uid://cn2wi6f4g2i3x" path="res://Game/Game.cs" id="1_hqwdr"]
+[ext_resource type="Script" uid="uid://b126068oiqswd" path="res://Game/MousePosition.cs" id="2_vrr3t"]
 
 [node name="Game" type="Control"]
 layout_mode = 3
@@ -9,29 +10,23 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+mouse_filter = 2
 script = ExtResource("1_hqwdr")
 
 [node name="LocalHandCardsContainer" type="HBoxContainer" parent="."]
 layout_mode = 1
-anchors_preset = 7
-anchor_left = 0.5
+anchors_preset = -1
 anchor_top = 1.0
-anchor_right = 0.5
+anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = -574.0
 offset_top = -200.0
-offset_right = 577.0
 grow_horizontal = 2
 grow_vertical = 0
 
 [node name="OppHandCardsContainer" type="HBoxContainer" parent="."]
 layout_mode = 1
-anchors_preset = -1
-anchor_left = 0.5
-anchor_right = 0.5
-offset_left = -575.5
-offset_right = 575.5
-offset_bottom = 200.0
+anchors_preset = 10
+anchor_right = 1.0
 grow_horizontal = 2
 
 [node name="LocalProtocolsContainer" type="HBoxContainer" parent="."]
@@ -59,3 +54,10 @@ offset_top = -75.0
 offset_right = -44.0
 grow_horizontal = 0
 grow_vertical = 2
+
+[node name="MousePosition" type="Control" parent="."]
+anchors_preset = 0
+offset_right = 40.0
+offset_bottom = 40.0
+mouse_filter = 2
+script = ExtResource("2_vrr3t")
