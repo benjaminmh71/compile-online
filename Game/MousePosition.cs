@@ -1,11 +1,17 @@
 using CompileOnline.Game;
 using Godot;
 using System;
+using System.Collections;
+using System.Collections.Generic;
 
 public partial class MousePosition : Control
 {
+    [Signal]
+    public delegate void CardPlacedEventHandler(Protocol protocol, Card card);
+
     public bool dragging = false;
     public Card draggedCard = null;
+    static List<Card> selectedCards = new List<Card>();
 
     public override void _Process(double delta)
     {
@@ -14,7 +20,7 @@ public partial class MousePosition : Control
         if (Input.IsActionPressed("click") && !dragging)
         {
             dragging = true;
-            foreach (Card card in Game.instance.localPlayer.hand)
+            foreach (Card card in selectedCards)
             {
                 if (GlobalPosition.X > card.GlobalPosition.X &&
                 GlobalPosition.X < card.GlobalPosition.X + Constants.CARD_WIDTH &&
@@ -36,15 +42,20 @@ public partial class MousePosition : Control
                 Protocol protocol = Game.instance.GetHoveredProtocol();
                 if (protocol != null)
                 {
-                    Game.instance.localPlayer.hand.Remove(draggedCard);
-                    protocol.AddCard(draggedCard);
+                    EmitSignal("CardPlaced", protocol, draggedCard);
                 }
                 else
                 {
                     draggedCard.GetParent().RemoveChild(draggedCard);
-                    Game.instance.handCardsContainer.AddChild(draggedCard);
+                    Game.instance.handCardsContainer.AddChild(draggedCard); // Change this
                 }
+                draggedCard = null;
             }
         }
+    }
+
+    public static void SetSelectedCards(List<Card> cards)
+    {
+        selectedCards = cards;
     }
 }

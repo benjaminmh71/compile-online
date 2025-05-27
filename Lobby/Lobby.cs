@@ -16,18 +16,6 @@ public partial class Lobby : Control
 
     public override void _Ready()
     {
-        double x = 3.0;
-        double y = 2.0;
-        double total = x;
-        for (int i = 0; i < 20; i++)
-        {
-            double temp = y;
-            y = (x + y) / 2.0;
-            x = temp;
-            total += x;
-        }
-        GD.Print(x);
-        GD.Print(total - (7.0/3.0 * 21));
         roomListContainer = GetNode<VBoxContainer>("RoomListContainer");
         game = GD.Load<PackedScene>("res://Game/Game.tscn").Instantiate<Game>();
 
@@ -143,7 +131,9 @@ public partial class Lobby : Control
     private void JoinGame(int p1Id, int p2Id)
     {
         GetTree().Root.AddChild(game);
-        game.Init(p1Id, p2Id);
+        GD.Print((p1Id == Multiplayer.GetUniqueId()) ? "Player 1: " + p1Id.ToString() + " " + p2Id.ToString() :
+            "Player 2: " + p1Id.ToString() + " " + p2Id.ToString());
+        game.Init(p1Id, p2Id, p1Id == Multiplayer.GetUniqueId());
     }
 
     [Rpc(MultiplayerApi.RpcMode.AnyPeer, CallLocal = false)]
