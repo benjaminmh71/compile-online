@@ -70,9 +70,14 @@ offset_right = 40.0
 offset_bottom = 20.0
 grow_vertical = 2
 
-[node name="TurnLabel" type="Label" parent="LeftUI"]
+[node name="PromptLabel" type="Label" parent="LeftUI"]
 layout_mode = 2
 text = "It is your opponent's turn."
+
+[node name="RefreshButton" type="Button" parent="LeftUI"]
+visible = false
+layout_mode = 2
+text = "Refresh"
 
 [node name="MousePosition" type="Control" parent="."]
 anchors_preset = 0

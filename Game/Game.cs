@@ -12,7 +12,9 @@ public partial class Game : Control
     public HBoxContainer oppCardsContainer;
     public HBoxContainer localProtocolsContainer;
     public HBoxContainer oppProtocolsContainer;
-    public Label turnLabel;
+    public VBoxContainer leftUI;
+    public Label promptLabel;
+    public Button refreshButton;
     public MousePosition mousePosition;
     bool host;
 
@@ -25,8 +27,13 @@ public partial class Game : Control
         oppCardsContainer = GetNode<HBoxContainer>("OppHandCardsContainer");
         localProtocolsContainer = GetNode<HBoxContainer>("LocalProtocolsContainer");
         oppProtocolsContainer = GetNode<HBoxContainer>("OppProtocolsContainer");
-        turnLabel = GetNode("LeftUI").GetNode<Label>("TurnLabel");
+        leftUI = GetNode<VBoxContainer>("LeftUI");
+        promptLabel = leftUI.GetNode<Label>("PromptLabel");
+        refreshButton = leftUI.GetNode<Button>("RefreshButton");
         mousePosition = GetNode<MousePosition>("MousePosition");
+
+        PromptManager.Init();
+
         for (int i = 0; i < 3; i++)
         {
             PackedScene protocolScene = GD.Load("res://Game/Protocol.tscn") as PackedScene;
@@ -59,7 +66,9 @@ public partial class Game : Control
         {
             if (GD.Randi() % 2 == 0)
             {
+#pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
                 localPlayer.StartTurn();
+#pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
             } else
             {
                 localPlayer.EndTurn();

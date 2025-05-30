@@ -1,7 +1,9 @@
+using CompileOnline.Game;
 using Godot;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 public partial class Player : Node
 {
@@ -23,41 +25,64 @@ public partial class Player : Node
             card.info = new CardInfo();
             deck.Add(card);
         }
-
-        Game.instance.mousePosition.CardPlaced += OnPlay;
     }
 
     [Rpc(MultiplayerApi.RpcMode.AnyPeer)]
-    public void StartTurn()
+    public async void StartTurn()
     {
-        Game.instance.turnLabel.Text = "It is your turn.";
+        Game.instance.promptLabel.Text = "It is your turn.";
         // TODO: Start of turn effects
         // TODO: Check compile
         if (hand.Count == 0)
         {
             // TODO: Refresh
         }
-        MousePosition.SetSelectedCards(hand);
+        PromptManager.PromptAction([PromptManager.Prompt.Play, PromptManager.Prompt.Refresh], hand);
+
+        Response response = await WaitForResponse();
+
+        if (response.type == PromptManager.Prompt.Play)
+        {
+            Play(response.protocol, response.card);
+        }
+
+        if (response.type == PromptManager.Prompt.Refresh)
+        {
+            Refresh();
+        }
+
+        EndTurn();
     }
 
     public void EndTurn()
     {
         // TODO: End of turn effects
-        Game.instance.turnLabel.Text = "It is your opponent's turn.";
+        Game.instance.promptLabel.Text = "It is your opponent's turn.";
         MousePosition.SetSelectedCards(empty);
         RpcId(oppId, nameof(StartTurn));
     }
 
+    public void Play(Protocol protocol, Card card)
+    {
+        hand.Remove(card);
+        // TODO: On cover effects
+        protocol.AddCard(card);
+        // TODO: Change "Apathy 5" to card's name, find that card
+        RpcId(oppId, nameof(OppPlay), "Apathy 5", Game.instance.GetProtocols(true).FindIndex(p => p == protocol));
+        // TODO: On play effects
+    }
+
     public void Refresh()
     {
-        while (hand.Count < 5)
-        {
-            Draw();
-        }
+        Draw(5 - hand.Count);
     }
 
     public void Draw(int n)
     {
+        if (n <= 0) return;
+
+        // TODO: on draw effects
+
         for (int i = 0; i < n; i++)
         {
             Draw();
@@ -73,15 +98,14 @@ public partial class Player : Node
         RpcId(oppId, nameof(OppDraw));
     }
 
-    public void OnPlay(Protocol protocol, Card card)
+    [Rpc(MultiplayerApi.RpcMode.AnyPeer)]
+    public void OppDraw()
     {
-        hand.Remove(card);
-        // TODO: On cover effects
-        protocol.AddCard(card);
-        // TODO: Change "Apathy 5" to card's name, find that card
-        RpcId(oppId, nameof(OppPlay), "Apathy 5", Game.instance.GetProtocols(true).FindIndex(p => p == protocol));
-        // TODO: On play effects
-        EndTurn();
+        PackedScene cardScene = GD.Load("res://Game/Card.tscn") as PackedScene;
+        Card card = cardScene.Instantiate<Card>();
+        card.info = new CardInfo();
+        card.flipped = true;
+        Game.instance.oppCardsContainer.AddChild(card);
     }
 
     [Rpc(MultiplayerApi.RpcMode.AnyPeer)]
@@ -94,13 +118,14 @@ public partial class Player : Node
         protocols[protocolIndex].AddOppCard(card);
     }
 
-    [Rpc(MultiplayerApi.RpcMode.AnyPeer)]
-    public void OppDraw()
+    public async Task<Response> WaitForResponse()
     {
-        PackedScene cardScene = GD.Load("res://Game/Card.tscn") as PackedScene;
-        Card card = cardScene.Instantiate<Card>();
-        card.info = new CardInfo();
-        card.flipped = true;
-        Game.instance.oppCardsContainer.AddChild(card);
+        while (PromptManager.response == null) // Test this
+        {
+            await ToSignal(GetTree().CreateTimer(0.1), "timeout");
+        }
+        Response response = PromptManager.response;
+        PromptManager.response = null;
+        return response;
     }
 }
