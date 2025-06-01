@@ -1,8 +1,11 @@
-[gd_scene load_steps=3 format=3 uid="uid://cyagdyvoltnqq"]
+[gd_scene load_steps=4 format=3 uid="uid://cyagdyvoltnqq"]
 
 [ext_resource type="Script" uid="uid://bi52kra4wrhfv" path="res://Game/Protocol.cs" id="1_dgipo"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_7y3gs"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_dgipo"]
+bg_color = Color(0.878298, 0.808836, 0.485149, 1)
 
 [node name="Protocol" type="Control"]
 custom_minimum_size = Vector2(150, 75)
@@ -17,6 +20,38 @@ layout_mode = 0
 offset_right = 150.0
 offset_bottom = 75.0
 theme_override_styles/panel = SubResource("StyleBoxFlat_7y3gs")
+
+[node name="SelectionIndicator" type="Control" parent="."]
+visible = false
+anchors_preset = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="Panel2" type="Panel" parent="SelectionIndicator"]
+layout_mode = 0
+offset_right = 150.0
+offset_bottom = 10.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_dgipo")
+
+[node name="Panel4" type="Panel" parent="SelectionIndicator"]
+layout_mode = 0
+offset_right = 10.0
+offset_bottom = 75.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_dgipo")
+
+[node name="Panel5" type="Panel" parent="SelectionIndicator"]
+layout_mode = 0
+offset_left = 140.0
+offset_right = 150.0
+offset_bottom = 75.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_dgipo")
+
+[node name="Panel3" type="Panel" parent="SelectionIndicator"]
+layout_mode = 0
+offset_top = 65.0
+offset_right = 150.0
+offset_bottom = 75.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_dgipo")
 
 [node name="Name" type="Label" parent="."]
 layout_mode = 0

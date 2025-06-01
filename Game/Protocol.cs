@@ -5,11 +5,28 @@ using System.Collections;
 
 public partial class Protocol : Control
 {
+    [Signal]
+    public delegate void OnClickEventHandler(Protocol protocol);
+
     public ArrayList cards = new ArrayList();
 
     public override void _Ready()
     {
         Render();
+    }
+
+    public override void _Process(double delta)
+    {
+        Vector2 GlobalMousePosition = GetGlobalMousePosition();
+
+        if (Input.IsActionJustReleased("click") &&
+            GlobalMousePosition.X > GlobalPosition.X &&
+            GlobalMousePosition.X < GlobalPosition.X + Constants.PROTOCOL_WIDTH &&
+            GlobalMousePosition.Y > GlobalPosition.Y &&
+            GlobalMousePosition.Y < GlobalPosition.Y + Constants.PROTOCOL_HEIGHT)
+        {
+            EmitSignal("OnClick", this);
+        }
     }
 
     public void Render()

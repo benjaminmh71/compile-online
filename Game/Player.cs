@@ -32,10 +32,41 @@ public partial class Player : Node
     {
         Game.instance.promptLabel.Text = "It is your turn.";
         // TODO: Start of turn effects
-        // TODO: Check compile
+        List<Protocol> compilableProtcols = new List<Protocol>();
+        foreach (Protocol p in Game.instance.localProtocolsContainer.GetChildren())
+        {
+            int total = 0;
+            foreach (Card c in p.cards)
+            {
+                total += c.info.value;
+            }
+            if (total >= 10)
+            {
+                int oppTotal = 0;
+                foreach (Card c in Game.instance.GetOpposingProtocol(p).cards)
+                {
+                    oppTotal += c.info.value;
+                }
+                if (oppTotal < total)
+                {
+                    compilableProtcols.Add(p);
+                }
+            }
+        }
+        if (compilableProtcols.Count == 1)
+        {
+            Compile(compilableProtcols[0]);
+            EndTurn();
+            return;
+        } else if (compilableProtcols.Count > 1)
+        {
+            PromptManager.PromptAction([PromptManager.Prompt.Compile], compilableProtcols);
+        }
         if (hand.Count == 0)
         {
-            // TODO: Refresh
+            Refresh();
+            EndTurn();
+            return;
         }
         PromptManager.PromptAction([PromptManager.Prompt.Play, PromptManager.Prompt.Refresh], hand);
 
@@ -75,6 +106,11 @@ public partial class Player : Node
     public void Refresh()
     {
         Draw(5 - hand.Count);
+    }
+
+    public void Compile(Protocol protocol)
+    {
+        GD.Print("Compiling");
     }
 
     public void Draw(int n)

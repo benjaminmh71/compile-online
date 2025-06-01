@@ -32,8 +32,6 @@ public partial class Game : Control
         refreshButton = leftUI.GetNode<Button>("RefreshButton");
         mousePosition = GetNode<MousePosition>("MousePosition");
 
-        PromptManager.Init();
-
         for (int i = 0; i < 3; i++)
         {
             PackedScene protocolScene = GD.Load("res://Game/Protocol.tscn") as PackedScene;
@@ -47,6 +45,8 @@ public partial class Game : Control
             protocol.Rotation = (float)Math.PI;
             oppProtocolsContainer.AddChild(protocol);
         }
+
+        PromptManager.Init();
 
         if (Multiplayer.GetUniqueId() == player1Id)
         {
@@ -87,6 +87,15 @@ public partial class Game : Control
             foreach (Protocol p in oppProtocolsContainer.GetChildren()) protocols.Add(p);
         }
         return protocols;
+    }
+
+    public Protocol GetOpposingProtocol(Protocol p) 
+    {
+        List<Protocol> locals = GetProtocols(true);
+        List<Protocol> opps = GetProtocols(false);
+
+        if (locals.Contains(p)) return opps[opps.Count - locals.FindIndex((Protocol _p) => _p == p)];
+        else return locals[locals.Count - opps.FindIndex((Protocol _p) => _p == p)];
     }
 
     public Protocol GetHoveredProtocol()

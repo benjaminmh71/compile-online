@@ -10,16 +10,21 @@ public static class PromptManager
     public static Response response = null;
 
     static Prompt[] currPrompts = [];
+    static List<Protocol> selectableProtocols = new List<Protocol>();
 
     public static void Init()
     {
         Game.instance.mousePosition.CardPlaced += OnPlay;
         Game.instance.refreshButton.Pressed += OnRefresh;
+        foreach (Protocol p in Game.instance.GetProtocols(true))
+        {
+            p.OnClick += OnCompile;
+        }
     }
 
     public static void PromptAction(Prompt[] prompts)
     {
-        PromptAction(prompts, null);
+        PromptAction(prompts, new List<Card>());
     }
 
     public static void PromptAction(Prompt[] prompts, List<Card> cards)
@@ -39,6 +44,14 @@ public static class PromptManager
         SetPrompt(buttons.ToArray());
     }
 
+    public static void PromptAction(Prompt[] prompts, List<Protocol> protocols)
+    {
+        currPrompts = prompts;
+        selectableProtocols = protocols;
+
+        SetPrompt(protocols.ToArray());
+    }
+
     public static void SetPrompt(Button[] buttons)
     {
         foreach (Node n in Game.instance.leftUI.GetChildren())
@@ -49,6 +62,19 @@ public static class PromptManager
         foreach (Button b in buttons)
         {
             b.Visible = true;
+        }
+    }
+
+    public static void SetPrompt(Protocol[] protocols)
+    {
+        foreach (Protocol p in Game.instance.GetProtocols(true))
+        {
+            p.GetNode<Control>("SelectionIndicator").Visible = false;
+        }
+
+        foreach (Protocol p in protocols)
+        {
+            p.GetNode<Control>("SelectionIndicator").Visible = true;
         }
     }
 
@@ -66,6 +92,15 @@ public static class PromptManager
         if (currPrompts.Contains(Prompt.Refresh))
         {
             response = new Response(Prompt.Refresh);
+            PromptAction([]);
+        }
+    }
+
+    public static void OnCompile(Protocol protocol)
+    {
+        if (currPrompts.Contains(Prompt.Compile) && selectableProtocols.Contains(protocol))
+        {
+            response = new Response(protocol, Prompt.Compile);
             PromptAction([]);
         }
     }
