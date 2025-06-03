@@ -1,7 +1,9 @@
-[gd_scene load_steps=3 format=3 uid="uid://cbg66a4o077cn"]
+[gd_scene load_steps=4 format=3 uid="uid://cbg66a4o077cn"]
 
 [ext_resource type="Script" uid="uid://cn2wi6f4g2i3x" path="res://Game/Game.cs" id="1_hqwdr"]
 [ext_resource type="Script" uid="uid://b126068oiqswd" path="res://Game/MousePosition.cs" id="2_vrr3t"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_vrr3t"]
 
 [node name="Game" type="Control"]
 layout_mode = 3
@@ -59,6 +61,37 @@ grow_horizontal = 0
 grow_vertical = 2
 rotation = 3.14159
 theme_override_constants/separation = 10
+
+[node name="Control" type="Panel" parent="."]
+custom_minimum_size = Vector2(125, 200)
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 1.0
+anchor_top = 0.5
+anchor_right = 1.0
+anchor_bottom = 0.5
+offset_left = -750.0
+offset_top = -100.0
+offset_right = -625.0
+offset_bottom = 100.0
+grow_horizontal = 0
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_vrr3t")
+
+[node name="Label" type="Label" parent="Control"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -20.0
+offset_top = -11.5
+offset_right = 20.0
+offset_bottom = 11.5
+grow_horizontal = 2
+grow_vertical = 2
+text = "Control"
 
 [node name="LeftUI" type="VBoxContainer" parent="."]
 layout_mode = 1

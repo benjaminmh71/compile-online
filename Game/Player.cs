@@ -13,6 +13,7 @@ public partial class Player : Node
     List<Card> empty = new List<Card>();
     int oppId;
     int nOppCards = 0;
+    bool hasControl = false;
 
     public Player(int id, int oppId)
     {
@@ -31,9 +32,39 @@ public partial class Player : Node
     public async void StartTurn()
     {
         Game.instance.promptLabel.Text = "It is your turn.";
+
+        // Check control:
+        int controlledLines = 0;
+        foreach (Protocol p in Game.instance.GetProtocols(true))
+        {
+            int total = 0;
+            foreach (Card c in p.cards)
+            {
+                total += c.info.value;
+            }
+            int oppTotal = 0;
+            foreach (Card c in Game.instance.GetOpposingProtocol(p).cards)
+            {
+                oppTotal += c.info.value;
+            }
+            if (total > oppTotal)
+            {
+                controlledLines++;
+            }
+        }
+        if (controlledLines >= 2)
+        {
+            hasControl = true;
+            Game.instance.control.OffsetTop = Constants.CONTROL_PLAYER_TOP;
+            Game.instance.control.OffsetBottom = Constants.CONTROL_PLAYER_BOTTOM;
+            RpcId(oppId, nameof(OppGainControl));
+        }
+
         // TODO: Start of turn effects
+
+        // Compiling:
         List<Protocol> compilableProtcols = new List<Protocol>();
-        foreach (Protocol p in Game.instance.localProtocolsContainer.GetChildren())
+        foreach (Protocol p in Game.instance.GetProtocols(true))
         {
             int total = 0;
             foreach (Card c in p.cards)
@@ -62,12 +93,16 @@ public partial class Player : Node
         {
             PromptManager.PromptAction([PromptManager.Prompt.Compile], compilableProtcols);
         }
+
+        // Refresh if hand is empty:
         if (hand.Count == 0)
         {
             Refresh();
             EndTurn();
             return;
         }
+
+        // Play/refresh:
         PromptManager.PromptAction([PromptManager.Prompt.Play, PromptManager.Prompt.Refresh], hand);
 
         Response response = await WaitForResponse();
@@ -93,6 +128,29 @@ public partial class Player : Node
         RpcId(oppId, nameof(StartTurn));
     }
 
+    public void Refresh()
+    {
+        Draw(5 - hand.Count);
+    }
+
+    public void Compile(Protocol protocol)
+    {
+        // TODO: On compile effects (namely Speed 2)
+        foreach (Card c in protocol.cards)
+        {
+            c.QueueFree();
+        }
+        protocol.cards.Clear();
+        foreach (Card c in Game.instance.GetOpposingProtocol(protocol).cards)
+        {
+            c.QueueFree();
+        }
+        Game.instance.GetOpposingProtocol(protocol).cards.Clear();
+        protocol.compiled = true;
+        protocol.Render();
+        RpcId(oppId, nameof(OppCompile), Game.instance.GetProtocols(true).FindIndex((Protocol p) => p == protocol));
+    }
+
     public void Play(Protocol protocol, Card card)
     {
         hand.Remove(card);
@@ -101,16 +159,6 @@ public partial class Player : Node
         // TODO: Change "Apathy 5" to card's name, find that card
         RpcId(oppId, nameof(OppPlay), "Apathy 5", Game.instance.GetProtocols(true).FindIndex(p => p == protocol));
         // TODO: On play effects
-    }
-
-    public void Refresh()
-    {
-        Draw(5 - hand.Count);
-    }
-
-    public void Compile(Protocol protocol)
-    {
-        GD.Print("Compiling");
     }
 
     public void Draw(int n)
@@ -135,13 +183,21 @@ public partial class Player : Node
     }
 
     [Rpc(MultiplayerApi.RpcMode.AnyPeer)]
-    public void OppDraw()
+    public void OppCompile(int protocolIndex)
     {
-        PackedScene cardScene = GD.Load("res://Game/Card.tscn") as PackedScene;
-        Card card = cardScene.Instantiate<Card>();
-        card.info = new CardInfo();
-        card.flipped = true;
-        Game.instance.oppCardsContainer.AddChild(card);
+        Protocol protocol = Game.instance.GetProtocols(false)[protocolIndex];
+        foreach (Card c in protocol.cards)
+        {
+            c.QueueFree();
+        }
+        protocol.cards.Clear();
+        foreach (Card c in Game.instance.GetOpposingProtocol(protocol).cards)
+        {
+            c.QueueFree();
+        }
+        Game.instance.GetOpposingProtocol(protocol).cards.Clear();
+        protocol.compiled = true;
+        protocol.Render();
     }
 
     [Rpc(MultiplayerApi.RpcMode.AnyPeer)]
@@ -152,6 +208,24 @@ public partial class Player : Node
         card.info = new CardInfo();
         List<Protocol> protocols = Game.instance.GetProtocols(false);
         protocols[protocolIndex].AddOppCard(card);
+    }
+
+    [Rpc(MultiplayerApi.RpcMode.AnyPeer)]
+    public void OppDraw()
+    {
+        PackedScene cardScene = GD.Load("res://Game/Card.tscn") as PackedScene;
+        Card card = cardScene.Instantiate<Card>();
+        card.info = new CardInfo();
+        card.flipped = true;
+        Game.instance.oppCardsContainer.AddChild(card);
+    }
+
+    [Rpc(MultiplayerApi.RpcMode.AnyPeer)]
+    public void OppGainControl()
+    {
+        hasControl = false;
+        Game.instance.control.OffsetTop = Constants.CONTROL_OPP_TOP;
+        Game.instance.control.OffsetBottom = Constants.CONTROL_OPP_BOTTOM;
     }
 
     public async Task<Response> WaitForResponse()

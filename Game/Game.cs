@@ -12,6 +12,7 @@ public partial class Game : Control
     public HBoxContainer oppCardsContainer;
     public HBoxContainer localProtocolsContainer;
     public HBoxContainer oppProtocolsContainer;
+    public Panel control;
     public VBoxContainer leftUI;
     public Label promptLabel;
     public Button refreshButton;
@@ -27,6 +28,7 @@ public partial class Game : Control
         oppCardsContainer = GetNode<HBoxContainer>("OppHandCardsContainer");
         localProtocolsContainer = GetNode<HBoxContainer>("LocalProtocolsContainer");
         oppProtocolsContainer = GetNode<HBoxContainer>("OppProtocolsContainer");
+        control = GetNode<Panel>("Control");
         leftUI = GetNode<VBoxContainer>("LeftUI");
         promptLabel = leftUI.GetNode<Label>("PromptLabel");
         refreshButton = leftUI.GetNode<Button>("RefreshButton");
@@ -94,8 +96,8 @@ public partial class Game : Control
         List<Protocol> locals = GetProtocols(true);
         List<Protocol> opps = GetProtocols(false);
 
-        if (locals.Contains(p)) return opps[opps.Count - locals.FindIndex((Protocol _p) => _p == p)];
-        else return locals[locals.Count - opps.FindIndex((Protocol _p) => _p == p)];
+        if (locals.Contains(p)) return opps[opps.Count - 1 - locals.FindIndex((Protocol _p) => _p == p)];
+        else return locals[locals.Count - 1 - opps.FindIndex((Protocol _p) => _p == p)];
     }
 
     public Protocol GetHoveredProtocol()

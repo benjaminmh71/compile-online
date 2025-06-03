@@ -53,11 +53,31 @@ offset_right = 150.0
 offset_bottom = 75.0
 theme_override_styles/panel = SubResource("StyleBoxFlat_dgipo")
 
-[node name="Name" type="Label" parent="."]
-layout_mode = 0
-offset_right = 150.0
-offset_bottom = 75.0
+[node name="TextContainer" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -32.5
+offset_top = -20.0
+offset_right = 32.5
+offset_bottom = 20.0
+grow_horizontal = 2
+grow_vertical = 2
+alignment = 1
+
+[node name="Name" type="Label" parent="TextContainer"]
+layout_mode = 2
 text = "Protocol"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Compiled" type="Label" parent="TextContainer"]
+visible = false
+layout_mode = 2
+text = "Compiled"
 horizontal_alignment = 1
 vertical_alignment = 1
 

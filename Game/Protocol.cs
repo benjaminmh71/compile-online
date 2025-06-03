@@ -9,6 +9,7 @@ public partial class Protocol : Control
     public delegate void OnClickEventHandler(Protocol protocol);
 
     public ArrayList cards = new ArrayList();
+    public bool compiled = false;
 
     public override void _Ready()
     {
@@ -31,7 +32,14 @@ public partial class Protocol : Control
 
     public void Render()
     {
-        GetNode<Label>("Name").Text = "Apathy";
+        GetNode("TextContainer").GetNode<Label>("Name").Text = "Apathy";
+        if (compiled)
+        {
+            GetNode("TextContainer").GetNode<Label>("Compiled").Visible = true;
+        } else
+        {
+            GetNode("TextContainer").GetNode<Label>("Compiled").Visible = false;
+        }
     }
 
     public void AddCard(Card card)

@@ -13,5 +13,11 @@ namespace CompileOnline.Game
         public const int CARD_WIDTH = 125;
         public const int CARD_HEIGHT = 200;
         public const int CARD_STACK_SEPARATION = 75;
+        public const int CONTROL_OPP_TOP = -200;
+        public const int CONTROL_OPP_BOTTOM = 0;
+        public const int CONTROL_PLAYER_TOP = 0;
+        public const int CONTROL_PLAYER_BOTTOM = 200;
+        public const int CONTROL_TOP = -100;
+        public const int CONTROL_BOTTOM = 100;
     }
 }
