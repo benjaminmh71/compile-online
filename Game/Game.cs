@@ -56,6 +56,28 @@ public partial class Game : Control
             oppProtocolsContainer.AddChild(protocol);
         }
 
+        Card localDeckTop = GD.Load<PackedScene>("res://Game/Card.tscn").Instantiate<Card>();
+        localDeckTop.flipped = true;
+        localDeckTop.info = new CardInfo();
+        handCardsContainer.AddChild(localDeckTop);
+        Card localDiscardTop = GD.Load<PackedScene>("res://Game/Card.tscn").Instantiate<Card>();
+        localDiscardTop.placeholder = true;
+        localDiscardTop.info = new CardInfo();
+        handCardsContainer.AddChild(localDiscardTop);
+        Control localSeperator = new Control();
+        handCardsContainer.AddChild(localSeperator);
+
+        Card oppDeckTop = GD.Load<PackedScene>("res://Game/Card.tscn").Instantiate<Card>();
+        oppDeckTop.flipped = true;
+        oppDeckTop.info = new CardInfo();
+        oppCardsContainer.AddChild(oppDeckTop);
+        Card oppDiscardTop = GD.Load<PackedScene>("res://Game/Card.tscn").Instantiate<Card>();
+        oppDiscardTop.placeholder = true;
+        oppDiscardTop.info = new CardInfo();
+        oppCardsContainer.AddChild(oppDiscardTop);
+        Control oppSeperator = new Control();
+        oppCardsContainer.AddChild(oppSeperator);
+
         PromptManager.Init();
 
         if (Multiplayer.GetUniqueId() == player1Id)
