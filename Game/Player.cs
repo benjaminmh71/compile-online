@@ -3,6 +3,7 @@ using Godot;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 public partial class Player : Node
@@ -140,23 +141,23 @@ public partial class Player : Node
 
     public async Task UseControl()
     {
-        hasControl = false;
+        /*hasControl = false; FINISH LATER
         Game.instance.control.OffsetTop = Constants.CONTROL_TOP;
         Game.instance.control.OffsetBottom = Constants.CONTROL_BOTTOM;
         RpcId(oppId, nameof(OppUseControl));
 
-        PromptManager.PromptAction([PromptManager.Prompt.Control]);
+        PromptManager.PromptAction([PromptManager.Prompt.Control], 
+            Game.instance.GetProtocols(true).Concat(Game.instance.GetProtocols(false)).ToList());
 
-        Response response = await WaitForResponse();
+        Response response = await WaitForResponse();*/
 
-
+        
     }
 
     public async Task Refresh()
     {
         if (hasControl)
         {
-            GD.Print("Using control");
             await UseControl();
         }
 
@@ -183,6 +184,10 @@ public partial class Player : Node
 
     public void Play(Protocol protocol, Card card)
     {
+        if (hand.Contains(card))
+        {
+            RpcId(oppId, nameof(OppLoseCard));
+        }
         hand.Remove(card);
         // TODO: On cover effects
         protocol.AddCard(card);
@@ -248,6 +253,12 @@ public partial class Player : Node
         card.info = new CardInfo();
         card.flipped = true;
         Game.instance.oppCardsContainer.AddChild(card);
+    }
+
+    [Rpc(MultiplayerApi.RpcMode.AnyPeer)]
+    public void OppLoseCard()
+    {
+        Game.instance.oppCardsContainer.RemoveChild(Game.instance.oppCardsContainer.GetChild(0));
     }
 
     [Rpc(MultiplayerApi.RpcMode.AnyPeer)]
