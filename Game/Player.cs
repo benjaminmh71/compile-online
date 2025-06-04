@@ -52,7 +52,7 @@ public partial class Player : Node
                 controlledLines++;
             }
         }
-        if (controlledLines >= 2)
+        if (controlledLines > 1)
         {
             hasControl = true;
             Game.instance.control.OffsetTop = Constants.CONTROL_PLAYER_TOP;
@@ -84,6 +84,10 @@ public partial class Player : Node
                 }
             }
         }
+        if (compilableProtcols.Count > 0 && hasControl)
+        {
+            await UseControl();
+        }
         if (compilableProtcols.Count == 1)
         {
             Compile(compilableProtcols[0]);
@@ -92,12 +96,18 @@ public partial class Player : Node
         } else if (compilableProtcols.Count > 1)
         {
             PromptManager.PromptAction([PromptManager.Prompt.Compile], compilableProtcols);
+
+            Response compileResponse = await WaitForResponse();
+
+            Compile(compileResponse.protocol);
+            EndTurn();
+            return;
         }
 
         // Refresh if hand is empty:
         if (hand.Count == 0)
         {
-            Refresh();
+            await Refresh();
             EndTurn();
             return;
         }
@@ -114,7 +124,7 @@ public partial class Player : Node
 
         if (response.type == PromptManager.Prompt.Refresh)
         {
-            Refresh();
+            await Refresh();
         }
 
         EndTurn();
@@ -128,8 +138,28 @@ public partial class Player : Node
         RpcId(oppId, nameof(StartTurn));
     }
 
-    public void Refresh()
+    public async Task UseControl()
     {
+        hasControl = false;
+        Game.instance.control.OffsetTop = Constants.CONTROL_TOP;
+        Game.instance.control.OffsetBottom = Constants.CONTROL_BOTTOM;
+        RpcId(oppId, nameof(OppUseControl));
+
+        PromptManager.PromptAction([PromptManager.Prompt.Control]);
+
+        Response response = await WaitForResponse();
+
+
+    }
+
+    public async Task Refresh()
+    {
+        if (hasControl)
+        {
+            GD.Print("Using control");
+            await UseControl();
+        }
+
         Draw(5 - hand.Count);
     }
 
@@ -226,6 +256,13 @@ public partial class Player : Node
         hasControl = false;
         Game.instance.control.OffsetTop = Constants.CONTROL_OPP_TOP;
         Game.instance.control.OffsetBottom = Constants.CONTROL_OPP_BOTTOM;
+    }
+
+    [Rpc(MultiplayerApi.RpcMode.AnyPeer)]
+    public void OppUseControl()
+    {
+        Game.instance.control.OffsetTop = Constants.CONTROL_TOP;
+        Game.instance.control.OffsetBottom = Constants.CONTROL_BOTTOM;
     }
 
     public async Task<Response> WaitForResponse()

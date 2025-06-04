@@ -6,7 +6,7 @@ using System.Linq;
 
 public static class PromptManager
 {
-    public enum Prompt { Play, Refresh, Compile };
+    public enum Prompt { Play, Refresh, Compile, Control };
     public static Response response = null;
 
     static Prompt[] currPrompts = [];
@@ -15,7 +15,10 @@ public static class PromptManager
     public static void Init()
     {
         Game.instance.mousePosition.CardPlaced += OnPlay;
+        Game.instance.mousePosition.ProtocolSwapped += OnSwap;
+        Game.instance.endActionButton.Pressed += OnEndAction;
         Game.instance.refreshButton.Pressed += OnRefresh;
+        Game.instance.resetControlButton.Pressed += OnResetControl;
         foreach (Protocol p in Game.instance.GetProtocols(true))
         {
             p.OnClick += OnCompile;
@@ -24,10 +27,20 @@ public static class PromptManager
 
     public static void PromptAction(Prompt[] prompts)
     {
-        PromptAction(prompts, new List<Card>());
+        PromptAction(prompts, new List<Card>(), new List<Protocol>());
     }
 
     public static void PromptAction(Prompt[] prompts, List<Card> cards)
+    {
+        PromptAction(prompts, cards, new List<Protocol>());
+    }
+
+    public static void PromptAction(Prompt[] prompts, List<Protocol> protocols)
+    {
+        PromptAction(prompts, new List<Card>(), protocols);
+    }
+
+    public static void PromptAction(Prompt[] prompts, List<Card> cards, List<Protocol> protocols)
     {
         List<Button> buttons = new List<Button>();
         currPrompts = prompts;
@@ -41,14 +54,12 @@ public static class PromptManager
             buttons.Add(Game.instance.refreshButton);
         }
 
+        if (prompts.Contains(Prompt.Control))
+        {
+            MousePosition.SetSelectedProtocols(protocols);
+        }
+
         SetPrompt(buttons.ToArray());
-    }
-
-    public static void PromptAction(Prompt[] prompts, List<Protocol> protocols)
-    {
-        currPrompts = prompts;
-        selectableProtocols = protocols;
-
         SetPrompt(protocols.ToArray());
     }
 
@@ -87,6 +98,15 @@ public static class PromptManager
         }
     }
 
+    public static void OnEndAction()
+    {
+        if (currPrompts.Contains(Prompt.Control))
+        {
+            response = new Response(Prompt.Control);
+            PromptAction([]);
+        }
+    }
+
     public static void OnRefresh()
     {
         if (currPrompts.Contains(Prompt.Refresh))
@@ -96,12 +116,35 @@ public static class PromptManager
         }
     }
 
+    public static void OnResetControl()
+    {
+        if (currPrompts.Contains(Prompt.Control))
+        {
+            GD.Print("Finish this later");
+        }
+    }
+
     public static void OnCompile(Protocol protocol)
     {
         if (currPrompts.Contains(Prompt.Compile) && selectableProtocols.Contains(protocol))
         {
             response = new Response(protocol, Prompt.Compile);
             PromptAction([]);
+        }
+    }
+
+    public static void OnSwap(Protocol protocol)
+    {
+        if (currPrompts.Contains(Prompt.Control))
+        {
+            if (Game.instance.IsLocal(protocol))
+            {
+                MousePosition.SetSelectedProtocols(Game.instance.GetProtocols(true));
+            } 
+            else
+            {
+                MousePosition.SetSelectedProtocols(Game.instance.GetProtocols(false));
+            }
         }
     }
 }

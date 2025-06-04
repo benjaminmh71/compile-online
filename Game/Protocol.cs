@@ -42,6 +42,18 @@ public partial class Protocol : Control
         }
     }
 
+    public void HideProtocol()
+    {
+        GetNode<Control>("Panel").Visible = false;
+        GetNode<Control>("TextContainer").Visible = false;
+    }
+
+    public void UnHideProtocol()
+    {
+        GetNode<Control>("Panel").Visible = true;
+        GetNode<Control>("TextContainer").Visible = true;
+    }
+
     public void AddCard(Card card)
     {
         Control cardContainer = GetNode<Control>("Cards");

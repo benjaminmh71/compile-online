@@ -15,7 +15,9 @@ public partial class Game : Control
     public Panel control;
     public VBoxContainer leftUI;
     public Label promptLabel;
+    public Button endActionButton;
     public Button refreshButton;
+    public Button resetControlButton;
     public MousePosition mousePosition;
     bool host;
 
@@ -31,7 +33,9 @@ public partial class Game : Control
         control = GetNode<Panel>("Control");
         leftUI = GetNode<VBoxContainer>("LeftUI");
         promptLabel = leftUI.GetNode<Label>("PromptLabel");
+        endActionButton = leftUI.GetNode<Button>("EndActionButton");
         refreshButton = leftUI.GetNode<Button>("RefreshButton");
+        resetControlButton = leftUI.GetNode<Button>("ResetControlButton");
         mousePosition = GetNode<MousePosition>("MousePosition");
 
         for (int i = 0; i < 3; i++)
@@ -123,5 +127,10 @@ public partial class Game : Control
             }
         }
         return null;
+    }
+
+    public bool IsLocal(Protocol p)
+    {
+        return localProtocolsContainer.GetChildren().Contains(p);
     }
 }
