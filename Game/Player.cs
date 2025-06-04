@@ -91,7 +91,7 @@ public partial class Player : Node
         }
         if (compilableProtcols.Count == 1)
         {
-            Compile(compilableProtcols[0]);
+            await Compile(compilableProtcols[0]);
             EndTurn();
             return;
         } else if (compilableProtcols.Count > 1)
@@ -100,7 +100,7 @@ public partial class Player : Node
 
             Response compileResponse = await WaitForResponse();
 
-            Compile(compileResponse.protocol);
+            await Compile(compileResponse.protocol);
             EndTurn();
             return;
         }
@@ -164,7 +164,7 @@ public partial class Player : Node
         Draw(5 - hand.Count);
     }
 
-    public void Compile(Protocol protocol)
+    public async Task Compile(Protocol protocol)
     {
         // TODO: On compile effects (namely Speed 2)
         foreach (Card c in protocol.cards)
@@ -180,6 +180,18 @@ public partial class Player : Node
         protocol.compiled = true;
         protocol.Render();
         RpcId(oppId, nameof(OppCompile), Game.instance.GetProtocols(true).FindIndex((Protocol p) => p == protocol));
+
+        int compiledProtocols = 0;
+        foreach (Protocol p in Game.instance.GetProtocols(true))
+        {
+            if (p.compiled) compiledProtocols++;
+        }
+        if (compiledProtocols >= 1) // TESTING PURPOSES, CHANGE THIS
+        {
+            Game.instance.victoryPanel.Visible = true;
+            RpcId(oppId, nameof(OppLose));
+            await WaitForResponse();
+        }
     }
 
     public void Play(Protocol protocol, Card card)
@@ -274,6 +286,12 @@ public partial class Player : Node
     {
         Game.instance.control.OffsetTop = Constants.CONTROL_TOP;
         Game.instance.control.OffsetBottom = Constants.CONTROL_BOTTOM;
+    }
+
+    [Rpc(MultiplayerApi.RpcMode.AnyPeer)]
+    public void OppLose()
+    {
+        Game.instance.losePanel.Visible = true;
     }
 
     public async Task<Response> WaitForResponse()

@@ -99,11 +99,8 @@ public partial class Lobby : Control
         listRoom.creatorId = id;
         listRoom.GetNode<Button>("JoinButton").Pressed += () => {
             room.player2Id = Multiplayer.GetUniqueId();
-            JoinGame(id, Multiplayer.GetUniqueId());
-            RpcId(id, nameof(JoinGame), id, Multiplayer.GetUniqueId());
             Rpc(nameof(DeleteRoom), id);
-            StartGame();
-            RpcId(id, nameof(StartGame));
+            ClientJoinGame(id, Multiplayer.GetUniqueId());
         };
     }
 
@@ -128,16 +125,35 @@ public partial class Lobby : Control
     }
 
     [Rpc(MultiplayerApi.RpcMode.AnyPeer, CallLocal = false)]
-    private void JoinGame(int p1Id, int p2Id)
+    private void ClientJoinGame(int p1Id, int p2Id)
     {
         GetTree().Root.AddChild(game);
         GD.Print((p1Id == Multiplayer.GetUniqueId()) ? "Player 1: " + p1Id.ToString() + " " + p2Id.ToString() :
             "Player 2: " + p1Id.ToString() + " " + p2Id.ToString());
         game.Init(p1Id, p2Id, p1Id == Multiplayer.GetUniqueId());
+        RpcId(p1Id, nameof(HostJoinGame), p1Id, p2Id);
     }
 
     [Rpc(MultiplayerApi.RpcMode.AnyPeer, CallLocal = false)]
-    private void StartGame()
+    private void HostJoinGame(int p1Id, int p2Id)
+    {
+        GetTree().Root.AddChild(game);
+        GD.Print((p1Id == Multiplayer.GetUniqueId()) ? "Player 1: " + p1Id.ToString() + " " + p2Id.ToString() :
+            "Player 2: " + p1Id.ToString() + " " + p2Id.ToString());
+        game.Init(p1Id, p2Id, p1Id == Multiplayer.GetUniqueId());
+        RpcId(p2Id, nameof(ClientStartGame), p1Id);
+    }
+
+    [Rpc(MultiplayerApi.RpcMode.AnyPeer, CallLocal = false)]
+    private void ClientStartGame(int hostId)
+    {
+        game.Start();
+        QueueFree();
+        RpcId(hostId, nameof(HostStartGame));
+    }
+
+    [Rpc(MultiplayerApi.RpcMode.AnyPeer, CallLocal = false)]
+    private void HostStartGame()
     {
         game.Start();
         QueueFree();

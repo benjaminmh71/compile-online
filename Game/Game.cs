@@ -18,6 +18,8 @@ public partial class Game : Control
     public Button endActionButton;
     public Button refreshButton;
     public Button resetControlButton;
+    public PanelContainer victoryPanel;
+    public PanelContainer losePanel;
     public MousePosition mousePosition;
     bool host;
 
@@ -36,6 +38,8 @@ public partial class Game : Control
         endActionButton = leftUI.GetNode<Button>("EndActionButton");
         refreshButton = leftUI.GetNode<Button>("RefreshButton");
         resetControlButton = leftUI.GetNode<Button>("ResetControlButton");
+        victoryPanel = GetNode<PanelContainer>("VictoryPanel");
+        losePanel = GetNode<PanelContainer>("LosePanel");
         mousePosition = GetNode<MousePosition>("MousePosition");
 
         for (int i = 0; i < 3; i++)
@@ -61,6 +65,7 @@ public partial class Game : Control
         {
             localPlayer = new Player(player2Id, player1Id);
         }
+        localPlayer.Name = "Player";
 
         AddChild(localPlayer);
     }
