@@ -168,16 +168,15 @@ public partial class Player : Node
     public async Task Compile(Protocol protocol)
     {
         // TODO: On compile effects (namely Speed 2)
-        foreach (Card c in protocol.cards)
+        for (int i = protocol.cards.Count - 1; i >= 0; i--)
         {
-            SendToDiscard(c);
+            SendToDiscard(protocol.cards[i]);
         }
-        protocol.cards.Clear();
-        foreach (Card c in Game.instance.GetOpposingProtocol(protocol).cards)
+        Protocol oppProtocol = Game.instance.GetOpposingProtocol(protocol);
+        for (int i = oppProtocol.cards.Count - 1; i >= 0; i--)
         {
-            SendToDiscard(c);
+            SendToDiscard(oppProtocol.cards[i]);
         }
-        Game.instance.GetOpposingProtocol(protocol).cards.Clear();
         protocol.compiled = true;
         protocol.Render();
         RpcId(oppId, nameof(OppCompile), Game.instance.GetProtocols(true).FindIndex((Protocol p) => p == protocol));
@@ -223,17 +222,38 @@ public partial class Player : Node
 
     public void Draw()
     {
-        Card card = deck[0] as Card;
+        //GD.Print(deck.Count);
+        if (deck.Count == 0) // Shuffle in discard
+        {
+            if (discard.Count == 0) return;
+            while (discard.Count > 0)
+            {
+                Card c = discard[Utility.random.RandiRange(0, discard.Count - 1)];
+                discard.Remove(c);
+                deck.Add(c);
+            }
+            Game.instance.localDeckTop.placeholder = false;
+            Game.instance.localDiscardTop.placeholder = true;
+            Game.instance.localDeckTop.Render();
+            Game.instance.localDiscardTop.Render();
+        }
+        if (deck.Count == 1) // Deck has no more cards
+        {
+            Game.instance.localDeckTop.placeholder = true;
+            Game.instance.localDeckTop.Render();
+        }
+        Card card = deck[0];
         deck.Remove(card);
         hand.Add(card);
         Game.instance.handCardsContainer.AddChild(card);
-        RpcId(oppId, nameof(OppDraw));
+        RpcId(oppId, nameof(OppDraw), deck.Count);
     }
 
     public void SendToDiscard(Card card)
     {
         var cardLocation = Game.instance.GetCardLocation(card);
         card.GetParent().RemoveChild(card);
+        Game.instance.GetProtocols(cardLocation.local)[cardLocation.protocolIndex].cards.Remove(card);
         if (cardLocation.local)
         {
             discard.Add(card);
@@ -254,16 +274,6 @@ public partial class Player : Node
     public void OppCompile(int protocolIndex)
     {
         Protocol protocol = Game.instance.GetProtocols(false)[protocolIndex];
-        foreach (Card c in protocol.cards)
-        {
-            c.QueueFree();
-        }
-        protocol.cards.Clear();
-        foreach (Card c in Game.instance.GetOpposingProtocol(protocol).cards)
-        {
-            c.QueueFree();
-        }
-        Game.instance.GetOpposingProtocol(protocol).cards.Clear();
         protocol.compiled = true;
         protocol.Render();
     }
@@ -279,8 +289,20 @@ public partial class Player : Node
     }
 
     [Rpc(MultiplayerApi.RpcMode.AnyPeer)]
-    public void OppDraw()
+    public void OppDraw(int deckCount)
     {
+        if (deckCount == 0) // Deck has no more cards
+        {            
+            Game.instance.oppDeckTop.placeholder = true;
+            Game.instance.oppDiscardTop.placeholder = true;
+            Game.instance.oppDeckTop.Render();
+            Game.instance.oppDiscardTop.Render();
+        }
+        else
+        {
+            Game.instance.oppDeckTop.placeholder = false;
+            Game.instance.oppDeckTop.Render();
+        }
         PackedScene cardScene = GD.Load("res://Game/Card.tscn") as PackedScene;
         Card card = cardScene.Instantiate<Card>();
         card.info = new CardInfo();
@@ -319,7 +341,9 @@ public partial class Player : Node
     [Rpc(MultiplayerApi.RpcMode.AnyPeer)]
     public void OppSendToDiscard(bool local, int protocolIndex, int cardIndex)
     {
+        Protocol protocol = Game.instance.GetProtocols(false)[protocolIndex];
         Card card = Game.instance.FindCard(local, protocolIndex, cardIndex);
+        protocol.cards.Remove(card);
         card.QueueFree();
         if (local)
         {

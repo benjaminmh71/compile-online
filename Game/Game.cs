@@ -13,7 +13,9 @@ public partial class Game : Control
     public HBoxContainer oppCardsContainer;
     public HBoxContainer localProtocolsContainer;
     public HBoxContainer oppProtocolsContainer;
+    public Card localDeckTop;
     public Card localDiscardTop;
+    public Card oppDeckTop;
     public Card oppDiscardTop;
     public Panel control;
     public VBoxContainer leftUI;
@@ -60,7 +62,7 @@ public partial class Game : Control
         }
 
         // Initialize deck/discard:
-        Card localDeckTop = GD.Load<PackedScene>("res://Game/Card.tscn").Instantiate<Card>();
+        localDeckTop = GD.Load<PackedScene>("res://Game/Card.tscn").Instantiate<Card>();
         localDeckTop.flipped = true;
         localDeckTop.info = new CardInfo();
         handCardsContainer.AddChild(localDeckTop);
@@ -71,7 +73,7 @@ public partial class Game : Control
         Control localSeperator = new Control();
         handCardsContainer.AddChild(localSeperator);
 
-        Card oppDeckTop = GD.Load<PackedScene>("res://Game/Card.tscn").Instantiate<Card>();
+        oppDeckTop = GD.Load<PackedScene>("res://Game/Card.tscn").Instantiate<Card>();
         oppDeckTop.flipped = true;
         oppDeckTop.info = new CardInfo();
         oppCardsContainer.AddChild(oppDeckTop);
