@@ -3,6 +3,7 @@ using Godot;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 
 public partial class Game : Control
 {
@@ -12,6 +13,8 @@ public partial class Game : Control
     public HBoxContainer oppCardsContainer;
     public HBoxContainer localProtocolsContainer;
     public HBoxContainer oppProtocolsContainer;
+    public Card localDiscardTop;
+    public Card oppDiscardTop;
     public Panel control;
     public VBoxContainer leftUI;
     public Label promptLabel;
@@ -56,11 +59,12 @@ public partial class Game : Control
             oppProtocolsContainer.AddChild(protocol);
         }
 
+        // Initialize deck/discard:
         Card localDeckTop = GD.Load<PackedScene>("res://Game/Card.tscn").Instantiate<Card>();
         localDeckTop.flipped = true;
         localDeckTop.info = new CardInfo();
         handCardsContainer.AddChild(localDeckTop);
-        Card localDiscardTop = GD.Load<PackedScene>("res://Game/Card.tscn").Instantiate<Card>();
+        localDiscardTop = GD.Load<PackedScene>("res://Game/Card.tscn").Instantiate<Card>();
         localDiscardTop.placeholder = true;
         localDiscardTop.info = new CardInfo();
         handCardsContainer.AddChild(localDiscardTop);
@@ -71,7 +75,7 @@ public partial class Game : Control
         oppDeckTop.flipped = true;
         oppDeckTop.info = new CardInfo();
         oppCardsContainer.AddChild(oppDeckTop);
-        Card oppDiscardTop = GD.Load<PackedScene>("res://Game/Card.tscn").Instantiate<Card>();
+        oppDiscardTop = GD.Load<PackedScene>("res://Game/Card.tscn").Instantiate<Card>();
         oppDiscardTop.placeholder = true;
         oppDiscardTop.info = new CardInfo();
         oppCardsContainer.AddChild(oppDiscardTop);
@@ -159,5 +163,26 @@ public partial class Game : Control
     public bool IsLocal(Protocol p)
     {
         return localProtocolsContainer.GetChildren().Contains(p);
+    }
+
+    public (bool local, int protocolIndex, int cardIndex) GetCardLocation(Card c)
+    {
+        for (int i = 0; i < GetProtocols(true).Count; i++)
+        {
+            Protocol p = GetProtocols(true)[i];
+            if (p.cards.Contains(c)) return (true, i, p.cards.IndexOf(c));
+        }
+        for (int i = 0; i < GetProtocols(false).Count; i++)
+        {
+            Protocol p = GetProtocols(false)[i];
+            if (p.cards.Contains(c)) return (false, i, p.cards.IndexOf(c));
+        }
+        throw new Exception("Card not found");
+    }
+
+    public Card FindCard(bool local, int protocolIndex, int cardIndex)
+    {
+        List<Protocol> protocols = GetProtocols(!local);
+        return protocols[protocolIndex].cards[cardIndex];
     }
 }

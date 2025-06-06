@@ -11,6 +11,7 @@ public partial class Player : Node
     public int id;
     public List<Card> deck = new List<Card>();
     public List<Card> hand = new List<Card>();
+    public List<Card> discard = new List<Card>();
     List<Card> empty = new List<Card>();
     int oppId;
     int nOppCards = 0;
@@ -169,12 +170,12 @@ public partial class Player : Node
         // TODO: On compile effects (namely Speed 2)
         foreach (Card c in protocol.cards)
         {
-            c.QueueFree();
+            SendToDiscard(c);
         }
         protocol.cards.Clear();
         foreach (Card c in Game.instance.GetOpposingProtocol(protocol).cards)
         {
-            c.QueueFree();
+            SendToDiscard(c);
         }
         Game.instance.GetOpposingProtocol(protocol).cards.Clear();
         protocol.compiled = true;
@@ -186,7 +187,7 @@ public partial class Player : Node
         {
             if (p.compiled) compiledProtocols++;
         }
-        if (compiledProtocols >= 1) // TESTING PURPOSES, CHANGE THIS
+        if (compiledProtocols >= 3)
         {
             Game.instance.victoryPanel.Visible = true;
             RpcId(oppId, nameof(OppLose));
@@ -227,6 +228,26 @@ public partial class Player : Node
         hand.Add(card);
         Game.instance.handCardsContainer.AddChild(card);
         RpcId(oppId, nameof(OppDraw));
+    }
+
+    public void SendToDiscard(Card card)
+    {
+        var cardLocation = Game.instance.GetCardLocation(card);
+        card.GetParent().RemoveChild(card);
+        if (cardLocation.local)
+        {
+            discard.Add(card);
+            Game.instance.localDiscardTop.info = card.info;
+            Game.instance.localDiscardTop.placeholder = false;
+            Game.instance.localDiscardTop.Render();
+        } else
+        {
+            Game.instance.oppDiscardTop.info = card.info;
+            Game.instance.oppDiscardTop.placeholder = false;
+            Game.instance.oppDiscardTop.Render();
+        }
+        RpcId(oppId, nameof(OppSendToDiscard), 
+            cardLocation.local, cardLocation.protocolIndex, cardLocation.cardIndex);
     }
 
     [Rpc(MultiplayerApi.RpcMode.AnyPeer)]
@@ -270,7 +291,8 @@ public partial class Player : Node
     [Rpc(MultiplayerApi.RpcMode.AnyPeer)]
     public void OppLoseCard()
     {
-        Game.instance.oppCardsContainer.RemoveChild(Game.instance.oppCardsContainer.GetChild(0));
+        HBoxContainer container = Game.instance.oppCardsContainer;
+        container.RemoveChild(container.GetChild(container.GetChildren().Count - 1));
     }
 
     [Rpc(MultiplayerApi.RpcMode.AnyPeer)]
@@ -292,6 +314,24 @@ public partial class Player : Node
     public void OppLose()
     {
         Game.instance.losePanel.Visible = true;
+    }
+
+    [Rpc(MultiplayerApi.RpcMode.AnyPeer)]
+    public void OppSendToDiscard(bool local, int protocolIndex, int cardIndex)
+    {
+        Card card = Game.instance.FindCard(local, protocolIndex, cardIndex);
+        card.QueueFree();
+        if (local)
+        {
+            Game.instance.oppDiscardTop.info = card.info;
+            Game.instance.oppDiscardTop.placeholder = false;
+            Game.instance.oppDiscardTop.Render();
+        } else
+        {
+            Game.instance.localDiscardTop.info = card.info;
+            Game.instance.localDiscardTop.placeholder = false;
+            Game.instance.localDiscardTop.Render();
+        }
     }
 
     public async Task<Response> WaitForResponse()

@@ -2,13 +2,14 @@ using CompileOnline.Game;
 using Godot;
 using System;
 using System.Collections;
+using System.Collections.Generic;
 
 public partial class Protocol : Control
 {
     [Signal]
     public delegate void OnClickEventHandler(Protocol protocol);
 
-    public ArrayList cards = new ArrayList();
+    public List<Card> cards = new List<Card>();
     public bool compiled = false;
 
     public override void _Ready()
