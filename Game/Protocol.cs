@@ -9,6 +9,8 @@ public partial class Protocol : Control
     [Signal]
     public delegate void OnClickEventHandler(Protocol protocol);
 
+    public ProtocolInfo info = null;
+
     public List<Card> cards = new List<Card>();
     public bool compiled = false;
 
@@ -33,7 +35,7 @@ public partial class Protocol : Control
 
     public void Render()
     {
-        GetNode("TextContainer").GetNode<Label>("Name").Text = "Apathy";
+        GetNode("TextContainer").GetNode<Label>("Name").Text = info.name;
         if (compiled)
         {
             GetNode("TextContainer").GetNode<Label>("Compiled").Visible = true;

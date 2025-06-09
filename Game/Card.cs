@@ -51,4 +51,10 @@ public partial class Card : Control
             GetNode<Label>("BottomText").Text = info.bottomText;
         }
     }
+
+    public void SetCardInfo(CardInfo _info)
+    {
+        info = _info;
+        info.card = this;
+    }
 }

@@ -47,16 +47,19 @@ public partial class Game : Control
         losePanel = GetNode<PanelContainer>("LosePanel");
         mousePosition = GetNode<MousePosition>("MousePosition");
 
-        for (int i = 0; i < 3; i++)
+        String[] protocolNames = new String[3]{ "Apathy", "Apathy", "Apathy" };
+        foreach (String name in protocolNames)
         {
             PackedScene protocolScene = GD.Load("res://Game/Protocol.tscn") as PackedScene;
             Protocol protocol = protocolScene.Instantiate<Protocol>();
+            protocol.info = Cardlist.protocols[name];
             localProtocolsContainer.AddChild(protocol);
         }
-        for (int i = 0; i < 3; i++)
+        foreach (String name in protocolNames)
         {
             PackedScene protocolScene = GD.Load("res://Game/Protocol.tscn") as PackedScene;
             Protocol protocol = protocolScene.Instantiate<Protocol>();
+            protocol.info = Cardlist.protocols[name];
             protocol.Rotation = (float)Math.PI;
             oppProtocolsContainer.AddChild(protocol);
         }
@@ -64,22 +67,22 @@ public partial class Game : Control
         // Initialize deck/discard:
         localDeckTop = GD.Load<PackedScene>("res://Game/Card.tscn").Instantiate<Card>();
         localDeckTop.flipped = true;
-        localDeckTop.info = new CardInfo();
+        localDeckTop.SetCardInfo(new CardInfo("Apathy", 5));
         handCardsContainer.AddChild(localDeckTop);
         localDiscardTop = GD.Load<PackedScene>("res://Game/Card.tscn").Instantiate<Card>();
         localDiscardTop.placeholder = true;
-        localDiscardTop.info = new CardInfo();
+        localDiscardTop.SetCardInfo(new CardInfo("Apathy", 5));
         handCardsContainer.AddChild(localDiscardTop);
         Control localSeperator = new Control();
         handCardsContainer.AddChild(localSeperator);
 
         oppDeckTop = GD.Load<PackedScene>("res://Game/Card.tscn").Instantiate<Card>();
         oppDeckTop.flipped = true;
-        oppDeckTop.info = new CardInfo();
+        oppDeckTop.SetCardInfo(new CardInfo("Apathy", 5));
         oppCardsContainer.AddChild(oppDeckTop);
         oppDiscardTop = GD.Load<PackedScene>("res://Game/Card.tscn").Instantiate<Card>();
         oppDiscardTop.placeholder = true;
-        oppDiscardTop.info = new CardInfo();
+        oppDiscardTop.SetCardInfo(new CardInfo("Apathy", 5));
         oppCardsContainer.AddChild(oppDiscardTop);
         Control oppSeperator = new Control();
         oppCardsContainer.AddChild(oppSeperator);

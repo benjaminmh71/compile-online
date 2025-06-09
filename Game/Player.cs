@@ -21,12 +21,15 @@ public partial class Player : Node
     {
         this.id = id;
         this.oppId = oppId;
-        for (int i = 0; i < 18; i++)
+        foreach (Protocol protocol in Game.instance.GetProtocols(true))
         {
-            PackedScene cardScene = GD.Load("res://Game/Card.tscn") as PackedScene;
-            Card card = cardScene.Instantiate<Card>();
-            card.info = new CardInfo();
-            deck.Add(card);
+            foreach (CardInfo cardInfo in protocol.info.cards)
+            {
+                PackedScene cardScene = GD.Load("res://Game/Card.tscn") as PackedScene;
+                Card card = cardScene.Instantiate<Card>();
+                card.SetCardInfo(cardInfo);
+                deck.Add(card);
+            }
         }
     }
 
@@ -257,12 +260,12 @@ public partial class Player : Node
         if (cardLocation.local)
         {
             discard.Add(card);
-            Game.instance.localDiscardTop.info = card.info;
+            Game.instance.localDiscardTop.SetCardInfo(card.info);
             Game.instance.localDiscardTop.placeholder = false;
             Game.instance.localDiscardTop.Render();
         } else
         {
-            Game.instance.oppDiscardTop.info = card.info;
+            Game.instance.oppDiscardTop.SetCardInfo(card.info);
             Game.instance.oppDiscardTop.placeholder = false;
             Game.instance.oppDiscardTop.Render();
         }
@@ -283,7 +286,7 @@ public partial class Player : Node
     {
         PackedScene cardScene = GD.Load("res://Game/Card.tscn") as PackedScene;
         Card card = cardScene.Instantiate<Card>();
-        card.info = new CardInfo();
+        card.SetCardInfo(new CardInfo("Apathy", 5));
         List<Protocol> protocols = Game.instance.GetProtocols(false);
         protocols[protocolIndex].AddOppCard(card);
     }
@@ -305,7 +308,7 @@ public partial class Player : Node
         }
         PackedScene cardScene = GD.Load("res://Game/Card.tscn") as PackedScene;
         Card card = cardScene.Instantiate<Card>();
-        card.info = new CardInfo();
+        card.SetCardInfo(new CardInfo("Apathy", 5));
         card.flipped = true;
         Game.instance.oppCardsContainer.AddChild(card);
     }
@@ -347,12 +350,12 @@ public partial class Player : Node
         card.QueueFree();
         if (local)
         {
-            Game.instance.oppDiscardTop.info = card.info;
+            Game.instance.oppDiscardTop.SetCardInfo(card.info);
             Game.instance.oppDiscardTop.placeholder = false;
             Game.instance.oppDiscardTop.Render();
         } else
         {
-            Game.instance.localDiscardTop.info = card.info;
+            Game.instance.localDiscardTop.SetCardInfo(card.info);
             Game.instance.localDiscardTop.placeholder = false;
             Game.instance.localDiscardTop.Render();
         }
@@ -360,9 +363,10 @@ public partial class Player : Node
 
     public async Task<Response> WaitForResponse()
     {
-        while (PromptManager.response == null) // Test this
+        while (PromptManager.response == null) 
         {
             await ToSignal(GetTree().CreateTimer(0.1), "timeout");
+            // Thread sleep
         }
         Response response = PromptManager.response;
         PromptManager.response = null;
