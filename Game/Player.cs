@@ -34,6 +34,7 @@ public partial class Player : Node
                 deck.Add(card);
             }
         }
+        Utility.Shuffle(deck);
     }
 
     public void Init()
@@ -309,7 +310,6 @@ public partial class Player : Node
             Card card = cardScene.Instantiate<Card>();
             card.SetCardInfo(Cardlist.GetCard(cardName));
             oppDeck.Add(card);
-            GD.Print(card.info.GetCardName());
         }
     }
 
