@@ -134,7 +134,7 @@ public partial class Player : Node
 
         if (response.type == PromptManager.Prompt.Play)
         {
-            Play(response.protocol, response.card);
+            await Play(response.protocol, response.card);
         }
 
         if (response.type == PromptManager.Prompt.Refresh)
@@ -207,16 +207,15 @@ public partial class Player : Node
         }
     }
 
-    public void Play(Protocol protocol, Card card)
+    public async Task Play(Protocol protocol, Card card)
     {
         // TODO: playing face down
         hand.Remove(card);
         // TODO: On cover effects
         protocol.AddCard(card);
-        // TODO: Change "Apathy 5" to card's name, find that card
         RpcId(oppId, nameof(OppPlay), 
             card.info.GetCardName(), Game.instance.GetProtocols(true).FindIndex(p => p == protocol), false);
-        // TODO: On play effects
+        await card.info.OnPlay();
     }
 
     public void Draw(int n)
@@ -261,25 +260,60 @@ public partial class Player : Node
         RpcId(oppId, nameof(OppDraw));
     }
 
+    public async Task Discard(int n)
+    {
+        Game.instance.promptLabel.Text = "Discard " + n + (n > 1 ? " cards." : " card.");
+
+        for (int i = 0; i < n; i++)
+        {
+            await Discard();
+        }
+
+        Game.instance.promptLabel.Text = "It is your turn.";
+
+        // Todo: on discard
+    }
+
+    public async Task Discard()
+    {
+        PromptManager.PromptAction([PromptManager.Prompt.Select], hand);
+        Response response = await WaitForResponse();
+        SendToDiscard(response.card);
+    }
+
     public void SendToDiscard(Card card)
     {
-        var cardLocation = Game.instance.GetCardLocation(card);
-        card.GetParent().RemoveChild(card);
-        Game.instance.GetProtocols(cardLocation.local)[cardLocation.protocolIndex].cards.Remove(card);
-        if (cardLocation.local)
+        if (hand.Contains(card))
         {
+            hand.Remove(card);
+            card.GetParent().RemoveChild(card);
             discard.Add(card);
             Game.instance.localDiscardTop.SetCardInfo(card.info);
             Game.instance.localDiscardTop.placeholder = false;
             Game.instance.localDiscardTop.Render();
-        } else
-        {
-            Game.instance.oppDiscardTop.SetCardInfo(card.info);
-            Game.instance.oppDiscardTop.placeholder = false;
-            Game.instance.oppDiscardTop.Render();
+            RpcId(oppId, nameof(OppSendToDiscard), card.info.GetCardName());
         }
-        RpcId(oppId, nameof(OppSendToDiscard), 
-            cardLocation.local, cardLocation.protocolIndex, cardLocation.cardIndex);
+        else
+        {
+            var cardLocation = Game.instance.GetCardLocation(card);
+            card.GetParent().RemoveChild(card);
+            Game.instance.GetProtocols(cardLocation.local)[cardLocation.protocolIndex].cards.Remove(card);
+            if (cardLocation.local)
+            {
+                discard.Add(card);
+                Game.instance.localDiscardTop.SetCardInfo(card.info);
+                Game.instance.localDiscardTop.placeholder = false;
+                Game.instance.localDiscardTop.Render();
+            }
+            else
+            {
+                Game.instance.oppDiscardTop.SetCardInfo(card.info);
+                Game.instance.oppDiscardTop.placeholder = false;
+                Game.instance.oppDiscardTop.Render();
+            }
+            RpcId(oppId, nameof(OppSendToDiscard),
+                cardLocation.local, cardLocation.protocolIndex, cardLocation.cardIndex);
+        }
     }
 
     [Rpc(MultiplayerApi.RpcMode.AnyPeer)]
@@ -354,6 +388,16 @@ public partial class Player : Node
     public void OppLose()
     {
         Game.instance.losePanel.Visible = true;
+    }
+
+    [Rpc(MultiplayerApi.RpcMode.AnyPeer)]
+    public void OppSendToDiscard(String cardName)
+    {
+        Card card = oppHand.Find((Card c) => c.info.GetCardName() == cardName);
+        card.QueueFree();
+        Game.instance.oppDiscardTop.SetCardInfo(card.info);
+        Game.instance.oppDiscardTop.placeholder = false;
+        Game.instance.oppDiscardTop.Render();
     }
 
     [Rpc(MultiplayerApi.RpcMode.AnyPeer)]

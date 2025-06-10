@@ -6,7 +6,7 @@ using System.Linq;
 
 public static class PromptManager
 {
-    public enum Prompt { Play, Refresh, Compile, Control };
+    public enum Prompt { Play, Refresh, Compile, Control, Select };
     public static Response response = null;
 
     static Prompt[] currPrompts = [];
@@ -14,6 +14,7 @@ public static class PromptManager
 
     public static void Init()
     {
+        Game.instance.mousePosition.CardClicked += OnClick;
         Game.instance.mousePosition.CardPlaced += OnPlay;
         Game.instance.mousePosition.ProtocolSwapped += OnSwap;
         Game.instance.endActionButton.Pressed += OnEndAction;
@@ -44,6 +45,7 @@ public static class PromptManager
     {
         List<Button> buttons = new List<Button>();
         currPrompts = prompts;
+        MousePosition.ResetSelections();
         if (prompts.Contains(Prompt.Play))
         {
             MousePosition.SetSelectedCards(cards);
@@ -57,6 +59,11 @@ public static class PromptManager
         if (prompts.Contains(Prompt.Control))
         {
             MousePosition.SetSelectedProtocols(protocols);
+        }
+
+        if (prompts.Contains(Prompt.Select))
+        {
+            MousePosition.SetClickableCards(cards);
         }
 
         SetPrompt(buttons.ToArray());
@@ -86,6 +93,15 @@ public static class PromptManager
         foreach (Protocol p in protocols)
         {
             p.GetNode<Control>("SelectionIndicator").Visible = true;
+        }
+    }
+
+    public static void OnClick(Card card)
+    {
+        if (currPrompts.Contains(Prompt.Select))
+        {
+            response = new Response(card, Prompt.Select);
+            PromptAction([]);
         }
     }
 

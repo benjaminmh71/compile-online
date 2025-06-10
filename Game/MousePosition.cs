@@ -7,6 +7,8 @@ using System.Collections.Generic;
 public partial class MousePosition : Control
 {
     [Signal]
+    public delegate void CardClickedEventHandler(Card card);
+    [Signal]
     public delegate void CardPlacedEventHandler(Protocol protocol, Card card);
     [Signal]
     public delegate void ProtocolSwappedEventHandler(Protocol protocol);
@@ -15,12 +17,27 @@ public partial class MousePosition : Control
     Card draggedCard = null;
     Protocol draggedProtocol = null;
     Protocol referencedProtocol = null;
+    static List<Card> clickableCards = new List<Card>();
     static List<Card> selectedCards = new List<Card>();
     static List<Protocol> selectedProtocols = new List<Protocol>();
 
     public override void _Process(double delta)
     {
         GlobalPosition = GetGlobalMousePosition();
+
+        if (Input.IsActionJustPressed("click"))
+        {
+            foreach (Card card in clickableCards)
+            {
+                if (GlobalPosition.X > card.GlobalPosition.X &&
+                GlobalPosition.X < card.GlobalPosition.X + Constants.CARD_WIDTH &&
+                GlobalPosition.Y > card.GlobalPosition.Y &&
+                GlobalPosition.Y < card.GlobalPosition.Y + Constants.CARD_HEIGHT)
+                {
+                    EmitSignal("CardClicked", card);
+                }
+            }
+        }
 
         if (Input.IsActionPressed("click") && !dragging)
         {
@@ -116,6 +133,11 @@ public partial class MousePosition : Control
         }
     }
 
+    public static void SetClickableCards(List<Card> cards)
+    {
+        clickableCards = cards;
+    }
+
     public static void SetSelectedCards(List<Card> cards)
     {
         selectedCards = cards;
@@ -124,5 +146,12 @@ public partial class MousePosition : Control
     public static void SetSelectedProtocols(List<Protocol> protocols)
     {
         selectedProtocols = protocols;
+    }
+
+    public static void ResetSelections()
+    {
+        clickableCards = new List<Card>();
+        selectedCards = new List<Card>();
+        selectedProtocols = new List<Protocol>();
     }
 }
