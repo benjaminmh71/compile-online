@@ -3,6 +3,7 @@ using Godot;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Dynamic;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -12,6 +13,8 @@ public partial class Player : Node
     public List<Card> deck = new List<Card>();
     public List<Card> hand = new List<Card>();
     public List<Card> discard = new List<Card>();
+    public List<Card> oppDeck = new List<Card>();
+    public List<Card> oppHand = new List<Card>();
     List<Card> empty = new List<Card>();
     int oppId;
     int nOppCards = 0;
@@ -31,6 +34,12 @@ public partial class Player : Node
                 deck.Add(card);
             }
         }
+    }
+
+    public void Init()
+    {
+        RpcId(oppId, nameof(OppSetDeck), deck.Select<Card, String>((Card c) => c.info.GetCardName()).ToArray());
+        Draw(5);
     }
 
     [Rpc(MultiplayerApi.RpcMode.AnyPeer)]
@@ -199,15 +208,13 @@ public partial class Player : Node
 
     public void Play(Protocol protocol, Card card)
     {
-        if (hand.Contains(card))
-        {
-            RpcId(oppId, nameof(OppLoseCard));
-        }
+        // TODO: playing face down
         hand.Remove(card);
         // TODO: On cover effects
         protocol.AddCard(card);
         // TODO: Change "Apathy 5" to card's name, find that card
-        RpcId(oppId, nameof(OppPlay), "Apathy 5", Game.instance.GetProtocols(true).FindIndex(p => p == protocol));
+        RpcId(oppId, nameof(OppPlay), 
+            card.info.GetCardName(), Game.instance.GetProtocols(true).FindIndex(p => p == protocol), false);
         // TODO: On play effects
     }
 
@@ -239,6 +246,7 @@ public partial class Player : Node
             Game.instance.localDiscardTop.placeholder = true;
             Game.instance.localDeckTop.Render();
             Game.instance.localDiscardTop.Render();
+            RpcId(oppId, nameof(OppSetDeck), deck.Select<Card, String>((Card c) => c.info.GetCardName()).ToArray());
         }
         if (deck.Count == 1) // Deck has no more cards
         {
@@ -249,7 +257,7 @@ public partial class Player : Node
         deck.Remove(card);
         hand.Add(card);
         Game.instance.handCardsContainer.AddChild(card);
-        RpcId(oppId, nameof(OppDraw), deck.Count);
+        RpcId(oppId, nameof(OppDraw));
     }
 
     public void SendToDiscard(Card card)
@@ -282,19 +290,33 @@ public partial class Player : Node
     }
 
     [Rpc(MultiplayerApi.RpcMode.AnyPeer)]
-    public void OppPlay(String cardName, int protocolIndex)
+    public void OppPlay(String cardName, int protocolIndex, bool flipped)
     {
-        PackedScene cardScene = GD.Load("res://Game/Card.tscn") as PackedScene;
-        Card card = cardScene.Instantiate<Card>();
-        card.SetCardInfo(new CardInfo("Apathy", 5));
+        Card card = oppHand.Find(handCard => handCard.info.GetCardName() == cardName);
+        oppHand.Remove(card);
+        card.flipped = flipped;
         List<Protocol> protocols = Game.instance.GetProtocols(false);
         protocols[protocolIndex].AddOppCard(card);
+        card.Render();
     }
 
     [Rpc(MultiplayerApi.RpcMode.AnyPeer)]
-    public void OppDraw(int deckCount)
+    public void OppSetDeck(String[] cards)
     {
-        if (deckCount == 0) // Deck has no more cards
+        foreach (String cardName in cards)
+        {
+            PackedScene cardScene = GD.Load("res://Game/Card.tscn") as PackedScene;
+            Card card = cardScene.Instantiate<Card>();
+            card.SetCardInfo(Cardlist.GetCard(cardName));
+            oppDeck.Add(card);
+            GD.Print(card.info.GetCardName());
+        }
+    }
+
+    [Rpc(MultiplayerApi.RpcMode.AnyPeer)]
+    public void OppDraw()
+    {
+        if (oppDeck.Count == 1) // Deck has no more cards
         {            
             Game.instance.oppDeckTop.placeholder = true;
             Game.instance.oppDiscardTop.placeholder = true;
@@ -306,18 +328,11 @@ public partial class Player : Node
             Game.instance.oppDeckTop.placeholder = false;
             Game.instance.oppDeckTop.Render();
         }
-        PackedScene cardScene = GD.Load("res://Game/Card.tscn") as PackedScene;
-        Card card = cardScene.Instantiate<Card>();
-        card.SetCardInfo(new CardInfo("Apathy", 5));
+        Card card = oppDeck[0];
+        oppDeck.Remove(card);
+        oppHand.Add(card);
         card.flipped = true;
         Game.instance.oppCardsContainer.AddChild(card);
-    }
-
-    [Rpc(MultiplayerApi.RpcMode.AnyPeer)]
-    public void OppLoseCard()
-    {
-        HBoxContainer container = Game.instance.oppCardsContainer;
-        container.RemoveChild(container.GetChild(container.GetChildren().Count - 1));
     }
 
     [Rpc(MultiplayerApi.RpcMode.AnyPeer)]
@@ -366,7 +381,6 @@ public partial class Player : Node
         while (PromptManager.response == null) 
         {
             await ToSignal(GetTree().CreateTimer(0.1), "timeout");
-            // Thread sleep
         }
         Response response = PromptManager.response;
         PromptManager.response = null;

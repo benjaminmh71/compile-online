@@ -4,6 +4,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography;
 
 public partial class Game : Control
 {
@@ -103,7 +104,7 @@ public partial class Game : Control
 
     public void Start()
     {
-        localPlayer.Draw(5);
+        localPlayer.Init();
         if (host)
         {
             if (GD.Randi() % 2 == 0)

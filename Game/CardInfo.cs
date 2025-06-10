@@ -1,5 +1,6 @@
 using Godot;
 using System;
+using System.Threading.Tasks;
 
 public partial class CardInfo : Node
 {
@@ -11,9 +12,16 @@ public partial class CardInfo : Node
 
     public Card card = null;
 
+    public Func<Task> OnPlay = async () => { GD.Print("Here"); };
+
     public CardInfo(String protocolName, int _value)
     {
         protocol = protocolName;
         value = _value;
+    }
+    
+    public String GetCardName()
+    {
+        return protocol + " " + value;
     }
 }

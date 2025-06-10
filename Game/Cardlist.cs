@@ -39,8 +39,20 @@ namespace CompileOnline.Game
             apathy.cards.Add(apathy4);
 
             CardInfo apathy5 = new CardInfo("Apathy", 5);
-            apathy5.middleText = "Discard a card";
+            apathy5.middleText = "Discard a card.";
             apathy.cards.Add(apathy5);
+        }
+
+        public static CardInfo GetCard(String name)
+        {
+            foreach (ProtocolInfo protocolinfo in protocols.Values)
+            {
+                foreach (CardInfo cardinfo in protocolinfo.cards)
+                {
+                    if (cardinfo.GetCardName() == name) return cardinfo;
+                }
+            }
+            throw new Exception("Card not found");
         }
     }
 }
