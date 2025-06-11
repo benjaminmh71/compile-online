@@ -171,6 +171,16 @@ public partial class Game : Control
         return localProtocolsContainer.GetChildren().Contains(p);
     }
 
+    public bool IsLocal(Card c)
+    {
+        if (localPlayer.hand.Contains(c)) return true;
+        foreach (Protocol p in GetProtocols(true))
+        {
+            if (p.cards.Contains(c)) return true;
+        }
+        return false;
+    }
+
     public (bool local, int protocolIndex, int cardIndex) GetCardLocation(Card c)
     {
         for (int i = 0; i < GetProtocols(true).Count; i++)

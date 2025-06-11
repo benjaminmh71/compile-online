@@ -29,10 +29,12 @@ public partial class MousePosition : Control
         {
             foreach (Card card in clickableCards)
             {
-                if (GlobalPosition.X > card.GlobalPosition.X &&
-                GlobalPosition.X < card.GlobalPosition.X + Constants.CARD_WIDTH &&
-                GlobalPosition.Y > card.GlobalPosition.Y &&
-                GlobalPosition.Y < card.GlobalPosition.Y + Constants.CARD_HEIGHT)
+                if (Geometry2D.IsPointInPolygon(GlobalPosition,
+                    [new Vector2(card.GlobalPosition.X, card.GlobalPosition.Y),
+                    new Vector2(card.GlobalPosition.X, card.GlobalPosition.Y + (Game.instance.IsLocal(card) ? 1 : -1) * Constants.CARD_HEIGHT),
+                    new Vector2(card.GlobalPosition.X + (Game.instance.IsLocal(card) ? 1 : -1) * Constants.CARD_WIDTH,
+                    card.GlobalPosition.Y + (Game.instance.IsLocal(card) ? 1 : -1) * Constants.CARD_HEIGHT),
+                    new Vector2(card.GlobalPosition.X + (Game.instance.IsLocal(card) ? 1 : -1) * Constants.CARD_WIDTH, card.GlobalPosition.Y)]))
                 {
                     EmitSignal("CardClicked", card);
                 }
@@ -45,10 +47,12 @@ public partial class MousePosition : Control
 
             foreach (Card card in selectedCards)
             {
-                if (GlobalPosition.X > card.GlobalPosition.X &&
-                GlobalPosition.X < card.GlobalPosition.X + Constants.CARD_WIDTH &&
-                GlobalPosition.Y > card.GlobalPosition.Y &&
-                GlobalPosition.Y < card.GlobalPosition.Y + Constants.CARD_HEIGHT)
+                if (Geometry2D.IsPointInPolygon(GlobalPosition, 
+                    [new Vector2(card.GlobalPosition.X, card.GlobalPosition.Y),
+                    new Vector2(card.GlobalPosition.X, card.GlobalPosition.Y + (card.Rotation == 0 ? 1 : -1) * Constants.CARD_HEIGHT),
+                    new Vector2(card.GlobalPosition.X + (card.Rotation == 0 ? 1 : -1) * Constants.CARD_WIDTH, 
+                    card.GlobalPosition.Y + (card.Rotation == 0 ? 1 : -1) * Constants.CARD_HEIGHT),
+                    new Vector2(card.GlobalPosition.X + (card.Rotation == 0 ? 1 : -1) * Constants.CARD_WIDTH, card.GlobalPosition.Y)]))
                 {
                     draggedCard = card;
                     card.GetParent().RemoveChild(card);

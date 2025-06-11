@@ -212,6 +212,10 @@ public partial class Player : Node
         // TODO: playing face down
         hand.Remove(card);
         // TODO: On cover effects
+        if (protocol.cards.Count > 0)
+        {
+            protocol.cards[protocol.cards.Count - 1].covered = true;
+        }
         protocol.AddCard(card);
         RpcId(oppId, nameof(OppPlay), 
             card.info.GetCardName(), Game.instance.GetProtocols(true).FindIndex(p => p == protocol), false);
@@ -262,6 +266,7 @@ public partial class Player : Node
 
     public async Task Discard(int n)
     {
+        String prevText = Game.instance.promptLabel.Text;
         Game.instance.promptLabel.Text = "Discard " + n + (n > 1 ? " cards." : " card.");
 
         for (int i = 0; i < n; i++)
@@ -269,7 +274,7 @@ public partial class Player : Node
             await Discard();
         }
 
-        Game.instance.promptLabel.Text = "It is your turn.";
+        Game.instance.promptLabel.Text = prevText;
 
         // Todo: on discard
     }
@@ -279,6 +284,19 @@ public partial class Player : Node
         PromptManager.PromptAction([PromptManager.Prompt.Select], hand);
         Response response = await WaitForResponse();
         SendToDiscard(response.card);
+    }
+
+    public async Task Flip(Card card)
+    {
+        card.flipped = !card.flipped;
+        card.Render();
+        if (!card.flipped && Game.instance.IsLocal(card))
+        {
+            await card.info.OnPlay();
+        }
+        var cardLocation = Game.instance.GetCardLocation(card);
+        RpcId(oppId, nameof(OppFlip), cardLocation.local, cardLocation.protocolIndex, cardLocation.cardIndex);
+        // TODO: Wait for opponent response (for flipped up actions)
     }
 
     public void SendToDiscard(Card card)
@@ -298,6 +316,7 @@ public partial class Player : Node
             var cardLocation = Game.instance.GetCardLocation(card);
             card.GetParent().RemoveChild(card);
             Game.instance.GetProtocols(cardLocation.local)[cardLocation.protocolIndex].cards.Remove(card);
+            card.Reset();
             if (cardLocation.local)
             {
                 discard.Add(card);
@@ -331,6 +350,10 @@ public partial class Player : Node
         oppHand.Remove(card);
         card.flipped = flipped;
         List<Protocol> protocols = Game.instance.GetProtocols(false);
+        if (protocols[protocolIndex].cards.Count > 0)
+        {
+            protocols[protocolIndex].cards[protocols[protocolIndex].cards.Count - 1].covered = true;
+        }
         protocols[protocolIndex].AddOppCard(card);
         card.Render();
     }
@@ -388,6 +411,18 @@ public partial class Player : Node
     public void OppLose()
     {
         Game.instance.losePanel.Visible = true;
+    }
+
+    [Rpc(MultiplayerApi.RpcMode.AnyPeer)]
+    public async void OppFlip(bool local, int protocolIndex, int cardIndex)
+    {
+        Card card = Game.instance.FindCard(local, protocolIndex, cardIndex);
+        card.flipped = !card.flipped;
+        card.Render();
+        if (!card.flipped && Game.instance.IsLocal(card))
+        {
+            await card.info.OnPlay();
+        }
     }
 
     [Rpc(MultiplayerApi.RpcMode.AnyPeer)]
