@@ -56,7 +56,6 @@ public partial class Card : Control
     public void SetCardInfo(CardInfo _info)
     {
         info = _info;
-        info.card = this;
     }
 
     public void Reset()

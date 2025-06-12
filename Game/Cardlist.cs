@@ -25,11 +25,13 @@ public static class Cardlist
         CardInfo apathy2 = new CardInfo("Apathy", 2);
         apathy2.topText = "Ignore all middle commands in this line.";
         apathy2.bottomText = "When this card would be covered: first, flip this card.";
+        apathy2.passives = [CardInfo.Passive.NoMiddleCommands];
+        apathy2.OnCover = async (Card card) => { await Game.instance.localPlayer.Flip(card); };
         apathy.cards.Add(apathy2);
 
         CardInfo apathy3 = new CardInfo("Apathy", 3);
         apathy3.middleText = "Flip 1 of your opponent's face-up cards.";
-        apathy3.OnPlay = async () =>
+        apathy3.OnPlay = async (Card card) =>
         {
             List<Card> oppFaceUpCards = new List<Card>();
             foreach (Protocol p in Game.instance.GetProtocols(false))
@@ -53,7 +55,7 @@ public static class Cardlist
 
         CardInfo apathy4 = new CardInfo("Apathy", 4);
         apathy4.middleText = "You may flip one of your face-up covered cards.";
-        apathy4.OnPlay = async () =>
+        apathy4.OnPlay = async (Card card) =>
         {
             List<Card> coveredFaceUpCards = new List<Card>();
             foreach (Protocol p in Game.instance.GetProtocols(true))
@@ -74,7 +76,7 @@ public static class Cardlist
 
         CardInfo apathy5 = new CardInfo("Apathy", 5);
         apathy5.middleText = "Discard a card.";
-        apathy5.OnPlay = async () =>
+        apathy5.OnPlay = async (Card card) =>
         {
             if (Game.instance.localPlayer.hand.Count > 0)
             {

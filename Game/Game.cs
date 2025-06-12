@@ -109,9 +109,9 @@ public partial class Game : Control
         {
             if (GD.Randi() % 2 == 0)
             {
-#pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
+#pragma warning disable CS4014 // Async not awaited warning
                 localPlayer.StartTurn();
-#pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
+#pragma warning restore CS4014
             } else
             {
                 localPlayer.EndTurn();
@@ -200,5 +200,11 @@ public partial class Game : Control
     {
         List<Protocol> protocols = GetProtocols(!local);
         return protocols[protocolIndex].cards[cardIndex];
+    }
+
+    public int Line(Protocol protocol)
+    {
+        if (IsLocal(protocol)) return GetProtocols(true).FindIndex((Protocol p) => p == protocol);
+        else return GetProtocols(false).Count - 1 - GetProtocols(false).FindIndex((Protocol p) => p == protocol);
     }
 }

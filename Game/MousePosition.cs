@@ -47,12 +47,12 @@ public partial class MousePosition : Control
 
             foreach (Card card in selectedCards)
             {
-                if (Geometry2D.IsPointInPolygon(GlobalPosition, 
+                if (Geometry2D.IsPointInPolygon(GlobalPosition,
                     [new Vector2(card.GlobalPosition.X, card.GlobalPosition.Y),
-                    new Vector2(card.GlobalPosition.X, card.GlobalPosition.Y + (card.Rotation == 0 ? 1 : -1) * Constants.CARD_HEIGHT),
-                    new Vector2(card.GlobalPosition.X + (card.Rotation == 0 ? 1 : -1) * Constants.CARD_WIDTH, 
-                    card.GlobalPosition.Y + (card.Rotation == 0 ? 1 : -1) * Constants.CARD_HEIGHT),
-                    new Vector2(card.GlobalPosition.X + (card.Rotation == 0 ? 1 : -1) * Constants.CARD_WIDTH, card.GlobalPosition.Y)]))
+                    new Vector2(card.GlobalPosition.X, card.GlobalPosition.Y + (Game.instance.IsLocal(card) ? 1 : -1) * Constants.CARD_HEIGHT),
+                    new Vector2(card.GlobalPosition.X + (Game.instance.IsLocal(card) ? 1 : -1) * Constants.CARD_WIDTH,
+                    card.GlobalPosition.Y + (Game.instance.IsLocal(card) ? 1 : -1) * Constants.CARD_HEIGHT),
+                    new Vector2(card.GlobalPosition.X + (Game.instance.IsLocal(card) ? 1 : -1) * Constants.CARD_WIDTH, card.GlobalPosition.Y)]))
                 {
                     draggedCard = card;
                     card.GetParent().RemoveChild(card);
@@ -63,10 +63,12 @@ public partial class MousePosition : Control
 
             foreach (Protocol protocol in selectedProtocols)
             {
-                if (GlobalPosition.X > protocol.GlobalPosition.X &&
-                GlobalPosition.X < protocol.GlobalPosition.X + Constants.PROTOCOL_WIDTH &&
-                GlobalPosition.Y > protocol.GlobalPosition.Y &&
-                GlobalPosition.Y < protocol.GlobalPosition.Y + Constants.PROTOCOL_HEIGHT)
+                if (Geometry2D.IsPointInPolygon(GlobalPosition,
+                    [new Vector2(protocol.GlobalPosition.X, protocol.GlobalPosition.Y),
+                    new Vector2(protocol.GlobalPosition.X, protocol.GlobalPosition.Y + (Game.instance.IsLocal(protocol) ? 1 : -1) * Constants.CARD_HEIGHT),
+                    new Vector2(protocol.GlobalPosition.X + (Game.instance.IsLocal(protocol) ? 1 : -1) * Constants.CARD_WIDTH,
+                    protocol.GlobalPosition.Y + (Game.instance.IsLocal(protocol) ? 1 : -1) * Constants.CARD_HEIGHT),
+                    new Vector2(protocol.GlobalPosition.X + (Game.instance.IsLocal(protocol) ? 1 : -1) * Constants.CARD_WIDTH, protocol.GlobalPosition.Y)]))
                 {
                     Protocol copiedProtocol = protocol.Duplicate() as Protocol;
                     draggedProtocol = copiedProtocol;

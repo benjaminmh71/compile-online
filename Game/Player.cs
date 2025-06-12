@@ -9,12 +9,25 @@ using System.Threading.Tasks;
 
 public partial class Player : Node
 {
+    public struct PassiveLocation
+    {
+        public int line;
+        public bool local;
+
+        public PassiveLocation(int line, bool local)
+        {
+            this.line = line;
+            this.local = local;
+        }
+    }
     public int id;
     public List<Card> deck = new List<Card>();
     public List<Card> hand = new List<Card>();
     public List<Card> discard = new List<Card>();
     public List<Card> oppDeck = new List<Card>();
     public List<Card> oppHand = new List<Card>();
+    public Dictionary<CardInfo.Passive, PassiveLocation?> passives = 
+        new Dictionary<CardInfo.Passive, PassiveLocation?>();
     List<Card> empty = new List<Card>();
     int oppId;
     int nOppCards = 0;
@@ -24,6 +37,12 @@ public partial class Player : Node
     {
         this.id = id;
         this.oppId = oppId;
+
+        foreach (CardInfo.Passive passive in Enum.GetValues(typeof(CardInfo.Passive)))
+        {
+            passives[passive] = null;
+        }
+
         foreach (Protocol protocol in Game.instance.GetProtocols(true))
         {
             foreach (CardInfo cardInfo in protocol.info.cards)
@@ -211,15 +230,21 @@ public partial class Player : Node
     {
         // TODO: playing face down
         hand.Remove(card);
-        // TODO: On cover effects
         if (protocol.cards.Count > 0)
         {
+            await protocol.cards[protocol.cards.Count - 1].info.OnCover(protocol.cards[protocol.cards.Count - 1]);
             protocol.cards[protocol.cards.Count - 1].covered = true;
         }
         protocol.AddCard(card);
-        RpcId(oppId, nameof(OppPlay), 
+        foreach (CardInfo.Passive passive in card.info.passives)
+        {
+            passives[passive] = new PassiveLocation(Game.instance.Line(protocol), true);
+        }
+        RpcId(oppId, nameof(OppPlay),
             card.info.GetCardName(), Game.instance.GetProtocols(true).FindIndex(p => p == protocol), false);
-        await card.info.OnPlay();
+        if (passives[CardInfo.Passive.NoMiddleCommands] != null) GD.Print(passives[CardInfo.Passive.NoMiddleCommands].Value.line.ToString());
+        if (passives[CardInfo.Passive.NoMiddleCommands] == null || 
+            passives[CardInfo.Passive.NoMiddleCommands].Value.line != Game.instance.Line(protocol)) await card.info.OnPlay(card);
     }
 
     public void Draw(int n)
@@ -290,11 +315,25 @@ public partial class Player : Node
     {
         card.flipped = !card.flipped;
         card.Render();
-        if (!card.flipped && Game.instance.IsLocal(card))
-        {
-            await card.info.OnPlay();
-        }
         var cardLocation = Game.instance.GetCardLocation(card);
+        if (card.flipped)
+        {
+            foreach (CardInfo.Passive passive in card.info.passives)
+            {
+                passives[passive] = null;
+            }
+        }
+        if (!card.flipped)
+        {
+            foreach (CardInfo.Passive passive in card.info.passives)
+            {
+                passives[passive] = new PassiveLocation
+                    (Game.instance.Line(Game.instance.GetProtocols(cardLocation.local)[cardLocation.protocolIndex]), true);
+            }
+            if (cardLocation.local && (passives[CardInfo.Passive.NoMiddleCommands] == null ||
+                passives[CardInfo.Passive.NoMiddleCommands].Value.line !=
+                Game.instance.Line(Game.instance.GetProtocols(cardLocation.local)[cardLocation.protocolIndex]))) await card.info.OnPlay(card);
+        }
         RpcId(oppId, nameof(OppFlip), cardLocation.local, cardLocation.protocolIndex, cardLocation.cardIndex);
         // TODO: Wait for opponent response (for flipped up actions)
     }
@@ -317,6 +356,10 @@ public partial class Player : Node
             card.GetParent().RemoveChild(card);
             Game.instance.GetProtocols(cardLocation.local)[cardLocation.protocolIndex].cards.Remove(card);
             card.Reset();
+            foreach (CardInfo.Passive passive in card.info.passives)
+            {
+                passives[passive] = null;
+            }
             if (cardLocation.local)
             {
                 discard.Add(card);
@@ -353,6 +396,11 @@ public partial class Player : Node
         if (protocols[protocolIndex].cards.Count > 0)
         {
             protocols[protocolIndex].cards[protocols[protocolIndex].cards.Count - 1].covered = true;
+        }
+        foreach (CardInfo.Passive passive in card.info.passives)
+        {
+            passives[passive] = new PassiveLocation(Game.instance.Line(protocols[protocolIndex]), false);
+            GD.Print(passive);
         }
         protocols[protocolIndex].AddOppCard(card);
         card.Render();
@@ -419,9 +467,22 @@ public partial class Player : Node
         Card card = Game.instance.FindCard(local, protocolIndex, cardIndex);
         card.flipped = !card.flipped;
         card.Render();
-        if (!card.flipped && Game.instance.IsLocal(card))
+        if (card.flipped)
         {
-            await card.info.OnPlay();
+            foreach (CardInfo.Passive passive in card.info.passives)
+            {
+                passives[passive] = null;
+            }
+        }
+        if (!card.flipped)
+        {
+            foreach (CardInfo.Passive passive in card.info.passives)
+            {
+                passives[passive] = new PassiveLocation(Game.instance.Line(Game.instance.GetProtocols(local)[protocolIndex]), false);
+            }
+            if (local && (passives[CardInfo.Passive.NoMiddleCommands] == null || 
+                passives[CardInfo.Passive.NoMiddleCommands].Value.line 
+                != Game.instance.Line(Game.instance.GetProtocols(local)[protocolIndex]))) await card.info.OnPlay(card);
         }
     }
 
@@ -442,6 +503,10 @@ public partial class Player : Node
         Card card = Game.instance.FindCard(local, protocolIndex, cardIndex);
         protocol.cards.Remove(card);
         card.QueueFree();
+        foreach (CardInfo.Passive passive in card.info.passives)
+        {
+            passives[passive] = null;
+        }
         if (local)
         {
             Game.instance.oppDiscardTop.SetCardInfo(card.info);

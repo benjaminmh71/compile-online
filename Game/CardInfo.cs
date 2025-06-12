@@ -4,15 +4,19 @@ using System.Threading.Tasks;
 
 public partial class CardInfo : Node
 {
+    public enum Passive { NoMiddleCommands };
+
     public String protocol = "Apathy";
     public int value = 5;
     public String topText = "";
     public String middleText = "";
     public String bottomText = "";
+    public Passive[] passives = new Passive[0];
 
-    public Card card = null;
-
-    public Func<Task> OnPlay = async () => { GD.Print("Here"); };
+# pragma warning disable CS1998 // Warning for async without await
+    public Func<Card, Task> OnPlay = async (Card card) => { };
+    public Func<Card, Task> OnCover = async (Card card) => { };
+# pragma warning restore CS1998
 
     public CardInfo(String protocolName, int _value)
     {
