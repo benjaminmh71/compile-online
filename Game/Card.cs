@@ -58,6 +58,12 @@ public partial class Card : Control
         info = _info;
     }
 
+    public int GetValue()
+    {
+        if (flipped) return 2;
+        return info.value;
+    }
+
     public void Reset()
     {
         flipped = false;

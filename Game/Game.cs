@@ -119,6 +119,27 @@ public partial class Game : Control
         }
     }
 
+    public int SumStack(Protocol p)
+    {
+        int total = 0;
+        foreach (Card card in p.cards)
+        {
+            total += card.GetValue();
+            if (localPlayer.LineContainsPassive(p, CardInfo.Passive.PlusOneForFaceDown))
+            {
+                if (card.flipped) total++;
+            }
+        }
+        foreach (Card card in GetOpposingProtocol(p).cards)
+        {
+            if (localPlayer.LineContainsPassive(p, CardInfo.Passive.PlusOneForFaceDown))
+            {
+                if (card.flipped) total++;
+            }
+        }
+        return total;
+    }
+
     public List<Protocol> GetProtocols(bool local)
     {
         List<Protocol> protocols = new List<Protocol>();
@@ -179,6 +200,19 @@ public partial class Game : Control
             if (p.cards.Contains(c)) return true;
         }
         return false;
+    }
+
+    public Protocol GetProtocolOfCard(Card card)
+    {
+        foreach (Protocol p in GetProtocols(true))
+        {
+            if (p.cards.Contains(card)) return p;
+        }
+        foreach (Protocol p in GetProtocols(false))
+        {
+            if (p.cards.Contains(card)) return p;
+        }
+        throw new Exception("Card not found");
     }
 
     public (bool local, int protocolIndex, int cardIndex) GetCardLocation(Card c)

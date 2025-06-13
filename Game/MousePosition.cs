@@ -93,7 +93,7 @@ public partial class MousePosition : Control
                 else
                 {
                     draggedCard.GetParent().RemoveChild(draggedCard);
-                    Game.instance.handCardsContainer.AddChild(draggedCard); // Change this
+                    Game.instance.handCardsContainer.AddChild(draggedCard);
                 }
                 draggedCard = null;
             }

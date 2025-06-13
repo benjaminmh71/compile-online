@@ -71,16 +71,8 @@ public partial class Player : Node
         int controlledLines = 0;
         foreach (Protocol p in Game.instance.GetProtocols(true))
         {
-            int total = 0;
-            foreach (Card c in p.cards)
-            {
-                total += c.info.value;
-            }
-            int oppTotal = 0;
-            foreach (Card c in Game.instance.GetOpposingProtocol(p).cards)
-            {
-                oppTotal += c.info.value;
-            }
+            int total = Game.instance.SumStack(p);
+            int oppTotal = Game.instance.SumStack(Game.instance.GetOpposingProtocol(p));
             if (total > oppTotal)
             {
                 controlledLines++;
@@ -100,18 +92,10 @@ public partial class Player : Node
         List<Protocol> compilableProtcols = new List<Protocol>();
         foreach (Protocol p in Game.instance.GetProtocols(true))
         {
-            int total = 0;
-            foreach (Card c in p.cards)
-            {
-                total += c.info.value;
-            }
+            int total = Game.instance.SumStack(p);
             if (total >= 10)
             {
-                int oppTotal = 0;
-                foreach (Card c in Game.instance.GetOpposingProtocol(p).cards)
-                {
-                    oppTotal += c.info.value;
-                }
+                int oppTotal = Game.instance.SumStack(Game.instance.GetOpposingProtocol(p));
                 if (oppTotal < total)
                 {
                     compilableProtcols.Add(p);
@@ -232,7 +216,8 @@ public partial class Player : Node
         hand.Remove(card);
         if (protocol.cards.Count > 0)
         {
-            await protocol.cards[protocol.cards.Count - 1].info.OnCover(protocol.cards[protocol.cards.Count - 1]);
+            if (!protocol.cards[protocol.cards.Count - 1].flipped)
+                await protocol.cards[protocol.cards.Count - 1].info.OnCover(protocol.cards[protocol.cards.Count - 1]);
             protocol.cards[protocol.cards.Count - 1].covered = true;
         }
         protocol.AddCard(card);
@@ -242,9 +227,7 @@ public partial class Player : Node
         }
         RpcId(oppId, nameof(OppPlay),
             card.info.GetCardName(), Game.instance.GetProtocols(true).FindIndex(p => p == protocol), false);
-        if (passives[CardInfo.Passive.NoMiddleCommands] != null) GD.Print(passives[CardInfo.Passive.NoMiddleCommands].Value.line.ToString());
-        if (passives[CardInfo.Passive.NoMiddleCommands] == null || 
-            passives[CardInfo.Passive.NoMiddleCommands].Value.line != Game.instance.Line(protocol)) await card.info.OnPlay(card);
+        if (!LineContainsPassive(protocol, CardInfo.Passive.NoMiddleCommands)) await card.info.OnPlay(card);
     }
 
     public void Draw(int n)
@@ -330,9 +313,8 @@ public partial class Player : Node
                 passives[passive] = new PassiveLocation
                     (Game.instance.Line(Game.instance.GetProtocols(cardLocation.local)[cardLocation.protocolIndex]), true);
             }
-            if (cardLocation.local && (passives[CardInfo.Passive.NoMiddleCommands] == null ||
-                passives[CardInfo.Passive.NoMiddleCommands].Value.line !=
-                Game.instance.Line(Game.instance.GetProtocols(cardLocation.local)[cardLocation.protocolIndex]))) await card.info.OnPlay(card);
+            if (cardLocation.local && !LineContainsPassive(Game.instance.GetProtocols(cardLocation.local)[cardLocation.protocolIndex],
+                CardInfo.Passive.NoMiddleCommands)) await card.info.OnPlay(card);
         }
         RpcId(oppId, nameof(OppFlip), cardLocation.local, cardLocation.protocolIndex, cardLocation.cardIndex);
         // TODO: Wait for opponent response (for flipped up actions)
@@ -400,7 +382,6 @@ public partial class Player : Node
         foreach (CardInfo.Passive passive in card.info.passives)
         {
             passives[passive] = new PassiveLocation(Game.instance.Line(protocols[protocolIndex]), false);
-            GD.Print(passive);
         }
         protocols[protocolIndex].AddOppCard(card);
         card.Render();
@@ -480,9 +461,8 @@ public partial class Player : Node
             {
                 passives[passive] = new PassiveLocation(Game.instance.Line(Game.instance.GetProtocols(local)[protocolIndex]), false);
             }
-            if (local && (passives[CardInfo.Passive.NoMiddleCommands] == null || 
-                passives[CardInfo.Passive.NoMiddleCommands].Value.line 
-                != Game.instance.Line(Game.instance.GetProtocols(local)[protocolIndex]))) await card.info.OnPlay(card);
+            if (local && !LineContainsPassive(Game.instance.GetProtocols(local)[protocolIndex],
+                CardInfo.Passive.NoMiddleCommands)) await card.info.OnPlay(card);
         }
     }
 
@@ -518,6 +498,11 @@ public partial class Player : Node
             Game.instance.localDiscardTop.placeholder = false;
             Game.instance.localDiscardTop.Render();
         }
+    }
+
+    public bool LineContainsPassive(Protocol p, CardInfo.Passive passive)
+    {
+        return passives[passive] != null && passives[passive].Value.line == Game.instance.Line(p);
     }
 
     public async Task<Response> WaitForResponse()

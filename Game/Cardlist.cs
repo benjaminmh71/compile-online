@@ -14,12 +14,25 @@ public static class Cardlist
         ProtocolInfo apathy = new ProtocolInfo("Apathy");
         protocols["Apathy"] = apathy;
         CardInfo apathy0 = new CardInfo("Apathy", 0);
-        apathy0.topText = "Your total value in this line is increased by 1 for each" +
+        apathy0.topText = "Your total value in this line is increased by 1 for each " +
             "face-down card in this line.";
+        apathy0.passives = [CardInfo.Passive.PlusOneForFaceDown];
         apathy.cards.Add(apathy0);
 
         CardInfo apathy1 = new CardInfo("Apathy", 1);
         apathy1.middleText = "Flip all other face-up cards in this line.";
+        apathy1.OnPlay = async (Card card) =>
+        {
+            Protocol protocol = Game.instance.GetProtocolOfCard(card);
+            foreach (Card c in protocol.cards)
+            {
+                if (!c.flipped && c != card) await Game.instance.localPlayer.Flip(c);
+            }
+            foreach (Card c in Game.instance.GetOpposingProtocol(protocol).cards)
+            {
+                if (!c.flipped) await Game.instance.localPlayer.Flip(c);
+            }
+        };
         apathy.cards.Add(apathy1);
 
         CardInfo apathy2 = new CardInfo("Apathy", 2);
