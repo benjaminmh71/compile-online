@@ -479,7 +479,7 @@ public partial class Player : Node
     [Rpc(MultiplayerApi.RpcMode.AnyPeer)]
     public void OppSendToDiscard(bool local, int protocolIndex, int cardIndex)
     {
-        Protocol protocol = Game.instance.GetProtocols(false)[protocolIndex];
+        Protocol protocol = Game.instance.GetProtocols(local)[protocolIndex];
         Card card = Game.instance.FindCard(local, protocolIndex, cardIndex);
         protocol.cards.Remove(card);
         card.QueueFree();
