@@ -10,6 +10,7 @@ namespace CompileOnline.Game
     {
         public Card card;
         public Protocol protocol;
+        public bool flipped;
 
         public PromptManager.Prompt type;
 
@@ -30,10 +31,11 @@ namespace CompileOnline.Game
             this.type = type;
         }
 
-        public Response(Card card, Protocol protocol, PromptManager.Prompt type)
+        public Response(Card card, Protocol protocol, bool flipped, PromptManager.Prompt type)
         {
             this.card = card;
             this.protocol = protocol;
+            this.flipped = flipped;
             this.type = type;
         }
     }

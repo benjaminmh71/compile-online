@@ -137,7 +137,7 @@ public partial class Player : Node
 
         if (response.type == PromptManager.Prompt.Play)
         {
-            await Play(response.protocol, response.card);
+            await Play(response.protocol, response.card, response.flipped);
         }
 
         if (response.type == PromptManager.Prompt.Refresh)
@@ -210,9 +210,8 @@ public partial class Player : Node
         }
     }
 
-    public async Task Play(Protocol protocol, Card card)
+    public async Task Play(Protocol protocol, Card card, bool flipped)
     {
-        // TODO: playing face down
         hand.Remove(card);
         if (protocol.cards.Count > 0)
         {
@@ -220,14 +219,16 @@ public partial class Player : Node
                 await protocol.cards[protocol.cards.Count - 1].info.OnCover(protocol.cards[protocol.cards.Count - 1]);
             protocol.cards[protocol.cards.Count - 1].covered = true;
         }
+        card.flipped = flipped;
         protocol.AddCard(card);
         foreach (CardInfo.Passive passive in card.info.passives)
         {
             passives[passive] = new PassiveLocation(Game.instance.Line(protocol), true);
         }
+        card.Render();
         RpcId(oppId, nameof(OppPlay),
-            card.info.GetCardName(), Game.instance.GetProtocols(true).FindIndex(p => p == protocol), false);
-        if (!LineContainsPassive(protocol, CardInfo.Passive.NoMiddleCommands)) await card.info.OnPlay(card);
+            card.info.GetCardName(), Game.instance.GetProtocols(true).FindIndex(p => p == protocol), flipped);
+        if (!LineContainsPassive(protocol, CardInfo.Passive.NoMiddleCommands) && !flipped) await card.info.OnPlay(card);
     }
 
     public void Draw(int n)
@@ -318,6 +319,11 @@ public partial class Player : Node
         }
         RpcId(oppId, nameof(OppFlip), cardLocation.local, cardLocation.protocolIndex, cardLocation.cardIndex);
         // TODO: Wait for opponent response (for flipped up actions)
+    }
+
+    public async Task Shift(Card card, Protocol protocol)
+    {
+
     }
 
     public void SendToDiscard(Card card)

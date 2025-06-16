@@ -130,6 +130,17 @@ visible = false
 layout_mode = 2
 text = "Reset Control"
 
+[node name="FlippedCheckbox" type="HBoxContainer" parent="LeftUI"]
+visible = false
+layout_mode = 2
+
+[node name="Label" type="Label" parent="LeftUI/FlippedCheckbox"]
+layout_mode = 2
+text = "Play face down: "
+
+[node name="CheckBox" type="CheckBox" parent="LeftUI/FlippedCheckbox"]
+layout_mode = 2
+
 [node name="MousePosition" type="Control" parent="."]
 anchors_preset = 0
 offset_right = 40.0

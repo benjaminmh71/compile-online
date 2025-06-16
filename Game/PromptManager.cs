@@ -43,17 +43,18 @@ public static class PromptManager
 
     public static void PromptAction(Prompt[] prompts, List<Card> cards, List<Protocol> protocols)
     {
-        List<Button> buttons = new List<Button>();
+        List<Control> leftUIElements = new List<Control>();
         currPrompts = prompts;
         MousePosition.ResetSelections();
         if (prompts.Contains(Prompt.Play))
         {
             MousePosition.SetSelectedCards(cards);
+            leftUIElements.Add(Game.instance.flippedCheckbox);
         }
 
         if (prompts.Contains(Prompt.Refresh))
         {
-            buttons.Add(Game.instance.refreshButton);
+            leftUIElements.Add(Game.instance.refreshButton);
         }
 
         if (prompts.Contains(Prompt.Control))
@@ -66,24 +67,24 @@ public static class PromptManager
             MousePosition.SetClickableCards(cards);
         }
 
-        SetPrompt(buttons.ToArray());
-        SetPrompt(protocols.ToArray());
+        SetPrompt(leftUIElements.ToArray());
+        SetProtocolPrompt(protocols.ToArray());
     }
 
-    public static void SetPrompt(Button[] buttons)
+    public static void SetPrompt(Control[] controls)
     {
         foreach (Node n in Game.instance.leftUI.GetChildren())
         {
-            if (n is Button) (n as Button).Visible = false;
+            if (n.Name != "PromptLabel") (n as Control).Visible = false;
         }
 
-        foreach (Button b in buttons)
+        foreach (Control e in controls)
         {
-            b.Visible = true;
+            e.Visible = true;
         }
     }
 
-    public static void SetPrompt(Protocol[] protocols)
+    public static void SetProtocolPrompt(Protocol[] protocols)
     {
         foreach (Protocol p in Game.instance.GetProtocols(true))
         {
@@ -109,7 +110,8 @@ public static class PromptManager
     {
         if (currPrompts.Contains(Prompt.Play))
         {
-            response = new Response(card, protocol, Prompt.Play);
+            response = new Response(card, protocol, 
+                Game.instance.flippedCheckbox.GetNode<CheckBox>("CheckBox").ButtonPressed, Prompt.Play);
             PromptAction([]);
         }
     }
