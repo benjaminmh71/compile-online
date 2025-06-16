@@ -1,8 +1,11 @@
-[gd_scene load_steps=6 format=3 uid="uid://18377dkvdfx"]
+[gd_scene load_steps=7 format=3 uid="uid://18377dkvdfx"]
 
 [ext_resource type="Script" uid="uid://sqcfmt32f0ac" path="res://Game/Card.cs" id="1_nugkl"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_gjjqv"]
+bg_color = Color(1, 1, 1, 1)
+
+[sub_resource type="LabelSettings" id="LabelSettings_axqsc"]
 
 [sub_resource type="LabelSettings" id="LabelSettings_nugkl"]
 font_size = 10
@@ -39,6 +42,7 @@ layout_mode = 0
 offset_top = 10.0
 offset_right = 125.0
 offset_bottom = 33.0
+label_settings = SubResource("LabelSettings_axqsc")
 horizontal_alignment = 1
 
 [node name="TopText" type="Label" parent="."]

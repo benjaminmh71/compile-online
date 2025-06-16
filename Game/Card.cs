@@ -1,3 +1,4 @@
+using CompileOnline.Game;
 using Godot;
 using System;
 
@@ -20,6 +21,9 @@ public partial class Card : Control
 
     public void Render()
     {
+        ProtocolInfo protocolInfo = Cardlist.protocols[info.protocol];
+        GetNode<Panel>("Background").SelfModulate = protocolInfo.backgroundColor;
+
         if (placeholder)
         {
             GetNode<Label>("Name").Visible = false;

@@ -12,6 +12,7 @@ public static class Cardlist
         // Vile evil data management:
 
         ProtocolInfo apathy = new ProtocolInfo("Apathy");
+        apathy.backgroundColor = new Color((float)153/256, (float)153/256, (float)153/256);
         protocols["Apathy"] = apathy;
         CardInfo apathy0 = new CardInfo("Apathy", 0);
         apathy0.topText = "Your total value in this line is increased by 1 for each " +
@@ -97,6 +98,36 @@ public static class Cardlist
             }
         };
         apathy.cards.Add(apathy5);
+
+
+        ProtocolInfo darkness = new ProtocolInfo("Darkness");
+        darkness.backgroundColor = new Color((float)55/256, (float)55/256, (float)70/256);
+        protocols["Darkness"] = darkness;
+
+        CardInfo darkness0 = new CardInfo("Darkness", 0);
+        darkness0.middleText = "Draw 3 cards. Shift one of your opponent's covered cards.";
+        darkness.cards.Add(darkness0);
+
+        CardInfo darkness1 = new CardInfo("Darkness", 1);
+        darkness1.middleText = "Flip 1 of your opponent's cards. You may shift that card.";
+        darkness.cards.Add(darkness1);
+
+        CardInfo darkness2 = new CardInfo("Darkness", 2);
+        darkness2.topText = "Face-down cards in this stack have a value of 4.";
+        darkness2.middleText = "You may flip 1 covered card in this line.";
+        darkness.cards.Add(darkness2);
+
+        CardInfo darkness3 = new CardInfo("Darkness", 3);
+        darkness3.middleText = "Play 1 card face-down in another line.";
+        darkness.cards.Add(darkness3);
+
+        CardInfo darkness4 = new CardInfo("Darkness", 4);
+        darkness4.middleText = "Shift 1 face-down card.";
+        darkness.cards.Add(darkness4);
+
+        CardInfo darkness5 = new CardInfo("Darkness", 5);
+        darkness5.middleText = "Discard a card.";
+        darkness.cards.Add(darkness5);
     }
 
     public static CardInfo GetCard(String name)

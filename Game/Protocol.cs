@@ -35,6 +35,7 @@ public partial class Protocol : Control
 
     public void Render()
     {
+        GetNode<Panel>("Panel").SelfModulate = info.backgroundColor;
         GetNode("TextContainer").GetNode<Label>("Name").Text = info.name;
         if (compiled)
         {
