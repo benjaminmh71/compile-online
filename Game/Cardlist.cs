@@ -119,6 +119,17 @@ public static class Cardlist
 
         CardInfo darkness3 = new CardInfo("Darkness", 3);
         darkness3.middleText = "Play 1 card face-down in another line.";
+        darkness3.OnPlay = async (Card card) =>
+        {
+            List<Protocol> protocols = new List<Protocol>();
+            foreach (Protocol p in Game.instance.GetProtocols(true))
+            {
+                if (p != Game.instance.GetProtocolOfCard(card)) protocols.Add(p);
+            }
+            PromptManager.PromptAction([PromptManager.Prompt.Play], Game.instance.localPlayer.hand, protocols);
+            Response response = await Game.instance.localPlayer.WaitForResponse();
+            await Game.instance.localPlayer.Play(response.protocol, response.card, true);
+        };
         darkness.cards.Add(darkness3);
 
         CardInfo darkness4 = new CardInfo("Darkness", 4);

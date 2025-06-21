@@ -48,7 +48,7 @@ public static class PromptManager
         MousePosition.ResetSelections();
         if (prompts.Contains(Prompt.Play))
         {
-            MousePosition.SetSelectedCards(cards, Game.instance.GetProtocols(true));
+            MousePosition.SetSelectedCards(cards, protocols);
             leftUIElements.Add(Game.instance.flippedCheckbox);
         }
 

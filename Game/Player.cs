@@ -133,7 +133,7 @@ public partial class Player : Node
         }
 
         // Play/refresh:
-        PromptManager.PromptAction([PromptManager.Prompt.Play, PromptManager.Prompt.Refresh], hand);
+        PromptManager.PromptAction([PromptManager.Prompt.Play, PromptManager.Prompt.Refresh], hand, Game.instance.GetProtocols(true));
 
         Response response = await WaitForResponse();
 
