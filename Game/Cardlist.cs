@@ -123,10 +123,34 @@ public static class Cardlist
 
         CardInfo darkness4 = new CardInfo("Darkness", 4);
         darkness4.middleText = "Shift 1 face-down card.";
+        darkness4.OnPlay = async (Card card) =>
+        {
+            List<Card> shiftableCards = new List<Card>();
+            foreach (Card c in Game.instance.GetCards())
+            {
+                if (c.flipped && !c.covered) shiftableCards.Add(c);
+            }
+            if (shiftableCards.Count > 0)
+            {
+                String prevText = Game.instance.promptLabel.Text;
+                Game.instance.promptLabel.Text = "Shift a face-down card.";
+                PromptManager.PromptAction([PromptManager.Prompt.Shift], shiftableCards, Game.instance.GetProtocols());
+                Response response = await Game.instance.localPlayer.WaitForResponse();
+                Game.instance.promptLabel.Text = prevText;
+                await Game.instance.localPlayer.Shift(response.card, response.protocol);
+            }
+        };
         darkness.cards.Add(darkness4);
 
         CardInfo darkness5 = new CardInfo("Darkness", 5);
         darkness5.middleText = "Discard a card.";
+        darkness5.OnPlay = async (Card card) =>
+        {
+            if (Game.instance.localPlayer.hand.Count > 0)
+            {
+                await Game.instance.localPlayer.Discard(1);
+            }
+        };
         darkness.cards.Add(darkness5);
     }
 

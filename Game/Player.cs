@@ -29,9 +29,11 @@ public partial class Player : Node
     public Dictionary<CardInfo.Passive, PassiveLocation?> passives = 
         new Dictionary<CardInfo.Passive, PassiveLocation?>();
     List<Card> empty = new List<Card>();
+    List<Protocol> emptyp = new List<Protocol>();
     int oppId;
     int nOppCards = 0;
     bool hasControl = false;
+    bool oppResponse = false;
 
     public Player(int id, int oppId)
     {
@@ -152,7 +154,7 @@ public partial class Player : Node
     {
         // TODO: End of turn effects
         Game.instance.promptLabel.Text = "It is your opponent's turn.";
-        MousePosition.SetSelectedCards(empty);
+        MousePosition.SetSelectedCards(empty, emptyp);
         RpcId(oppId, nameof(StartTurn));
     }
 
@@ -228,7 +230,7 @@ public partial class Player : Node
         card.Render();
         RpcId(oppId, nameof(OppPlay),
             card.info.GetCardName(), Game.instance.GetProtocols(true).FindIndex(p => p == protocol), flipped);
-        if (!LineContainsPassive(protocol, CardInfo.Passive.NoMiddleCommands) && !flipped) await card.info.OnPlay(card);
+        await Uncover(card, protocol);
     }
 
     public void Draw(int n)
@@ -314,8 +316,7 @@ public partial class Player : Node
                 passives[passive] = new PassiveLocation
                     (Game.instance.Line(Game.instance.GetProtocols(cardLocation.local)[cardLocation.protocolIndex]), true);
             }
-            if (cardLocation.local && !LineContainsPassive(Game.instance.GetProtocols(cardLocation.local)[cardLocation.protocolIndex],
-                CardInfo.Passive.NoMiddleCommands)) await card.info.OnPlay(card);
+            await Uncover(card, Game.instance.GetProtocols(cardLocation.local)[cardLocation.protocolIndex]);
         }
         RpcId(oppId, nameof(OppFlip), cardLocation.local, cardLocation.protocolIndex, cardLocation.cardIndex);
         // TODO: Wait for opponent response (for flipped up actions)
@@ -323,7 +324,30 @@ public partial class Player : Node
 
     public async Task Shift(Card card, Protocol protocol)
     {
-
+        var cardLocation = Game.instance.GetCardLocation(card);
+        Protocol sourceProtocol = Game.instance.GetProtocols(cardLocation.local)[cardLocation.protocolIndex];
+        sourceProtocol.cards.Remove(card);
+        protocol.AddCard(card);
+        if (card.covered)
+        {
+            card.covered = false;
+        }
+        else if (sourceProtocol.cards.Count > 0)
+        {
+            sourceProtocol.cards[sourceProtocol.cards.Count - 1].covered = false;
+        }
+        RpcId(oppId, nameof(OppShift), cardLocation.local,
+            Game.instance.GetProtocols(cardLocation.local).FindIndex((Protocol p) => p == protocol),
+            cardLocation.cardIndex, cardLocation.protocolIndex);
+        await WaitForOppResponse();
+        if (card.covered)
+        {
+            await Uncover(card, protocol);
+        }
+        else if (sourceProtocol.cards.Count > 0)
+        {
+            await Uncover(sourceProtocol.cards[sourceProtocol.cards.Count - 1], sourceProtocol);
+        }
     }
 
     public void SendToDiscard(Card card)
@@ -366,6 +390,12 @@ public partial class Player : Node
         }
     }
 
+    public async Task Uncover(Card card, Protocol protocol)
+    {
+        if (Game.instance.IsLocal(card) && !card.flipped && !LineContainsPassive(protocol, CardInfo.Passive.NoMiddleCommands))
+            await card.info.OnPlay(card);
+    }
+
     [Rpc(MultiplayerApi.RpcMode.AnyPeer)]
     public void OppCompile(int protocolIndex)
     {
@@ -389,7 +419,7 @@ public partial class Player : Node
         {
             passives[passive] = new PassiveLocation(Game.instance.Line(protocols[protocolIndex]), false);
         }
-        protocols[protocolIndex].AddOppCard(card);
+        protocols[protocolIndex].AddCard(card);
         card.Render();
     }
 
@@ -467,9 +497,30 @@ public partial class Player : Node
             {
                 passives[passive] = new PassiveLocation(Game.instance.Line(Game.instance.GetProtocols(local)[protocolIndex]), false);
             }
-            if (local && !LineContainsPassive(Game.instance.GetProtocols(local)[protocolIndex],
-                CardInfo.Passive.NoMiddleCommands)) await card.info.OnPlay(card);
+            await Uncover(card, Game.instance.GetProtocols(local)[protocolIndex]);
         }
+    }
+
+    [Rpc(MultiplayerApi.RpcMode.AnyPeer)]
+    public async void OppShift(bool local, int protocolIndex, int cardIndex, int sourceProtocolIndex)
+    {
+        Protocol protocol = Game.instance.GetProtocols(!local)[protocolIndex];
+        Protocol sourceProtocol = Game.instance.GetProtocols(!local)[sourceProtocolIndex];
+        Card card = sourceProtocol.cards[cardIndex];
+        sourceProtocol.cards.Remove(card);
+        protocol.AddCard(card);
+        if (card.covered)
+        {
+            card.covered = false;
+            await Uncover(card, protocol);
+        }
+        else if (sourceProtocol.cards.Count > 0)
+        {
+            sourceProtocol.cards[sourceProtocol.cards.Count - 1].covered = false;
+            await Uncover(sourceProtocol.cards[sourceProtocol.cards.Count - 1], sourceProtocol);
+        }
+
+        RpcId(oppId, nameof(OppResponse));
     }
 
     [Rpc(MultiplayerApi.RpcMode.AnyPeer)]
@@ -485,8 +536,8 @@ public partial class Player : Node
     [Rpc(MultiplayerApi.RpcMode.AnyPeer)]
     public void OppSendToDiscard(bool local, int protocolIndex, int cardIndex)
     {
-        Protocol protocol = Game.instance.GetProtocols(local)[protocolIndex];
-        Card card = Game.instance.FindCard(local, protocolIndex, cardIndex);
+        Protocol protocol = Game.instance.GetProtocols(!local)[protocolIndex];
+        Card card = Game.instance.FindCard(!local, protocolIndex, cardIndex);
         protocol.cards.Remove(card);
         card.QueueFree();
         foreach (CardInfo.Passive passive in card.info.passives)
@@ -520,5 +571,20 @@ public partial class Player : Node
         Response response = PromptManager.response;
         PromptManager.response = null;
         return response;
+    }
+
+    [Rpc(MultiplayerApi.RpcMode.AnyPeer)]
+    public void OppResponse()
+    {
+        oppResponse = true;
+    }
+
+    public async Task WaitForOppResponse()
+    {
+        while (!oppResponse)
+        {
+            await ToSignal(GetTree().CreateTimer(0.1), "timeout");
+        }
+        oppResponse = false;
     }
 }

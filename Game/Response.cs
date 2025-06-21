@@ -31,6 +31,13 @@ namespace CompileOnline.Game
             this.type = type;
         }
 
+        public Response(Card card, Protocol protocol, PromptManager.Prompt type)
+        {
+            this.card = card;
+            this.protocol = protocol;
+            this.type = type;
+        }
+
         public Response(Card card, Protocol protocol, bool flipped, PromptManager.Prompt type)
         {
             this.card = card;

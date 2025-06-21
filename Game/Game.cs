@@ -142,6 +142,11 @@ public partial class Game : Control
         return total;
     }
 
+    public List<Protocol> GetProtocols()
+    {
+        return GetProtocols(true).Concat(GetProtocols(false)).ToList();
+    }
+
     public List<Protocol> GetProtocols(bool local)
     {
         List<Protocol> protocols = new List<Protocol>();
@@ -155,6 +160,20 @@ public partial class Game : Control
         return protocols;
     }
 
+    public List<Card> GetCards()
+    {
+        List<Card> cards = new List<Card>();
+        foreach (Protocol p in GetProtocols(true))
+        {
+            cards.AddRange(p.cards);
+        }
+        foreach (Protocol p in GetProtocols(false))
+        {
+            cards.AddRange(p.cards);
+        }
+        return cards;
+    }
+
     public Protocol GetOpposingProtocol(Protocol p) 
     {
         List<Protocol> locals = GetProtocols(true);
@@ -166,22 +185,27 @@ public partial class Game : Control
 
     public Protocol GetHoveredProtocol()
     {
+        Vector2 mousePos = GetGlobalMousePosition();
         foreach (Protocol p in localProtocolsContainer.GetChildren())
         {
-            if (GetGlobalMousePosition().X > p.GlobalPosition.X &&
-                GetGlobalMousePosition().X < p.GlobalPosition.X + Constants.PROTOCOL_WIDTH &&
-                GetGlobalMousePosition().Y > p.GlobalPosition.Y &&
-                GetGlobalMousePosition().Y < p.GlobalPosition.Y + Constants.PROTOCOL_HEIGHT)
+            if (Geometry2D.IsPointInPolygon(mousePos,
+                    [new Vector2(p.GlobalPosition.X, p.GlobalPosition.Y),
+                    new Vector2(p.GlobalPosition.X, p.GlobalPosition.Y + (IsLocal(p) ? 1 : -1) * Constants.PROTOCOL_HEIGHT),
+                    new Vector2(p.GlobalPosition.X + (IsLocal(p) ? 1 : -1) * Constants.PROTOCOL_WIDTH,
+                    p.GlobalPosition.Y + (IsLocal(p) ? 1 : -1) * Constants.PROTOCOL_HEIGHT),
+                    new Vector2(p.GlobalPosition.X + (IsLocal(p) ? 1 : -1) * Constants.PROTOCOL_WIDTH, p.GlobalPosition.Y)]))
             {
                 return p;
             }
         }
         foreach (Protocol p in oppProtocolsContainer.GetChildren())
         {
-            if (GetGlobalMousePosition().X > p.GlobalPosition.X &&
-                GetGlobalMousePosition().X < p.GlobalPosition.X + Constants.PROTOCOL_WIDTH &&
-                GetGlobalMousePosition().Y > p.GlobalPosition.Y &&
-                GetGlobalMousePosition().Y < p.GlobalPosition.Y + Constants.PROTOCOL_HEIGHT)
+            if (Geometry2D.IsPointInPolygon(mousePos,
+                    [new Vector2(p.GlobalPosition.X, p.GlobalPosition.Y),
+                    new Vector2(p.GlobalPosition.X, p.GlobalPosition.Y + (IsLocal(p) ? 1 : -1) * Constants.PROTOCOL_HEIGHT),
+                    new Vector2(p.GlobalPosition.X + (IsLocal(p) ? 1 : -1) * Constants.PROTOCOL_WIDTH,
+                    p.GlobalPosition.Y + (IsLocal(p) ? 1 : -1) * Constants.PROTOCOL_HEIGHT),
+                    new Vector2(p.GlobalPosition.X + (IsLocal(p) ? 1 : -1) * Constants.PROTOCOL_WIDTH, p.GlobalPosition.Y)]))
             {
                 return p;
             }

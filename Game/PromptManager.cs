@@ -6,7 +6,7 @@ using System.Linq;
 
 public static class PromptManager
 {
-    public enum Prompt { Play, Refresh, Compile, Control, Select };
+    public enum Prompt { Play, Refresh, Compile, Control, Shift, Select };
     public static Response response = null;
 
     static Prompt[] currPrompts = [];
@@ -15,7 +15,7 @@ public static class PromptManager
     public static void Init()
     {
         Game.instance.mousePosition.CardClicked += OnClick;
-        Game.instance.mousePosition.CardPlaced += OnPlay;
+        Game.instance.mousePosition.CardPlaced += OnPlaced;
         Game.instance.mousePosition.ProtocolSwapped += OnSwap;
         Game.instance.endActionButton.Pressed += OnEndAction;
         Game.instance.refreshButton.Pressed += OnRefresh;
@@ -48,7 +48,7 @@ public static class PromptManager
         MousePosition.ResetSelections();
         if (prompts.Contains(Prompt.Play))
         {
-            MousePosition.SetSelectedCards(cards);
+            MousePosition.SetSelectedCards(cards, Game.instance.GetProtocols(true));
             leftUIElements.Add(Game.instance.flippedCheckbox);
         }
 
@@ -60,6 +60,12 @@ public static class PromptManager
         if (prompts.Contains(Prompt.Control))
         {
             MousePosition.SetSelectedProtocols(protocols);
+            SetProtocolPrompt(protocols.ToArray());
+        }
+
+        if (prompts.Contains(Prompt.Shift))
+        {
+            MousePosition.SetSelectedCards(cards, protocols);
         }
 
         if (prompts.Contains(Prompt.Select))
@@ -68,7 +74,6 @@ public static class PromptManager
         }
 
         SetPrompt(leftUIElements.ToArray());
-        SetProtocolPrompt(protocols.ToArray());
     }
 
     public static void SetPrompt(Control[] controls)
@@ -106,12 +111,17 @@ public static class PromptManager
         }
     }
 
-    public static void OnPlay(Protocol protocol, Card card)
+    public static void OnPlaced(Protocol protocol, Card card)
     {
         if (currPrompts.Contains(Prompt.Play))
         {
             response = new Response(card, protocol, 
                 Game.instance.flippedCheckbox.GetNode<CheckBox>("CheckBox").ButtonPressed, Prompt.Play);
+            PromptAction([]);
+        }
+        else if (currPrompts.Contains(Prompt.Shift))
+        {
+            response = new Response(card, protocol, Prompt.Shift);
             PromptAction([]);
         }
     }

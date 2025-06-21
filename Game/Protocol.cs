@@ -64,15 +64,16 @@ public partial class Protocol : Control
         card.GetParent().RemoveChild(card);
         cardContainer.AddChild(card);
         cards.Add(card);
-        card.Position = new Vector2(-Constants.CARD_WIDTH/2, (cards.Count - 1) * Constants.CARD_STACK_SEPARATION);
+        card.Position = new Vector2(-Constants.CARD_WIDTH / 2, (cards.Count - 1) * Constants.CARD_STACK_SEPARATION);
     }
 
-    public void AddOppCard(Card card)
+    public void InsertCard(int index, Card card)
     {
         Control cardContainer = GetNode<Control>("Cards");
         card.GetParent().RemoveChild(card);
         cardContainer.AddChild(card);
-        cards.Add(card);
-        card.Position = new Vector2(-Constants.CARD_WIDTH / 2, (cards.Count - 1) * Constants.CARD_STACK_SEPARATION);
+        cardContainer.MoveChild(card, index);
+        cards.Insert(index, card);
+        card.Position = new Vector2(-Constants.CARD_WIDTH / 2, index * Constants.CARD_STACK_SEPARATION);
     }
 }

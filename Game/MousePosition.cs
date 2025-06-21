@@ -15,10 +15,16 @@ public partial class MousePosition : Control
 
     bool dragging = false;
     Card draggedCard = null;
+    Node draggedCardParent = null;
+    int draggedCardIndex = -1;
     Protocol draggedProtocol = null;
     Protocol referencedProtocol = null;
     static List<Card> clickableCards = new List<Card>();
+    // Click and drag cards:
     static List<Card> selectedCards = new List<Card>();
+    // Protocol click/drag cards can be placed:
+    static List<Protocol> destinationProtocols = new List<Protocol>();
+    // Click and drag protocols:
     static List<Protocol> selectedProtocols = new List<Protocol>();
 
     public override void _Process(double delta)
@@ -55,6 +61,8 @@ public partial class MousePosition : Control
                     new Vector2(card.GlobalPosition.X + (Game.instance.IsLocal(card) ? 1 : -1) * Constants.CARD_WIDTH, card.GlobalPosition.Y)]))
                 {
                     draggedCard = card;
+                    draggedCardParent = card.GetParent();
+                    draggedCardIndex = draggedCardParent.GetChildren().IndexOf(card);
                     card.GetParent().RemoveChild(card);
                     AddChild(card);
                     card.Position = Vector2.Zero;
@@ -86,14 +94,23 @@ public partial class MousePosition : Control
             if (draggedCard != null)
             {
                 Protocol protocol = Game.instance.GetHoveredProtocol();
-                if (protocol != null)
+                if (protocol != null && destinationProtocols.Contains(protocol) && !protocol.cards.Contains(draggedCard)
+                    && Game.instance.IsLocal(draggedCard) == Game.instance.IsLocal(protocol))
                 {
                     EmitSignal("CardPlaced", protocol, draggedCard);
                 }
                 else
                 {
-                    draggedCard.GetParent().RemoveChild(draggedCard);
-                    Game.instance.handCardsContainer.AddChild(draggedCard);
+                    if (draggedCardParent.GetParent() is Protocol)
+                    {
+                        (draggedCardParent.GetParent() as Protocol).InsertCard(draggedCardIndex, draggedCard);
+                    }
+                    else
+                    {
+                        draggedCard.GetParent().RemoveChild(draggedCard);
+                        draggedCardParent.AddChild(draggedCard);
+                        draggedCardParent.MoveChild(draggedCard, draggedCardIndex);
+                    }
                 }
                 draggedCard = null;
             }
@@ -144,9 +161,10 @@ public partial class MousePosition : Control
         clickableCards = cards;
     }
 
-    public static void SetSelectedCards(List<Card> cards)
+    public static void SetSelectedCards(List<Card> cards, List<Protocol> protocols)
     {
         selectedCards = cards;
+        destinationProtocols = protocols;
     }
 
     public static void SetSelectedProtocols(List<Protocol> protocols)
