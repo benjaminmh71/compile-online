@@ -37,9 +37,11 @@ public partial class MousePosition : Control
             {
                 if (Geometry2D.IsPointInPolygon(GlobalPosition,
                     [new Vector2(card.GlobalPosition.X, card.GlobalPosition.Y),
-                    new Vector2(card.GlobalPosition.X, card.GlobalPosition.Y + (Game.instance.IsLocal(card) ? 1 : -1) * Constants.CARD_HEIGHT),
+                    new Vector2(card.GlobalPosition.X, card.GlobalPosition.Y + (Game.instance.IsLocal(card) ? 1 : -1) * 
+                    (card.covered ? Constants.CARD_STACK_SEPARATION : Constants.CARD_HEIGHT)),
                     new Vector2(card.GlobalPosition.X + (Game.instance.IsLocal(card) ? 1 : -1) * Constants.CARD_WIDTH,
-                    card.GlobalPosition.Y + (Game.instance.IsLocal(card) ? 1 : -1) * Constants.CARD_HEIGHT),
+                    card.GlobalPosition.Y + (Game.instance.IsLocal(card) ? 1 : -1) * 
+                    (card.covered ? Constants.CARD_STACK_SEPARATION : Constants.CARD_HEIGHT)),
                     new Vector2(card.GlobalPosition.X + (Game.instance.IsLocal(card) ? 1 : -1) * Constants.CARD_WIDTH, card.GlobalPosition.Y)]))
                 {
                     EmitSignal("CardClicked", card);
@@ -55,9 +57,11 @@ public partial class MousePosition : Control
             {
                 if (Geometry2D.IsPointInPolygon(GlobalPosition,
                     [new Vector2(card.GlobalPosition.X, card.GlobalPosition.Y),
-                    new Vector2(card.GlobalPosition.X, card.GlobalPosition.Y + (Game.instance.IsLocal(card) ? 1 : -1) * Constants.CARD_HEIGHT),
+                    new Vector2(card.GlobalPosition.X, card.GlobalPosition.Y + (Game.instance.IsLocal(card) ? 1 : -1) * 
+                    (card.covered ? Constants.CARD_STACK_SEPARATION : Constants.CARD_HEIGHT)),
                     new Vector2(card.GlobalPosition.X + (Game.instance.IsLocal(card) ? 1 : -1) * Constants.CARD_WIDTH,
-                    card.GlobalPosition.Y + (Game.instance.IsLocal(card) ? 1 : -1) * Constants.CARD_HEIGHT),
+                    card.GlobalPosition.Y + (Game.instance.IsLocal(card) ? 1 : -1) * 
+                    (card.covered ? Constants.CARD_STACK_SEPARATION : Constants.CARD_HEIGHT)),
                     new Vector2(card.GlobalPosition.X + (Game.instance.IsLocal(card) ? 1 : -1) * Constants.CARD_WIDTH, card.GlobalPosition.Y)]))
                 {
                     draggedCard = card;
