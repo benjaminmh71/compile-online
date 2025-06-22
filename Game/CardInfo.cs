@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 public partial class CardInfo : Node
 {
-    public enum Passive { NoMiddleCommands, PlusOneForFaceDown };
+    public enum Passive { NoMiddleCommands, PlusOneForFaceDown, FaceDownFours };
 
     public String protocol = "Apathy";
     public int value = 5;

@@ -481,7 +481,7 @@ public partial class Player : Node
     [Rpc(MultiplayerApi.RpcMode.AnyPeer)]
     public async void OppFlip(bool local, int protocolIndex, int cardIndex)
     {
-        Card card = Game.instance.FindCard(local, protocolIndex, cardIndex);
+        Card card = Game.instance.FindCard(!local, protocolIndex, cardIndex);
         card.flipped = !card.flipped;
         card.Render();
         if (card.flipped)
@@ -560,6 +560,12 @@ public partial class Player : Node
     public bool LineContainsPassive(Protocol p, CardInfo.Passive passive)
     {
         return passives[passive] != null && passives[passive].Value.line == Game.instance.Line(p);
+    }
+
+    public bool StackContainsPassive(bool local, Protocol p, CardInfo.Passive passive)
+    {
+        return passives[passive] != null && passives[passive].Value.line == Game.instance.Line(p)
+            && passives[passive].Value.local == local;
     }
 
     public async Task<Response> WaitForResponse()

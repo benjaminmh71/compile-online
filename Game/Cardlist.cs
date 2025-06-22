@@ -115,6 +115,23 @@ public static class Cardlist
         CardInfo darkness2 = new CardInfo("Darkness", 2);
         darkness2.topText = "Face-down cards in this stack have a value of 4.";
         darkness2.middleText = "You may flip 1 covered card in this line.";
+        darkness2.passives = [CardInfo.Passive.FaceDownFours];
+        darkness2.OnPlay = async (Card card) =>
+        {
+            List<Card> flippableCards = new List<Card>();
+            Protocol protocol = Game.instance.GetProtocolOfCard(card);
+            foreach (Card c in Game.instance.GetCards())
+            {
+                Protocol p = Game.instance.GetProtocolOfCard(c);
+                if (c.covered && Game.instance.Line(p) == Game.instance.Line(protocol)) flippableCards.Add(c);
+            }
+            if (flippableCards.Count > 0)
+            {
+                PromptManager.PromptAction([PromptManager.Prompt.Select], flippableCards);
+                Response response = await Game.instance.localPlayer.WaitForResponse();
+                await Game.instance.localPlayer.Flip(response.card);
+            }
+        };
         darkness.cards.Add(darkness2);
 
         CardInfo darkness3 = new CardInfo("Darkness", 3);
@@ -126,9 +143,12 @@ public static class Cardlist
             {
                 if (p != Game.instance.GetProtocolOfCard(card)) protocols.Add(p);
             }
-            PromptManager.PromptAction([PromptManager.Prompt.Play], Game.instance.localPlayer.hand, protocols);
-            Response response = await Game.instance.localPlayer.WaitForResponse();
-            await Game.instance.localPlayer.Play(response.protocol, response.card, true);
+            if (Game.instance.localPlayer.hand.Count > 0)
+            {
+                PromptManager.PromptAction([PromptManager.Prompt.Play], Game.instance.localPlayer.hand, protocols);
+                Response response = await Game.instance.localPlayer.WaitForResponse();
+                await Game.instance.localPlayer.Play(response.protocol, response.card, true);
+            }
         };
         darkness.cards.Add(darkness3);
 

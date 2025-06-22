@@ -238,7 +238,7 @@ public partial class Game : Control
         {
             if (p.cards.Contains(card)) return p;
         }
-        throw new Exception("Card not found");
+        return null;
     }
 
     public (bool local, int protocolIndex, int cardIndex) GetCardLocation(Card c)
@@ -258,7 +258,7 @@ public partial class Game : Control
 
     public Card FindCard(bool local, int protocolIndex, int cardIndex)
     {
-        List<Protocol> protocols = GetProtocols(!local);
+        List<Protocol> protocols = GetProtocols(local);
         return protocols[protocolIndex].cards[cardIndex];
     }
 

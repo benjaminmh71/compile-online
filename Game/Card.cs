@@ -64,7 +64,13 @@ public partial class Card : Control
 
     public int GetValue()
     {
-        if (flipped) return 2;
+        if (flipped)
+        {
+            Protocol protocol = Game.instance.GetProtocolOfCard(this);
+            if (protocol != null && Game.instance.localPlayer.StackContainsPassive
+                (Game.instance.IsLocal(this), protocol, CardInfo.Passive.FaceDownFours)) return 4;
+            return 2;
+        }
         return info.value;
     }
 
