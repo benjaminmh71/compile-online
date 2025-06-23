@@ -81,8 +81,11 @@ public static class Cardlist
             }
             if (coveredFaceUpCards.Count > 0)
             {
+                String prevText = Game.instance.promptLabel.Text;
+                Game.instance.promptLabel.Text = "Flip a face-up covered card.";
                 PromptManager.PromptAction([PromptManager.Prompt.Select], coveredFaceUpCards);
                 Response response = await Game.instance.localPlayer.WaitForResponse();
+                Game.instance.promptLabel.Text = prevText;
                 await Game.instance.localPlayer.Flip(response.card);
             }
         };
@@ -110,6 +113,30 @@ public static class Cardlist
 
         CardInfo darkness1 = new CardInfo("Darkness", 1);
         darkness1.middleText = "Flip 1 of your opponent's cards. You may shift that card.";
+        darkness1.OnPlay = async (Card card) =>
+        {
+            List<Card> flippableCards = new List<Card>();
+            foreach (Card c in Game.instance.GetCards())
+            {
+                if (!c.covered && !Game.instance.IsLocal(c)) flippableCards.Add(c);
+            }
+            if (flippableCards.Count > 0)
+            {
+                String prevText = Game.instance.promptLabel.Text;
+                Game.instance.promptLabel.Text = "Flip 1 of your opponent's cards.";
+                PromptManager.PromptAction([PromptManager.Prompt.Select], flippableCards);
+                Response response = await Game.instance.localPlayer.WaitForResponse();
+                Game.instance.promptLabel.Text = prevText;
+                await Game.instance.localPlayer.Flip(response.card);
+                Game.instance.promptLabel.Text = "You may shift that card.";
+                PromptManager.PromptAction([PromptManager.Prompt.Shift, PromptManager.Prompt.EndAction], 
+                    [response.card], Game.instance.GetProtocols());
+                Response shiftResponse = await Game.instance.localPlayer.WaitForResponse();
+                Game.instance.promptLabel.Text = prevText;
+                if (shiftResponse.type == PromptManager.Prompt.EndAction) return;
+                await Game.instance.localPlayer.Shift(shiftResponse.card, shiftResponse.protocol);
+            }
+        };
         darkness.cards.Add(darkness1);
 
         CardInfo darkness2 = new CardInfo("Darkness", 2);
@@ -127,8 +154,11 @@ public static class Cardlist
             }
             if (flippableCards.Count > 0)
             {
+                String prevText = Game.instance.promptLabel.Text;
+                Game.instance.promptLabel.Text = "Flip a covered card.";
                 PromptManager.PromptAction([PromptManager.Prompt.Select], flippableCards);
                 Response response = await Game.instance.localPlayer.WaitForResponse();
+                Game.instance.promptLabel.Text = prevText;
                 await Game.instance.localPlayer.Flip(response.card);
             }
         };
@@ -145,8 +175,11 @@ public static class Cardlist
             }
             if (Game.instance.localPlayer.hand.Count > 0)
             {
+                String prevText = Game.instance.promptLabel.Text;
+                Game.instance.promptLabel.Text = "Play a card.";
                 PromptManager.PromptAction([PromptManager.Prompt.Play], Game.instance.localPlayer.hand, protocols);
                 Response response = await Game.instance.localPlayer.WaitForResponse();
+                Game.instance.promptLabel.Text = prevText;
                 await Game.instance.localPlayer.Play(response.protocol, response.card, true);
             }
         };

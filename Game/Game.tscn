@@ -115,11 +115,6 @@ grow_vertical = 2
 layout_mode = 2
 text = "It is your opponent's turn."
 
-[node name="EndActionButton" type="Button" parent="LeftUI"]
-visible = false
-layout_mode = 2
-text = "End Action"
-
 [node name="RefreshButton" type="Button" parent="LeftUI"]
 visible = false
 layout_mode = 2
@@ -140,6 +135,11 @@ text = "Play face down: "
 
 [node name="CheckBox" type="CheckBox" parent="LeftUI/FlippedCheckbox"]
 layout_mode = 2
+
+[node name="EndActionButton" type="Button" parent="LeftUI"]
+visible = false
+layout_mode = 2
+text = "End Action"
 
 [node name="MousePosition" type="Control" parent="."]
 anchors_preset = 0

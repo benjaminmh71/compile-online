@@ -319,7 +319,7 @@ public partial class Player : Node
             await Uncover(card, Game.instance.GetProtocols(cardLocation.local)[cardLocation.protocolIndex]);
         }
         RpcId(oppId, nameof(OppFlip), cardLocation.local, cardLocation.protocolIndex, cardLocation.cardIndex);
-        // TODO: Wait for opponent response (for flipped up actions)
+        await WaitForOppResponse();
     }
 
     public async Task Shift(Card card, Protocol protocol)
@@ -499,6 +499,7 @@ public partial class Player : Node
             }
             await Uncover(card, Game.instance.GetProtocols(local)[protocolIndex]);
         }
+        RpcId(oppId, nameof(OppResponse));
     }
 
     [Rpc(MultiplayerApi.RpcMode.AnyPeer)]

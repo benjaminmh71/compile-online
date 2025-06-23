@@ -6,7 +6,7 @@ using System.Linq;
 
 public static class PromptManager
 {
-    public enum Prompt { Play, Refresh, Compile, Control, Shift, Select };
+    public enum Prompt { EndAction, Play, Refresh, Compile, Control, Shift, Select };
     public static Response response = null;
 
     static Prompt[] currPrompts = [];
@@ -46,6 +46,11 @@ public static class PromptManager
         List<Control> leftUIElements = new List<Control>();
         currPrompts = prompts;
         MousePosition.ResetSelections();
+        if (prompts.Contains(Prompt.EndAction))
+        {
+            leftUIElements.Add(Game.instance.endActionButton);
+        }
+
         if (prompts.Contains(Prompt.Play))
         {
             MousePosition.SetSelectedCards(cards, protocols);
@@ -128,9 +133,8 @@ public static class PromptManager
 
     public static void OnEndAction()
     {
-        if (currPrompts.Contains(Prompt.Control))
-        {
-            response = new Response(Prompt.Control);
+        if (currPrompts.Contains(Prompt.EndAction)) {
+            response = new Response(Prompt.EndAction);
             PromptAction([]);
         }
     }
