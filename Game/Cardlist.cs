@@ -108,7 +108,25 @@ public static class Cardlist
         protocols["Darkness"] = darkness;
 
         CardInfo darkness0 = new CardInfo("Darkness", 0);
-        darkness0.middleText = "Draw 3 cards. Shift one of your opponent's covered cards.";
+        darkness0.middleText = "Draw 3 cards. Shift 1 of your opponent's covered cards.";
+        darkness0.OnPlay = async (Card card) =>
+        {
+            Game.instance.localPlayer.Draw(3);
+            List<Card> shiftableCards = new List<Card>();
+            foreach (Card c in Game.instance.GetCards())
+            {
+                if (c.covered && !Game.instance.IsLocal(c)) shiftableCards.Add(c);
+            }
+            if (shiftableCards.Count > 0)
+            {
+                String prevText = Game.instance.promptLabel.Text;
+                Game.instance.promptLabel.Text = "Shift 1 of your opponent's covered cards.";
+                PromptManager.PromptAction([PromptManager.Prompt.Shift], shiftableCards, Game.instance.GetProtocols());
+                Response response = await Game.instance.localPlayer.WaitForResponse();
+                Game.instance.promptLabel.Text = prevText;
+                await Game.instance.localPlayer.Shift(response.card, response.protocol);
+            }
+        };
         darkness.cards.Add(darkness0);
 
         CardInfo darkness1 = new CardInfo("Darkness", 1);

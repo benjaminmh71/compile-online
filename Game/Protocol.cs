@@ -76,4 +76,12 @@ public partial class Protocol : Control
         cards.Insert(index, card);
         card.Position = new Vector2(-Constants.CARD_WIDTH / 2, index * Constants.CARD_STACK_SEPARATION);
     }
+
+    public void OrderCards()
+    {
+        for (int i = 0; i < cards.Count; i++)
+        {
+            cards[i].Position = new Vector2(-Constants.CARD_WIDTH / 2, i * Constants.CARD_STACK_SEPARATION);
+        }
+    }
 }

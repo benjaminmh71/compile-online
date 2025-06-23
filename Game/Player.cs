@@ -316,7 +316,8 @@ public partial class Player : Node
                 passives[passive] = new PassiveLocation
                     (Game.instance.Line(Game.instance.GetProtocols(cardLocation.local)[cardLocation.protocolIndex]), true);
             }
-            await Uncover(card, Game.instance.GetProtocols(cardLocation.local)[cardLocation.protocolIndex]);
+            if (!card.covered)
+                await Uncover(card, Game.instance.GetProtocols(cardLocation.local)[cardLocation.protocolIndex]);
         }
         RpcId(oppId, nameof(OppFlip), cardLocation.local, cardLocation.protocolIndex, cardLocation.cardIndex);
         await WaitForOppResponse();
@@ -336,10 +337,19 @@ public partial class Player : Node
         {
             sourceProtocol.cards[sourceProtocol.cards.Count - 1].covered = false;
         }
+        if (protocol.cards.Count > 1)
+        {
+            protocol.cards[protocol.cards.Count - 2].covered = true;
+        }
+        sourceProtocol.OrderCards();
         RpcId(oppId, nameof(OppShift), cardLocation.local,
             Game.instance.GetProtocols(cardLocation.local).FindIndex((Protocol p) => p == protocol),
             cardLocation.cardIndex, cardLocation.protocolIndex);
         await WaitForOppResponse();
+        if (protocol.cards.Count > 1)
+        {
+            await protocol.cards[protocol.cards.Count - 2].info.OnCover(protocol.cards[protocol.cards.Count - 2]);
+        }
         if (card.covered)
         {
             await Uncover(card, protocol);
@@ -497,7 +507,8 @@ public partial class Player : Node
             {
                 passives[passive] = new PassiveLocation(Game.instance.Line(Game.instance.GetProtocols(local)[protocolIndex]), false);
             }
-            await Uncover(card, Game.instance.GetProtocols(local)[protocolIndex]);
+            if (!card.covered)
+                await Uncover(card, Game.instance.GetProtocols(local)[protocolIndex]);
         }
         RpcId(oppId, nameof(OppResponse));
     }
@@ -510,14 +521,31 @@ public partial class Player : Node
         Card card = sourceProtocol.cards[cardIndex];
         sourceProtocol.cards.Remove(card);
         protocol.AddCard(card);
-        if (card.covered)
+        if (protocol.cards.Count > 1)
+        {
+            protocol.cards[protocol.cards.Count - 2].covered = true;
+        }
+        sourceProtocol.OrderCards();
+        bool wasCovered = card.covered;
+        if (wasCovered)
         {
             card.covered = false;
-            await Uncover(card, protocol);
         }
         else if (sourceProtocol.cards.Count > 0)
         {
             sourceProtocol.cards[sourceProtocol.cards.Count - 1].covered = false;
+        }
+
+        if (protocol.cards.Count > 1)
+        {
+            await protocol.cards[protocol.cards.Count - 2].info.OnCover(protocol.cards[protocol.cards.Count - 2]);
+        }
+        if (wasCovered)
+        {
+            await Uncover(card, protocol);
+        }
+        else if (sourceProtocol.cards.Count > 0)
+        {
             await Uncover(sourceProtocol.cards[sourceProtocol.cards.Count - 1], sourceProtocol);
         }
 
