@@ -234,6 +234,75 @@ public static class Cardlist
             }
         };
         darkness.cards.Add(darkness5);
+
+        ProtocolInfo death = new ProtocolInfo("Death");
+        death.backgroundColor = new Color((float)55 / 256, (float)40 / 256, (float)60 / 256);
+        protocols["Death"] = death;
+
+        CardInfo death0 = new CardInfo("Death", 0);
+        death0.middleText = "Delete 1 card from each other line.";
+        death.cards.Add(death0);
+
+        CardInfo death1 = new CardInfo("Death", 1);
+        death1.topText = "Start: you may draw 1 card. If you do, delete 1 other card, then delete this card.";
+        death.cards.Add(death1);
+
+        CardInfo death2 = new CardInfo("Death", 2);
+        death2.middleText = "Delete all cards in 1 line with values of 1 or 2.";
+        death.cards.Add(death2);
+
+        CardInfo death3 = new CardInfo("Death", 3);
+        death3.middleText = "Delete 1 face-down card.";
+        death3.OnPlay = async (Card card) =>
+        {
+            List<Card> deletableCards = new List<Card>();
+            foreach (Card c in Game.instance.GetCards())
+            {
+                if (!c.covered && c.flipped) deletableCards.Add(c);
+            }
+            if (deletableCards.Count > 0)
+            {
+                String prevText = Game.instance.promptLabel.Text;
+                Game.instance.promptLabel.Text = "Delete 1 face-down card.";
+                PromptManager.PromptAction([PromptManager.Prompt.Select], deletableCards);
+                Response response = await Game.instance.localPlayer.WaitForResponse();
+                Game.instance.promptLabel.Text = prevText;
+                await Game.instance.localPlayer.Delete(response.card);
+            }
+        };
+        death.cards.Add(death3);
+
+        CardInfo death4 = new CardInfo("Death", 4);
+        death4.middleText = "Delete 1 card with a value of 0 or 1.";
+        death4.OnPlay = async (Card card) =>
+        {
+            List<Card> deletableCards = new List<Card>();
+            foreach (Card c in Game.instance.GetCards())
+            {
+                if (!c.covered && c.GetValue() == 0 || c.GetValue() == 1) deletableCards.Add(c);
+            }
+            if (deletableCards.Count > 0)
+            {
+                String prevText = Game.instance.promptLabel.Text;
+                Game.instance.promptLabel.Text = "Delete 1 card with value 0 or 1.";
+                PromptManager.PromptAction([PromptManager.Prompt.Select], deletableCards);
+                Response response = await Game.instance.localPlayer.WaitForResponse();
+                Game.instance.promptLabel.Text = prevText;
+                await Game.instance.localPlayer.Delete(response.card);
+            }
+        };
+        death.cards.Add(death4);
+
+        CardInfo death5 = new CardInfo("Death", 5);
+        death5.middleText = "Discard a card.";
+        death5.OnPlay = async (Card card) =>
+        {
+            if (Game.instance.localPlayer.hand.Count > 0)
+            {
+                await Game.instance.localPlayer.Discard(1);
+            }
+        };
+        death.cards.Add(death5);
     }
 
     public static CardInfo GetCard(String name)

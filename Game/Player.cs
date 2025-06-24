@@ -309,18 +309,58 @@ public partial class Player : Node
                 passives[passive] = null;
             }
         }
-        if (!card.flipped)
+        bool wasFlipped = card.flipped;
+        bool wasCovered = card.covered;
+        if (!wasFlipped)
         {
             foreach (CardInfo.Passive passive in card.info.passives)
             {
                 passives[passive] = new PassiveLocation
                     (Game.instance.Line(Game.instance.GetProtocols(cardLocation.local)[cardLocation.protocolIndex]), true);
             }
-            if (!card.covered)
-                await Uncover(card, Game.instance.GetProtocols(cardLocation.local)[cardLocation.protocolIndex]);
         }
         RpcId(oppId, nameof(OppFlip), cardLocation.local, cardLocation.protocolIndex, cardLocation.cardIndex);
         await WaitForOppResponse();
+        if (!wasFlipped && !wasCovered)
+            await Uncover(card, Game.instance.GetProtocols(cardLocation.local)[cardLocation.protocolIndex]);
+    }
+
+    public async Task Delete(Card card) {
+        bool wasCovered = card.covered;
+        var cardLocation = Game.instance.GetCardLocation(card);
+        Protocol protocol = Game.instance.GetProtocols(cardLocation.local)[cardLocation.protocolIndex];
+        card.GetParent().RemoveChild(card);
+        protocol.cards.Remove(card);
+        card.Reset();
+        foreach (CardInfo.Passive passive in card.info.passives)
+        {
+            passives[passive] = null;
+        }
+        if (cardLocation.local)
+        {
+            discard.Add(card);
+            Game.instance.localDiscardTop.SetCardInfo(card.info);
+            Game.instance.localDiscardTop.placeholder = false;
+            Game.instance.localDiscardTop.Render();
+        }
+        else
+        {
+            Game.instance.oppDiscardTop.SetCardInfo(card.info);
+            Game.instance.oppDiscardTop.placeholder = false;
+            Game.instance.oppDiscardTop.Render();
+        }
+        if (!wasCovered && protocol.cards.Count > 0)
+        {
+            protocol.cards[protocol.cards.Count - 1].covered = false;
+        }
+        protocol.OrderCards();
+        RpcId(oppId, nameof(OppDelete),
+            cardLocation.local, cardLocation.protocolIndex, cardLocation.cardIndex);
+        await WaitForOppResponse();
+        if (!wasCovered && protocol.cards.Count > 0)
+        {
+            await Uncover(protocol.cards[protocol.cards.Count - 1], protocol);
+        }
     }
 
     public async Task Shift(Card card, Protocol protocol)
@@ -510,6 +550,45 @@ public partial class Player : Node
             if (!card.covered)
                 await Uncover(card, Game.instance.GetProtocols(local)[protocolIndex]);
         }
+        RpcId(oppId, nameof(OppResponse));
+    }
+
+    [Rpc(MultiplayerApi.RpcMode.AnyPeer)]
+    public async void OppDelete(bool local, int protocolIndex, int cardIndex)
+    {
+        Card card = Game.instance.FindCard(!local, protocolIndex, cardIndex);
+        bool wasCovered = card.covered;
+        Protocol protocol = Game.instance.GetProtocols(!local)[protocolIndex];
+        card.GetParent().RemoveChild(card);
+        protocol.cards.Remove(card);
+        card.Reset();
+        foreach (CardInfo.Passive passive in card.info.passives)
+        {
+            passives[passive] = null;
+        }
+        if (!local)
+        {
+            discard.Add(card);
+            Game.instance.localDiscardTop.SetCardInfo(card.info);
+            Game.instance.localDiscardTop.placeholder = false;
+            Game.instance.localDiscardTop.Render();
+        }
+        else
+        {
+            Game.instance.oppDiscardTop.SetCardInfo(card.info);
+            Game.instance.oppDiscardTop.placeholder = false;
+            Game.instance.oppDiscardTop.Render();
+        }
+        if (!wasCovered && protocol.cards.Count > 0)
+        {
+            protocol.cards[protocol.cards.Count - 1].covered = false;
+        }
+        protocol.OrderCards();
+        if (!wasCovered && protocol.cards.Count > 0)
+        {
+            await Uncover(protocol.cards[protocol.cards.Count - 1], protocol);
+        }
+
         RpcId(oppId, nameof(OppResponse));
     }
 
