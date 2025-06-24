@@ -55,6 +55,7 @@ public static class PromptManager
         {
             MousePosition.SetSelectedCards(cards, protocols);
             leftUIElements.Add(Game.instance.flippedCheckbox);
+            Game.instance.flippedCheckbox.GetNode<CheckBox>("CheckBox").ButtonPressed = false;
         }
 
         if (prompts.Contains(Prompt.Refresh))
