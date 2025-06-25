@@ -6,7 +6,7 @@ using System.Linq;
 
 public static class PromptManager
 {
-    public enum Prompt { EndAction, Play, Refresh, Compile, Control, Shift, Select };
+    public enum Prompt { EndAction, CustomButton, Play, Refresh, Compile, Control, Shift, Select };
     public static Response response = null;
 
     static Prompt[] currPrompts = [];
@@ -20,6 +20,7 @@ public static class PromptManager
         Game.instance.endActionButton.Pressed += OnEndAction;
         Game.instance.refreshButton.Pressed += OnRefresh;
         Game.instance.resetControlButton.Pressed += OnResetControl;
+        Game.instance.customButton.Pressed += OnCustomButton;
         foreach (Protocol p in Game.instance.GetProtocols(true))
         {
             p.OnClick += OnProtocolClicked;
@@ -29,6 +30,12 @@ public static class PromptManager
     public static void PromptAction(Prompt[] prompts)
     {
         PromptAction(prompts, new List<Card>(), new List<Protocol>());
+    }
+
+    public static void PromptAction(Prompt[] prompts, String customName)
+    {
+        Game.instance.customButton.Text = customName;
+        PromptAction(prompts);
     }
 
     public static void PromptAction(Prompt[] prompts, List<Card> cards)
@@ -49,6 +56,11 @@ public static class PromptManager
         if (prompts.Contains(Prompt.EndAction))
         {
             leftUIElements.Add(Game.instance.endActionButton);
+        }
+
+        if (prompts.Contains(Prompt.CustomButton))
+        {
+            leftUIElements.Add(Game.instance.customButton);
         }
 
         if (prompts.Contains(Prompt.Play))
@@ -155,6 +167,15 @@ public static class PromptManager
         if (currPrompts.Contains(Prompt.Control))
         {
             GD.Print("Finish this later");
+        }
+    }
+
+    public static void OnCustomButton()
+    {
+        if (currPrompts.Contains(Prompt.CustomButton))
+        {
+            response = new Response(Prompt.CustomButton);
+            PromptAction([]);
         }
     }
 

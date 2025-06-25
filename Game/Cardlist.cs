@@ -245,6 +245,28 @@ public static class Cardlist
 
         CardInfo death1 = new CardInfo("Death", 1);
         death1.topText = "Start: you may draw 1 card. If you do, delete 1 other card, then delete this card.";
+        death1.OnStart = async (Card card) =>
+        {
+            String prevText = Game.instance.promptLabel.Text;
+            Game.instance.promptLabel.Text = "You may draw 1 card to delete 1 card.";
+            PromptManager.PromptAction([PromptManager.Prompt.EndAction, PromptManager.Prompt.CustomButton], "Draw 1 card");
+            Response response = await Game.instance.localPlayer.WaitForResponse();
+            Game.instance.promptLabel.Text = prevText;
+            if (response.type == PromptManager.Prompt.EndAction) return;
+
+            List<Card> deletableCards = new List<Card>();
+            foreach (Card c in Game.instance.GetCards())
+            {
+                if (!c.covered && c != card)
+                    deletableCards.Add(c);
+            }
+            Game.instance.promptLabel.Text = "Delete 1 card.";
+            PromptManager.PromptAction([PromptManager.Prompt.Select], deletableCards);
+            response = await Game.instance.localPlayer.WaitForResponse();
+            Game.instance.promptLabel.Text = prevText;
+            await Game.instance.localPlayer.Delete(response.card);
+            await Game.instance.localPlayer.Delete(card);
+        };
         death.cards.Add(death1);
 
         CardInfo death2 = new CardInfo("Death", 2);

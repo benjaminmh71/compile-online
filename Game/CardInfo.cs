@@ -16,6 +16,7 @@ public partial class CardInfo : Node
 # pragma warning disable CS1998 // Warning for async without await
     public Func<Card, Task> OnPlay = async (Card card) => { };
     public Func<Card, Task> OnCover = async (Card card) => { };
+    public Func<Card, Task> OnStart = async (Card card) => { };
 # pragma warning restore CS1998
 
     public CardInfo(String protocolName, int _value)

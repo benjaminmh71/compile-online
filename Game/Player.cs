@@ -69,6 +69,12 @@ public partial class Player : Node
     {
         Game.instance.promptLabel.Text = "It is your turn.";
 
+        foreach (Card card in Game.instance.GetCards())
+        {
+            if (Game.instance.IsLocal(card))
+                await card.info.OnStart(card);
+        }
+
         // Check control:
         int controlledLines = 0;
         foreach (Protocol p in Game.instance.GetProtocols(true))
