@@ -22,7 +22,7 @@ public static class PromptManager
         Game.instance.resetControlButton.Pressed += OnResetControl;
         foreach (Protocol p in Game.instance.GetProtocols(true))
         {
-            p.OnClick += OnCompile;
+            p.OnClick += OnProtocolClicked;
         }
     }
 
@@ -77,6 +77,7 @@ public static class PromptManager
         if (prompts.Contains(Prompt.Select))
         {
             MousePosition.SetClickableCards(cards);
+            selectableProtocols = protocols;
         }
 
         SetPrompt(leftUIElements.ToArray());
@@ -157,11 +158,17 @@ public static class PromptManager
         }
     }
 
-    public static void OnCompile(Protocol protocol)
+    public static void OnProtocolClicked(Protocol protocol)
     {
         if (currPrompts.Contains(Prompt.Compile) && selectableProtocols.Contains(protocol))
         {
             response = new Response(protocol, Prompt.Compile);
+            PromptAction([]);
+        }
+
+        if (currPrompts.Contains(Prompt.Select) && selectableProtocols.Contains(protocol))
+        {
+            response = new Response(protocol, Prompt.Select);
             PromptAction([]);
         }
     }

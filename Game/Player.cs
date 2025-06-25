@@ -247,7 +247,6 @@ public partial class Player : Node
 
     public void Draw()
     {
-        //GD.Print(deck.Count);
         if (deck.Count == 0) // Shuffle in discard
         {
             if (discard.Count == 0) return;
@@ -439,6 +438,39 @@ public partial class Player : Node
                 cardLocation.local, cardLocation.protocolIndex, cardLocation.cardIndex);
         }
     }
+
+    public async Task MultiDelete(List<Card> cards)
+    {
+        List<Card> uncoveredCards = new List<Card>();
+        foreach (Card card in cards)
+        {
+            Protocol protocol = Game.instance.GetProtocolOfCard(card);
+            if (protocol.cards.IndexOf(card) > 0 && !cards.Contains(protocol.cards[protocol.cards.IndexOf(card) - 1]))
+                uncoveredCards.Add(protocol.cards[protocol.cards.IndexOf(card) - 1]);
+            SendToDiscard(card);
+            if (!card.covered && protocol.cards.Count > 0)
+                protocol.cards[protocol.cards.Count - 1].covered = false;
+        }
+
+        // TODO: on delete
+
+        List<String> locations = new List<String>();
+        foreach (Card c in uncoveredCards)
+        {
+            var location = Game.instance.GetCardLocation(c);
+            locations.Add(location.local + "," + location.protocolIndex + "," + location.cardIndex);
+        }
+
+        RpcId(oppId, nameof(OppMultiDelete), Json.Stringify(new Godot.Collections.Array<String>(locations)));
+        await WaitForOppResponse();
+
+        foreach (Card card in uncoveredCards)
+        {
+            if (!card.covered)
+                await Uncover(card, Game.instance.GetProtocolOfCard(card));
+        }
+    }
+
 
     public async Task Uncover(Card card, Protocol protocol)
     {
@@ -663,6 +695,35 @@ public partial class Player : Node
             Game.instance.localDiscardTop.placeholder = false;
             Game.instance.localDiscardTop.Render();
         }
+    }
+
+    [Rpc(MultiplayerApi.RpcMode.AnyPeer)]
+    public async void OppMultiDelete(string json)
+    {
+        List<String> uncoveredCardLocations = new Godot.Collections.Array<String>(Json.ParseString(json).AsGodotArray()).ToList();
+        List<Card> uncoveredCards = new List<Card>();
+        foreach (String location in uncoveredCardLocations)
+        {
+            GD.Print(location);
+            String[] split = location.Split(',');
+            Card card = Game.instance.FindCard(
+                !Boolean.Parse(split[0]), Int32.Parse(split[1]), Int32.Parse(split[2]));
+            uncoveredCards.Add(card);
+        }
+        GD.Print(uncoveredCards.Count);
+
+        foreach (Card card in uncoveredCards)
+        {
+            GD.Print(card.GetValue());
+            Protocol protocol = Game.instance.GetProtocolOfCard(card);
+            if (protocol.cards.IndexOf(card) == protocol.cards.Count - 1)
+            {
+                card.covered = false;
+                await Uncover(card, Game.instance.GetProtocolOfCard(card));
+            }
+        }
+
+        RpcId(oppId, nameof(OppResponse));
     }
 
     public bool LineContainsPassive(Protocol p, CardInfo.Passive passive)

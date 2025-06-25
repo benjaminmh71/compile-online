@@ -249,6 +249,26 @@ public static class Cardlist
 
         CardInfo death2 = new CardInfo("Death", 2);
         death2.middleText = "Delete all cards in 1 line with values of 1 or 2.";
+        death2.OnPlay = async (Card card) =>
+        {
+            String prevText = Game.instance.promptLabel.Text;
+            Game.instance.promptLabel.Text = "Choose a protocol.";
+            PromptManager.PromptAction([PromptManager.Prompt.Select], Game.instance.GetProtocols());
+            Response response = await Game.instance.localPlayer.WaitForResponse();
+            Game.instance.promptLabel.Text = prevText;
+            List<Card> cards = new List<Card>();
+            foreach (Card c in response.protocol.cards)
+            {
+                if (c.GetValue() == 1 || c.GetValue() == 2)
+                    cards.Add(c);
+            }
+            foreach (Card c in Game.instance.GetOpposingProtocol(response.protocol).cards)
+            {
+                if (c.GetValue() == 1 || c.GetValue() == 2)
+                    cards.Add(c);
+            }
+            await Game.instance.localPlayer.MultiDelete(cards);
+        };
         death.cards.Add(death2);
 
         CardInfo death3 = new CardInfo("Death", 3);
