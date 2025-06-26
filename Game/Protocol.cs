@@ -61,7 +61,8 @@ public partial class Protocol : Control
     public void AddCard(Card card)
     {
         Control cardContainer = GetNode<Control>("Cards");
-        card.GetParent().RemoveChild(card);
+        if (card.GetParent() != null)
+            card.GetParent().RemoveChild(card);
         cardContainer.AddChild(card);
         cards.Add(card);
         card.Position = new Vector2(-Constants.CARD_WIDTH / 2, (cards.Count - 1) * Constants.CARD_STACK_SEPARATION);

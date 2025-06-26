@@ -405,10 +405,41 @@ public static class Cardlist
 
         CardInfo fire4 = new CardInfo("Fire", 4);
         fire4.middleText = "Discard 1 or more cards. Draw the amount discarded plus 1.";
+        fire4.OnPlay = async (Card card) => {
+            if (Game.instance.localPlayer.hand.Count == 0)
+            {
+                Game.instance.localPlayer.Draw(1);
+                return;
+            }
+            await Game.instance.localPlayer.Discard(1);
+            String prevText = Game.instance.promptLabel.Text;
+            Game.instance.promptLabel.Text = "You may discard 1 card.";
+            PromptManager.PromptAction([PromptManager.Prompt.EndAction, PromptManager.Prompt.Select], 
+                Game.instance.localPlayer.hand);
+            int count = 1;
+            Response response;
+            while ((response = await Game.instance.localPlayer.WaitForResponse()).type != PromptManager.Prompt.EndAction
+            && Game.instance.localPlayer.hand.Count > 0)
+            {
+                Game.instance.localPlayer.SendToDiscard(response.card);
+                count++;
+                PromptManager.PromptAction([PromptManager.Prompt.EndAction, PromptManager.Prompt.Select],
+                    Game.instance.localPlayer.hand);
+            }
+            Game.instance.promptLabel.Text = prevText;
+            Game.instance.localPlayer.Draw(count + 1);
+        };
         fire.cards.Add(fire4);
 
         CardInfo fire5 = new CardInfo("Fire", 5);
         fire5.middleText = "Discard a card.";
+        fire5.OnPlay = async (Card card) =>
+        {
+            if (Game.instance.localPlayer.hand.Count > 0)
+            {
+                await Game.instance.localPlayer.Discard(1);
+            }
+        };
         fire.cards.Add(fire5);
     }
 

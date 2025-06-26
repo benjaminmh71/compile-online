@@ -477,7 +477,6 @@ public partial class Player : Node
         }
     }
 
-
     public async Task Uncover(Card card, Protocol protocol)
     {
         if (Game.instance.IsLocal(card) && !card.flipped && !LineContainsPassive(protocol, CardInfo.Passive.NoMiddleCommands))
@@ -673,6 +672,7 @@ public partial class Player : Node
     public void OppSendToDiscard(String cardName)
     {
         Card card = oppHand.Find((Card c) => c.info.GetCardName() == cardName);
+        oppHand.Remove(card);
         card.QueueFree();
         Game.instance.oppDiscardTop.SetCardInfo(card.info);
         Game.instance.oppDiscardTop.placeholder = false;
