@@ -241,6 +241,42 @@ public static class Cardlist
 
         CardInfo death0 = new CardInfo("Death", 0);
         death0.middleText = "Delete 1 card from each other line.";
+        death0.OnPlay = async (Card card) =>
+        {
+            Protocol protocol = Game.instance.GetProtocolOfCard(card);
+            List<Card> deletableCards = new List<Card>();
+            foreach (Card c in Game.instance.GetCards())
+            {
+                if (!c.covered && Game.instance.Line(Game.instance.GetProtocolOfCard(c)) != Game.instance.Line(protocol))
+                    deletableCards.Add(c);
+            }
+            if (deletableCards.Count > 0)
+            {
+                String prevText = Game.instance.promptLabel.Text;
+                Game.instance.promptLabel.Text = "Delete 1 card.";
+                PromptManager.PromptAction([PromptManager.Prompt.Select], deletableCards);
+                Response response = await Game.instance.localPlayer.WaitForResponse();
+                Game.instance.promptLabel.Text = prevText;
+                Protocol protocol2 = Game.instance.GetProtocolOfCard(response.card);
+                await Game.instance.localPlayer.Delete(response.card);
+
+                deletableCards.Clear();
+                foreach (Card c in Game.instance.GetCards())
+                {
+                    if (!c.covered && Game.instance.Line(Game.instance.GetProtocolOfCard(c)) != Game.instance.Line(protocol)
+                    && Game.instance.Line(Game.instance.GetProtocolOfCard(c)) != Game.instance.Line(protocol2))
+                        deletableCards.Add(c);
+                }
+                if (deletableCards.Count > 0)
+                {
+                    Game.instance.promptLabel.Text = "Delete 1 card.";
+                    PromptManager.PromptAction([PromptManager.Prompt.Select], deletableCards);
+                    response = await Game.instance.localPlayer.WaitForResponse();
+                    Game.instance.promptLabel.Text = prevText;
+                    await Game.instance.localPlayer.Delete(response.card);
+                }
+            }
+        };
         death.cards.Add(death0);
 
         CardInfo death1 = new CardInfo("Death", 1);
