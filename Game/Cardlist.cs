@@ -381,6 +381,35 @@ public static class Cardlist
             }
         };
         death.cards.Add(death5);
+
+        ProtocolInfo fire = new ProtocolInfo("Fire");
+        fire.backgroundColor = new Color((float)200 / 256, (float)50 / 256, 0);
+        protocols["Fire"] = fire;
+
+        CardInfo fire0 = new CardInfo("Fire", 0);
+        fire0.middleText = "Draw 2 cards. Flip 1 other card.";
+        fire0.bottomText = "When this card would be covered: first, draw 1 card, then flip 1 other card.";
+        fire.cards.Add(fire0);
+
+        CardInfo fire1 = new CardInfo("Fire", 1);
+        fire1.middleText = "Discard 1 card. If you do, delete 1 card.";
+        fire.cards.Add(fire1);
+
+        CardInfo fire2 = new CardInfo("Fire", 2);
+        fire2.middleText = "Discard 1 card. If you do, return 1 card.";
+        fire.cards.Add(fire2);
+
+        CardInfo fire3 = new CardInfo("Fire", 3);
+        fire3.bottomText = "End: You may discard 1 card. If you do, flip 1 card.";
+        fire.cards.Add(fire3);
+
+        CardInfo fire4 = new CardInfo("Fire", 4);
+        fire4.middleText = "Discard 1 or more cards. Draw the amount discarded plus 1.";
+        fire.cards.Add(fire4);
+
+        CardInfo fire5 = new CardInfo("Fire", 5);
+        fire5.middleText = "Discard a card.";
+        fire.cards.Add(fire5);
     }
 
     public static CardInfo GetCard(String name)
