@@ -393,6 +393,25 @@ public static class Cardlist
 
         CardInfo fire1 = new CardInfo("Fire", 1);
         fire1.middleText = "Discard 1 card. If you do, delete 1 card.";
+        fire1.OnPlay = async (Card card) =>
+        {
+            if (Game.instance.localPlayer.hand.Count == 0) return;
+            await Game.instance.localPlayer.Discard(1);
+            List<Card> deleteableCards = new List<Card>();
+            foreach (Card c in Game.instance.GetCards())
+            {
+                if (!c.covered) deleteableCards.Add(c);
+            }
+            if (deleteableCards.Count > 0)
+            {
+                String prevText = Game.instance.promptLabel.Text;
+                Game.instance.promptLabel.Text = "Delete 1 card.";
+                PromptManager.PromptAction([PromptManager.Prompt.Select], deleteableCards);
+                Response response = await Game.instance.localPlayer.WaitForResponse();
+                Game.instance.promptLabel.Text = prevText;
+                await Game.instance.localPlayer.Delete(response.card);
+            }
+        };
         fire.cards.Add(fire1);
 
         CardInfo fire2 = new CardInfo("Fire", 2);
