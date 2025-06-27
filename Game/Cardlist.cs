@@ -401,6 +401,33 @@ public static class Cardlist
 
         CardInfo fire3 = new CardInfo("Fire", 3);
         fire3.bottomText = "End: You may discard 1 card. If you do, flip 1 card.";
+        fire3.OnEnd = async (Card card) =>
+        {
+            if (Game.instance.localPlayer.hand.Count == 0) return;
+            String prevText = Game.instance.promptLabel.Text;
+            Game.instance.promptLabel.Text = "You may discard 1 card.";
+            PromptManager.PromptAction([PromptManager.Prompt.EndAction, PromptManager.Prompt.Select],
+                Game.instance.localPlayer.hand);
+            Response response = await Game.instance.localPlayer.WaitForResponse();
+            Game.instance.promptLabel.Text = prevText;
+            if (response.type == PromptManager.Prompt.EndAction) return;
+            Game.instance.localPlayer.SendToDiscard(response.card);
+
+            List<Card> flippableCards = new List<Card>();
+            foreach (Card c in Game.instance.GetCards())
+            {
+                if (!c.covered) flippableCards.Add(c);
+            }
+            if (flippableCards.Count > 0)
+            {
+                Game.instance.promptLabel.Text = "Flip a card.";
+                PromptManager.PromptAction([PromptManager.Prompt.Select], flippableCards);
+                response = await Game.instance.localPlayer.WaitForResponse();
+                Game.instance.promptLabel.Text = prevText;
+                await Game.instance.localPlayer.Flip(response.card);
+            }
+
+        };
         fire.cards.Add(fire3);
 
         CardInfo fire4 = new CardInfo("Fire", 4);

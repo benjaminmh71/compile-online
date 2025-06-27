@@ -153,12 +153,17 @@ public partial class Player : Node
             await Refresh();
         }
 
+        foreach (Card card in Game.instance.GetCards())
+        {
+            if (Game.instance.IsLocal(card))
+                await card.info.OnEnd(card);
+        }
+
         EndTurn();
     }
 
     public void EndTurn()
     {
-        // TODO: End of turn effects
         Game.instance.promptLabel.Text = "It is your opponent's turn.";
         MousePosition.SetSelectedCards(empty, emptyp);
         RpcId(oppId, nameof(StartTurn));

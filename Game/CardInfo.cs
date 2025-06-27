@@ -17,6 +17,7 @@ public partial class CardInfo : Node
     public Func<Card, Task> OnPlay = async (Card card) => { };
     public Func<Card, Task> OnCover = async (Card card) => { };
     public Func<Card, Task> OnStart = async (Card card) => { };
+    public Func<Card, Task> OnEnd = async (Card card) => { };
 # pragma warning restore CS1998
 
     public CardInfo(String protocolName, int _value)
