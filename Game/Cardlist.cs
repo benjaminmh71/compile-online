@@ -389,6 +389,41 @@ public static class Cardlist
         CardInfo fire0 = new CardInfo("Fire", 0);
         fire0.middleText = "Draw 2 cards. Flip 1 other card.";
         fire0.bottomText = "When this card would be covered: first, draw 1 card, then flip 1 other card.";
+        fire0.OnPlay = async (Card card) => {
+            Game.instance.localPlayer.Draw(2);
+            String prevText = Game.instance.promptLabel.Text;
+            Game.instance.promptLabel.Text = "Flip 1 card.";
+            List<Card> flippableCards = new List<Card>();
+            foreach (Card c in Game.instance.GetCards())
+            {
+                if (!c.covered && c != card) flippableCards.Add(c);
+            }
+            if (flippableCards.Count > 0)
+            {
+                PromptManager.PromptAction([PromptManager.Prompt.Select], flippableCards);
+                Response response = await Game.instance.localPlayer.WaitForResponse();
+                Game.instance.promptLabel.Text = prevText;
+                await Game.instance.localPlayer.Flip(response.card);
+            }
+        };
+        fire0.OnCover = async (Card card) =>
+        {
+            Game.instance.localPlayer.Draw(1);
+            String prevText = Game.instance.promptLabel.Text;
+            Game.instance.promptLabel.Text = "Flip 1 card.";
+            List<Card> flippableCards = new List<Card>();
+            foreach (Card c in Game.instance.GetCards())
+            {
+                if (!c.covered && c != card) flippableCards.Add(c);
+            }
+            if (flippableCards.Count > 0)
+            {
+                PromptManager.PromptAction([PromptManager.Prompt.Select], flippableCards);
+                Response response = await Game.instance.localPlayer.WaitForResponse();
+                Game.instance.promptLabel.Text = prevText;
+                await Game.instance.localPlayer.Flip(response.card);
+            }
+        };
         fire.cards.Add(fire0);
 
         CardInfo fire1 = new CardInfo("Fire", 1);
