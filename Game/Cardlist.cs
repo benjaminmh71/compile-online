@@ -397,6 +397,25 @@ public static class Cardlist
 
         CardInfo fire2 = new CardInfo("Fire", 2);
         fire2.middleText = "Discard 1 card. If you do, return 1 card.";
+        fire2.OnPlay = async (Card card) =>
+        {
+            if (Game.instance.localPlayer.hand.Count == 0) return;
+            await Game.instance.localPlayer.Discard(1);
+            List<Card> returnableCards = new List<Card>();
+            foreach (Card c in Game.instance.GetCards())
+            {
+                if (!c.covered) returnableCards.Add(c);
+            }
+            if (returnableCards.Count > 0)
+            {
+                String prevText = Game.instance.promptLabel.Text;
+                Game.instance.promptLabel.Text = "Return 1 card.";
+                PromptManager.PromptAction([PromptManager.Prompt.Select], returnableCards);
+                Response response = await Game.instance.localPlayer.WaitForResponse();
+                Game.instance.promptLabel.Text = prevText;
+                await Game.instance.localPlayer.Return(response.card);
+            }
+        };
         fire.cards.Add(fire2);
 
         CardInfo fire3 = new CardInfo("Fire", 3);

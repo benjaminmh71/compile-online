@@ -373,6 +373,43 @@ public partial class Player : Node
         }
     }
 
+    public async Task Return(Card card)
+    {
+        bool wasCovered = card.covered;
+        var cardLocation = Game.instance.GetCardLocation(card);
+        Protocol protocol = Game.instance.GetProtocols(cardLocation.local)[cardLocation.protocolIndex];
+        card.GetParent().RemoveChild(card);
+        protocol.cards.Remove(card);
+        card.Reset();
+        foreach (CardInfo.Passive passive in card.info.passives)
+        {
+            passives[passive] = null;
+        }
+        if (cardLocation.local)
+        {
+            hand.Add(card);
+            Game.instance.handCardsContainer.AddChild(card);
+        }
+        else
+        {
+            oppHand.Add(card);
+            card.flipped = true;
+            Game.instance.oppCardsContainer.AddChild(card);
+        }
+        if (!wasCovered && protocol.cards.Count > 0)
+        {
+            protocol.cards[protocol.cards.Count - 1].covered = false;
+        }
+        protocol.OrderCards();
+        RpcId(oppId, nameof(OppReturn),
+            cardLocation.local, cardLocation.protocolIndex, cardLocation.cardIndex);
+        await WaitForOppResponse();
+        if (!wasCovered && protocol.cards.Count > 0)
+        {
+            await Uncover(protocol.cards[protocol.cards.Count - 1], protocol);
+        }
+    }
+
     public async Task Shift(Card card, Protocol protocol)
     {
         var cardLocation = Game.instance.GetCardLocation(card);
@@ -620,6 +657,43 @@ public partial class Player : Node
             Game.instance.oppDiscardTop.SetCardInfo(card.info);
             Game.instance.oppDiscardTop.placeholder = false;
             Game.instance.oppDiscardTop.Render();
+        }
+        if (!wasCovered && protocol.cards.Count > 0)
+        {
+            protocol.cards[protocol.cards.Count - 1].covered = false;
+        }
+        protocol.OrderCards();
+        if (!wasCovered && protocol.cards.Count > 0)
+        {
+            await Uncover(protocol.cards[protocol.cards.Count - 1], protocol);
+        }
+
+        RpcId(oppId, nameof(OppResponse));
+    }
+
+    [Rpc(MultiplayerApi.RpcMode.AnyPeer)]
+    public async void OppReturn(bool local, int protocolIndex, int cardIndex)
+    {
+        Card card = Game.instance.FindCard(!local, protocolIndex, cardIndex);
+        bool wasCovered = card.covered;
+        Protocol protocol = Game.instance.GetProtocols(!local)[protocolIndex];
+        card.GetParent().RemoveChild(card);
+        protocol.cards.Remove(card);
+        card.Reset();
+        foreach (CardInfo.Passive passive in card.info.passives)
+        {
+            passives[passive] = null;
+        }
+        if (!local)
+        {
+            hand.Add(card);
+            Game.instance.handCardsContainer.AddChild(card);
+        }
+        else
+        {
+            oppHand.Add(card);
+            card.flipped = true;
+            Game.instance.oppCardsContainer.AddChild(card);
         }
         if (!wasCovered && protocol.cards.Count > 0)
         {
