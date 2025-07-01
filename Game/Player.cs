@@ -20,6 +20,7 @@ public partial class Player : Node
             this.local = local;
         }
     }
+    public enum CommandType { PlayTop };
     public int id;
     public List<Card> deck = new List<Card>();
     public List<Card> hand = new List<Card>();
@@ -519,6 +520,11 @@ public partial class Player : Node
         }
     }
 
+    public async Task SendCommand(Command command)
+    {
+
+    }
+
     public async Task Uncover(Card card, Protocol protocol)
     {
         if (Game.instance.IsLocal(card) && !card.flipped && !LineContainsPassive(protocol, CardInfo.Passive.NoMiddleCommands))
@@ -795,7 +801,6 @@ public partial class Player : Node
                 !Boolean.Parse(split[0]), Int32.Parse(split[1]), Int32.Parse(split[2]));
             uncoveredCards.Add(card);
         }
-        GD.Print(uncoveredCards.Count);
 
         foreach (Card card in uncoveredCards)
         {
@@ -809,6 +814,11 @@ public partial class Player : Node
         }
 
         RpcId(oppId, nameof(OppResponse));
+    }
+
+    public async void OppHandleCommand()
+    {
+
     }
 
     public bool LineContainsPassive(Protocol p, CardInfo.Passive passive)

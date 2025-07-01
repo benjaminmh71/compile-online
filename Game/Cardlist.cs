@@ -541,6 +541,41 @@ public static class Cardlist
             }
         };
         fire.cards.Add(fire5);
+
+        ProtocolInfo gravity = new ProtocolInfo("Gravity");
+        gravity.backgroundColor = new Color((float)160 / 256, (float)80 / 256, (float)230 / 256);
+        protocols["Gravity"] = gravity;
+
+        CardInfo gravity0 = new CardInfo("Gravity", 0);
+        gravity0.middleText = "For every 2 cards in this line, play the top card of your deck face-down under this card.";
+        gravity.cards.Add(gravity0);
+
+        CardInfo gravity1 = new CardInfo("Gravity", 1);
+        gravity1.middleText = "Draw 2 cards. Shift 1 card either to or from this line.";
+        gravity.cards.Add(gravity1);
+
+        CardInfo gravity2 = new CardInfo("Gravity", 2);
+        gravity2.middleText = "Flip 1 card. Shift that card to this line.";
+        gravity.cards.Add(gravity2);
+
+        CardInfo gravity4 = new CardInfo("Gravity", 4);
+        gravity4.middleText = "Shift 1 face-down card to this line.";
+        gravity.cards.Add(gravity4);
+
+        CardInfo gravity5 = new CardInfo("Gravity", 5);
+        gravity5.middleText = "Discard a card.";
+        gravity5.OnPlay = async (Card card) =>
+        {
+            if (Game.instance.localPlayer.hand.Count > 0)
+            {
+                await Game.instance.localPlayer.Discard(1);
+            }
+        };
+        gravity.cards.Add(gravity5);
+
+        CardInfo gravity6 = new CardInfo("Gravity", 6);
+        gravity6.middleText = "Your opponent plays the top card of their deck face down in this line.";
+        gravity.cards.Add(gravity6);
     }
 
     public static CardInfo GetCard(String name)

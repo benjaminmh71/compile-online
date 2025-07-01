@@ -52,7 +52,7 @@ public partial class Game : Control
         losePanel = GetNode<PanelContainer>("LosePanel");
         mousePosition = GetNode<MousePosition>("MousePosition");
 
-        String[] protocolNames = new String[3]{ "Fire", "Fire", "Fire" };
+        String[] protocolNames = new String[3]{ "Gravity", "Gravity", "Gravity" };
         foreach (String name in protocolNames)
         {
             PackedScene protocolScene = GD.Load("res://Game/Protocol.tscn") as PackedScene;
