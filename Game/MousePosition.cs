@@ -107,7 +107,7 @@ public partial class MousePosition : Control
                 {
                     if (draggedCardParent.GetParent() is Protocol)
                     {
-                        (draggedCardParent.GetParent() as Protocol).InsertCard(draggedCardIndex, draggedCard);
+                        (draggedCardParent.GetParent() as Protocol).ReparentCard(draggedCardIndex, draggedCard);
                     }
                     else
                     {

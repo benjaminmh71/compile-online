@@ -560,6 +560,26 @@ public static class Cardlist
 
         CardInfo gravity4 = new CardInfo("Gravity", 4);
         gravity4.middleText = "Shift 1 face-down card to this line.";
+        gravity4.OnPlay = async (Card card) =>
+        {
+            List<Card> facedownCards = new List<Card>();
+            foreach (Card c in Game.instance.GetCards())
+            {
+                if (!c.covered && c.flipped) facedownCards.Add(c);
+            }
+            if (facedownCards.Count > 0)
+            {
+                String prevText = Game.instance.promptLabel.Text;
+                Game.instance.promptLabel.Text = "Shift 1 face-down card.";
+                List<Protocol> protocols = new List<Protocol>();
+                protocols.Add(Game.instance.GetProtocolOfCard(card));
+                protocols.Add(Game.instance.GetOpposingProtocol(Game.instance.GetProtocolOfCard(card)));
+                PromptManager.PromptAction([PromptManager.Prompt.Shift], facedownCards, protocols);
+                Response response = await Game.instance.localPlayer.WaitForResponse();
+                Game.instance.promptLabel.Text = prevText;
+                await Game.instance.localPlayer.Shift(response.card, response.protocol);
+            }
+        };
         gravity.cards.Add(gravity4);
 
         CardInfo gravity5 = new CardInfo("Gravity", 5);
