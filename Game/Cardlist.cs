@@ -556,6 +556,27 @@ public static class Cardlist
 
         CardInfo gravity2 = new CardInfo("Gravity", 2);
         gravity2.middleText = "Flip 1 card. Shift that card to this line.";
+        gravity2.OnPlay = async (Card card) => {
+            List<Card> flippableCards = new List<Card>();
+            foreach (Card c in Game.instance.GetCards())
+            {
+                if (!c.covered) flippableCards.Add(c);
+            }
+            if (flippableCards.Count > 0)
+            {
+                String prevText = Game.instance.promptLabel.Text;
+                Game.instance.promptLabel.Text = "Flip 1 card.";
+                PromptManager.PromptAction([PromptManager.Prompt.Select], flippableCards);
+                Response response = await Game.instance.localPlayer.WaitForResponse();
+                Game.instance.promptLabel.Text = prevText;
+                await Game.instance.localPlayer.Flip(response.card);
+                Protocol protocol = Game.instance.GetProtocolOfCard(card);
+                if (Game.instance.IsLocal(response.card))
+                    await Game.instance.localPlayer.Shift(response.card, protocol);
+                else
+                    await Game.instance.localPlayer.Shift(response.card, Game.instance.GetOpposingProtocol(protocol));
+            }
+        };
         gravity.cards.Add(gravity2);
 
         CardInfo gravity4 = new CardInfo("Gravity", 4);
