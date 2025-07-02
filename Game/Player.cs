@@ -209,7 +209,7 @@ public partial class Player : Node
         }
         protocol.compiled = true;
         protocol.Render();
-        RpcId(oppId, nameof(OppCompile), Game.instance.GetProtocols(true).FindIndex((Protocol p) => p == protocol));
+        RpcId(oppId, nameof(OppCompile), Game.instance.IndexOfProtocol(protocol));
 
         int compiledProtocols = 0;
         foreach (Protocol p in Game.instance.GetProtocols(true))
@@ -226,7 +226,8 @@ public partial class Player : Node
 
     public async Task Play(Protocol protocol, Card card, bool flipped)
     {
-        hand.Remove(card);
+        if (hand.Contains(card))
+            hand.Remove(card);
         if (protocol.cards.Count > 0)
         {
             if (!protocol.cards[protocol.cards.Count - 1].flipped)
@@ -241,8 +242,16 @@ public partial class Player : Node
         }
         card.Render();
         RpcId(oppId, nameof(OppPlay),
-            card.info.GetCardName(), Game.instance.GetProtocols(true).FindIndex(p => p == protocol), flipped);
+            card.info.GetCardName(), Game.instance.IndexOfProtocol(protocol), flipped);
         await Uncover(card, protocol);
+    }
+
+    public async Task PlayTop(Protocol protocol)
+    {
+        if (deck.Count == 0) return;
+        Card card = deck[0];
+        deck.Remove(card);
+        await Play(protocol, card, true);
     }
 
     public void Draw(int n)
@@ -431,7 +440,7 @@ public partial class Player : Node
         }
         sourceProtocol.OrderCards();
         RpcId(oppId, nameof(OppShift), cardLocation.local,
-            Game.instance.GetProtocols(cardLocation.local).FindIndex((Protocol p) => p == protocol),
+            Game.instance.IndexOfProtocol(protocol),
             cardLocation.cardIndex, cardLocation.protocolIndex);
         await WaitForOppResponse();
         if (protocol.cards.Count > 1)
@@ -522,7 +531,23 @@ public partial class Player : Node
 
     public async Task SendCommand(Command command)
     {
+        List<String> locations = new List<String>();
+        foreach (Card c in command.cards)
+        {
+            var location = Game.instance.GetCardLocation(c);
+            locations.Add(location.local + "," + location.protocolIndex + "," + location.cardIndex);
+        }
 
+        List<String> protocolLocations = new List<String>();
+        foreach (Protocol p in command.protocols)
+        {
+            protocolLocations.Add(Game.instance.IsLocal(p) + "," + Game.instance.IndexOfProtocol(p));
+        }
+
+        RpcId(oppId, nameof(OppHandleCommand), (int)command.type, command.num, 
+            Json.Stringify(new Godot.Collections.Array<String>(protocolLocations)),
+            Json.Stringify(new Godot.Collections.Array<String>(locations)));
+        await WaitForOppResponse();
     }
 
     public async Task Uncover(Card card, Protocol protocol)
@@ -542,8 +567,17 @@ public partial class Player : Node
     [Rpc(MultiplayerApi.RpcMode.AnyPeer)]
     public void OppPlay(String cardName, int protocolIndex, bool flipped)
     {
-        Card card = oppHand.Find(handCard => handCard.info.GetCardName() == cardName);
-        oppHand.Remove(card);
+        Card card = null;
+        if (oppDeck.Count > 0 && oppDeck[0].info.GetCardName() == cardName)
+        {
+            card = oppDeck[0];
+            oppDeck.Remove(card);
+        }
+        else
+        {
+            card = oppHand.Find(handCard => handCard.info.GetCardName() == cardName);
+            oppHand.Remove(card);
+        }
         card.flipped = flipped;
         List<Protocol> protocols = Game.instance.GetProtocols(false);
         if (protocols[protocolIndex].cards.Count > 0)
@@ -795,7 +829,6 @@ public partial class Player : Node
         List<Card> uncoveredCards = new List<Card>();
         foreach (String location in uncoveredCardLocations)
         {
-            GD.Print(location);
             String[] split = location.Split(',');
             Card card = Game.instance.FindCard(
                 !Boolean.Parse(split[0]), Int32.Parse(split[1]), Int32.Parse(split[2]));
@@ -816,9 +849,39 @@ public partial class Player : Node
         RpcId(oppId, nameof(OppResponse));
     }
 
-    public async void OppHandleCommand()
+    [Rpc(MultiplayerApi.RpcMode.AnyPeer)]
+    public async void OppHandleCommand(int typeInt, int num, String protocolJson, String cardJson)
     {
+        CommandType type = (CommandType)typeInt;
+        List<String> cardLocations = new Godot.Collections.Array<String>(Json.ParseString(cardJson).AsGodotArray()).ToList();
+        List<Card> cards = new List<Card>();
+        foreach (String location in cardLocations)
+        {
+            GD.Print(location);
+            String[] split = location.Split(',');
+            Card card = Game.instance.FindCard(
+                !Boolean.Parse(split[0]), Int32.Parse(split[1]), Int32.Parse(split[2]));
+            cards.Add(card);
+        }
 
+        List<String> protocolLocations = new Godot.Collections.Array<String>(Json.ParseString(protocolJson).AsGodotArray()).ToList();
+        List<Protocol> protocols = new List<Protocol>();
+        foreach (String location in protocolLocations)
+        {
+            String[] split = location.Split(',');
+            Protocol protocol = Game.instance.GetProtocols(!Boolean.Parse(split[0]))[Int32.Parse(split[1])];
+            protocols.Add(protocol);
+        }
+
+        if (type == CommandType.PlayTop)
+        {
+            foreach (Protocol protocol in protocols)
+            {
+                await PlayTop(protocol);
+            }
+        }
+
+        RpcId(oppId, nameof(OppResponse));
     }
 
     public bool LineContainsPassive(Protocol p, CardInfo.Passive passive)

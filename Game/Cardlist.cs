@@ -575,6 +575,13 @@ public static class Cardlist
 
         CardInfo gravity6 = new CardInfo("Gravity", 6);
         gravity6.middleText = "Your opponent plays the top card of their deck face down in this line.";
+        gravity6.OnPlay = async (Card card) =>
+        {
+            List<Protocol> protocols = new List<Protocol>();
+            protocols.Add(Game.instance.GetOpposingProtocol(Game.instance.GetProtocolOfCard(card)));
+            Command command = new Command(Player.CommandType.PlayTop, protocols);
+            await Game.instance.localPlayer.SendCommand(command);
+        };
         gravity.cards.Add(gravity6);
     }
 

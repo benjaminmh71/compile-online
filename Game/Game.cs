@@ -162,6 +162,11 @@ public partial class Game : Control
         return protocols;
     }
 
+    public int IndexOfProtocol(Protocol p)
+    {
+        return GetProtocols(IsLocal(p)).FindIndex((Protocol protocol)  => protocol == p);
+    }
+
     public List<Card> GetCards()
     {
         List<Card> cards = new List<Card>();
@@ -266,7 +271,7 @@ public partial class Game : Control
 
     public int Line(Protocol protocol)
     {
-        if (IsLocal(protocol)) return GetProtocols(true).FindIndex((Protocol p) => p == protocol);
-        else return GetProtocols(false).Count - 1 - GetProtocols(false).FindIndex((Protocol p) => p == protocol);
+        if (IsLocal(protocol)) return IndexOfProtocol(protocol);
+        else return GetProtocols(false).Count - 1 - IndexOfProtocol(protocol);
     }
 }
