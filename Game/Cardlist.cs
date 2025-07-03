@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Godot;
 using CompileOnline.Game;
+using System.Threading.Tasks;
 
 public static class Cardlist
 {
@@ -285,7 +286,7 @@ public static class Cardlist
         {
             String prevText = Game.instance.promptLabel.Text;
             Game.instance.promptLabel.Text = "You may draw 1 card to delete 1 card.";
-            PromptManager.PromptAction([PromptManager.Prompt.EndAction, PromptManager.Prompt.CustomButton], "Draw 1 card");
+            PromptManager.PromptAction([PromptManager.Prompt.EndAction, PromptManager.Prompt.CustomButtonA], "Draw 1 card");
             Response response = await Game.instance.localPlayer.WaitForResponse();
             Game.instance.promptLabel.Text = prevText;
             if (response.type == PromptManager.Prompt.EndAction) return;
@@ -296,11 +297,14 @@ public static class Cardlist
                 if (!c.covered && c != card)
                     deletableCards.Add(c);
             }
-            Game.instance.promptLabel.Text = "Delete 1 card.";
-            PromptManager.PromptAction([PromptManager.Prompt.Select], deletableCards);
-            response = await Game.instance.localPlayer.WaitForResponse();
-            Game.instance.promptLabel.Text = prevText;
-            await Game.instance.localPlayer.Delete(response.card);
+            if (deletableCards.Count > 0)
+            {
+                Game.instance.promptLabel.Text = "Delete 1 card.";
+                PromptManager.PromptAction([PromptManager.Prompt.Select], deletableCards);
+                response = await Game.instance.localPlayer.WaitForResponse();
+                Game.instance.promptLabel.Text = prevText;
+                await Game.instance.localPlayer.Delete(response.card);
+            }
             await Game.instance.localPlayer.Delete(card);
         };
         death.cards.Add(death1);
@@ -552,6 +556,64 @@ public static class Cardlist
 
         CardInfo gravity1 = new CardInfo("Gravity", 1);
         gravity1.middleText = "Draw 2 cards. Shift 1 card either to or from this line.";
+        gravity1.OnPlay = async (Card card) =>
+        {
+            Game.instance.localPlayer.Draw(2);
+            Protocol protocol = Game.instance.GetProtocolOfCard(card);
+            List<Card> shiftableToCards = new List<Card>();
+            List<Card> shiftableFromCards = new List<Card>();
+            foreach (Card c in Game.instance.GetCards())
+            {
+                Protocol p = Game.instance.GetProtocolOfCard(c);
+                if (!c.covered && Game.instance.Line(p) != Game.instance.Line(protocol))
+                    shiftableToCards.Add(c);
+                if (!c.covered && Game.instance.Line(p) == Game.instance.Line(protocol))
+                    shiftableFromCards.Add(c);
+            }
+
+            async Task ShiftTo()
+            {
+                String prevText = Game.instance.promptLabel.Text;
+                Game.instance.promptLabel.Text = "Shift 1 card.";
+                List<Protocol> protocols = [
+                Game.instance.GetProtocolOfCard(card),
+                Game.instance.GetOpposingProtocol(Game.instance.GetProtocolOfCard(card))];
+                PromptManager.PromptAction([PromptManager.Prompt.Shift], shiftableToCards, protocols);
+                Response response = await Game.instance.localPlayer.WaitForResponse();
+                Game.instance.promptLabel.Text = prevText;
+                await Game.instance.localPlayer.Shift(response.card, response.protocol);
+            }
+
+            async Task ShiftFrom()
+            {
+                String prevText = Game.instance.promptLabel.Text;
+                Game.instance.promptLabel.Text = "Shift 1 card.";
+                List<Protocol> protocols = Game.instance.GetProtocols();
+                protocols.Remove(Game.instance.GetProtocolOfCard(card));
+                protocols.Remove(Game.instance.GetOpposingProtocol(Game.instance.GetProtocolOfCard(card)));
+                PromptManager.PromptAction([PromptManager.Prompt.Shift], shiftableFromCards, protocols);
+                Response response = await Game.instance.localPlayer.WaitForResponse();
+                Game.instance.promptLabel.Text = prevText;
+                await Game.instance.localPlayer.Shift(response.card, response.protocol);
+            }
+
+            if (shiftableToCards.Count > 0 && shiftableFromCards.Count > 0)
+            {
+                String prevText = Game.instance.promptLabel.Text;
+                Game.instance.promptLabel.Text = "Shift to or from Gravity 1's line?";
+                PromptManager.PromptAction([PromptManager.Prompt.CustomButtonA, PromptManager.Prompt.CustomButtonB],
+                    "Shift to", "Shift from");
+                Response response = await Game.instance.localPlayer.WaitForResponse();
+                Game.instance.promptLabel.Text = prevText;
+                if (response.type == PromptManager.Prompt.CustomButtonA)
+                    await ShiftTo();
+                else await ShiftFrom();
+            }
+            else if (shiftableToCards.Count > 0)
+                await ShiftTo();
+            else if (shiftableFromCards.Count > 0)
+                await ShiftFrom();
+        };
         gravity.cards.Add(gravity1);
 
         CardInfo gravity2 = new CardInfo("Gravity", 2);
@@ -592,9 +654,9 @@ public static class Cardlist
             {
                 String prevText = Game.instance.promptLabel.Text;
                 Game.instance.promptLabel.Text = "Shift 1 face-down card.";
-                List<Protocol> protocols = new List<Protocol>();
-                protocols.Add(Game.instance.GetProtocolOfCard(card));
-                protocols.Add(Game.instance.GetOpposingProtocol(Game.instance.GetProtocolOfCard(card)));
+                List<Protocol> protocols = [
+                Game.instance.GetProtocolOfCard(card),
+                Game.instance.GetOpposingProtocol(Game.instance.GetProtocolOfCard(card))];
                 PromptManager.PromptAction([PromptManager.Prompt.Shift], facedownCards, protocols);
                 Response response = await Game.instance.localPlayer.WaitForResponse();
                 Game.instance.promptLabel.Text = prevText;

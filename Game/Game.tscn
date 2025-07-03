@@ -125,7 +125,11 @@ visible = false
 layout_mode = 2
 text = "Reset Control"
 
-[node name="CustomButton" type="Button" parent="LeftUI"]
+[node name="CustomButtonA" type="Button" parent="LeftUI"]
+visible = false
+layout_mode = 2
+
+[node name="CustomButtonB" type="Button" parent="LeftUI"]
 visible = false
 layout_mode = 2
 

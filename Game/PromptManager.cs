@@ -6,7 +6,7 @@ using System.Linq;
 
 public static class PromptManager
 {
-    public enum Prompt { EndAction, CustomButton, Play, Refresh, Compile, Control, Shift, Select };
+    public enum Prompt { EndAction, CustomButtonA, CustomButtonB, Play, Refresh, Compile, Control, Shift, Select };
     public static Response response = null;
 
     static Prompt[] currPrompts = [];
@@ -20,7 +20,8 @@ public static class PromptManager
         Game.instance.endActionButton.Pressed += OnEndAction;
         Game.instance.refreshButton.Pressed += OnRefresh;
         Game.instance.resetControlButton.Pressed += OnResetControl;
-        Game.instance.customButton.Pressed += OnCustomButton;
+        Game.instance.customButtonA.Pressed += OnCustomButtonA;
+        Game.instance.customButtonB.Pressed += OnCustomButtonB;
         foreach (Protocol p in Game.instance.GetProtocols(true))
         {
             p.OnClick += OnProtocolClicked;
@@ -32,9 +33,16 @@ public static class PromptManager
         PromptAction(prompts, new List<Card>(), new List<Protocol>());
     }
 
-    public static void PromptAction(Prompt[] prompts, String customName)
+    public static void PromptAction(Prompt[] prompts, String customNameA)
     {
-        Game.instance.customButton.Text = customName;
+        Game.instance.customButtonA.Text = customNameA;
+        PromptAction(prompts);
+    }
+
+    public static void PromptAction(Prompt[] prompts, String customNameA, String customNameB)
+    {
+        Game.instance.customButtonA.Text = customNameA;
+        Game.instance.customButtonB.Text = customNameB;
         PromptAction(prompts);
     }
 
@@ -58,9 +66,14 @@ public static class PromptManager
             leftUIElements.Add(Game.instance.endActionButton);
         }
 
-        if (prompts.Contains(Prompt.CustomButton))
+        if (prompts.Contains(Prompt.CustomButtonA))
         {
-            leftUIElements.Add(Game.instance.customButton);
+            leftUIElements.Add(Game.instance.customButtonA);
+        }
+
+        if (prompts.Contains(Prompt.CustomButtonB))
+        {
+            leftUIElements.Add(Game.instance.customButtonB);
         }
 
         if (prompts.Contains(Prompt.Play))
@@ -170,11 +183,20 @@ public static class PromptManager
         }
     }
 
-    public static void OnCustomButton()
+    public static void OnCustomButtonA()
     {
-        if (currPrompts.Contains(Prompt.CustomButton))
+        if (currPrompts.Contains(Prompt.CustomButtonA))
         {
-            response = new Response(Prompt.CustomButton);
+            response = new Response(Prompt.CustomButtonA);
+            PromptAction([]);
+        }
+    }
+
+    public static void OnCustomButtonB()
+    {
+        if (currPrompts.Contains(Prompt.CustomButtonB))
+        {
+            response = new Response(Prompt.CustomButtonB);
             PromptAction([]);
         }
     }

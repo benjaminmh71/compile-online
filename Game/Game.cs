@@ -24,7 +24,8 @@ public partial class Game : Control
     public Button endActionButton;
     public Button refreshButton;
     public Button resetControlButton;
-    public Button customButton;
+    public Button customButtonA;
+    public Button customButtonB;
     public HBoxContainer flippedCheckbox;
     public PanelContainer victoryPanel;
     public PanelContainer losePanel;
@@ -46,7 +47,8 @@ public partial class Game : Control
         endActionButton = leftUI.GetNode<Button>("EndActionButton");
         refreshButton = leftUI.GetNode<Button>("RefreshButton");
         resetControlButton = leftUI.GetNode<Button>("ResetControlButton");
-        customButton = leftUI.GetNode<Button>("CustomButton");
+        customButtonA = leftUI.GetNode<Button>("CustomButtonA");
+        customButtonB = leftUI.GetNode<Button>("CustomButtonB");
         flippedCheckbox = leftUI.GetNode<HBoxContainer>("FlippedCheckbox");
         victoryPanel = GetNode<PanelContainer>("VictoryPanel");
         losePanel = GetNode<PanelContainer>("LosePanel");
