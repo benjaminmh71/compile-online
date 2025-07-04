@@ -552,6 +552,14 @@ public static class Cardlist
 
         CardInfo gravity0 = new CardInfo("Gravity", 0);
         gravity0.middleText = "For every 2 cards in this line, play the top card of your deck face-down under this card.";
+        gravity0.OnPlay = async (Card card) =>
+        {
+            Protocol protocol = Game.instance.GetProtocolOfCard(card);
+            int total = 0;
+            foreach (Card c in protocol.cards) total++;
+            foreach (Card c in Game.instance.GetOpposingProtocol(protocol).cards) total++;
+            for (int i = 0; i < total / 2; i++) Game.instance.localPlayer.PlayTopUnderneath(protocol);
+        };
         gravity.cards.Add(gravity0);
 
         CardInfo gravity1 = new CardInfo("Gravity", 1);

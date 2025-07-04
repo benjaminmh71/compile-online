@@ -254,6 +254,20 @@ public partial class Player : Node
         await Play(protocol, card, true);
     }
 
+    public void PlayTopUnderneath(Protocol protocol)
+    {
+        if (deck.Count == 0) return;
+        if (protocol.cards.Count == 0) return;
+        Card card = deck[0];
+        deck.Remove(card);
+        card.flipped = true;
+        protocol.InsertCard(protocol.cards.Count - 1, card);
+        card.Render();
+        protocol.OrderCards();
+        RpcId(oppId, nameof(OppPlayTopUnderneath),
+            Game.instance.IndexOfProtocol(protocol));
+    }
+
     public void Draw(int n)
     {
         if (n <= 0) return;
@@ -590,6 +604,18 @@ public partial class Player : Node
         }
         protocols[protocolIndex].AddCard(card);
         card.Render();
+    }
+
+    [Rpc(MultiplayerApi.RpcMode.AnyPeer)]
+    public void OppPlayTopUnderneath(int protocolIndex)
+    {
+        Protocol protocol = Game.instance.GetProtocols(false)[protocolIndex];
+        Card card = oppDeck[0];
+        oppDeck.Remove(card);
+        card.flipped = true;
+        protocol.InsertCard(protocol.cards.Count - 1, card);
+        card.Render();
+        protocol.OrderCards();
     }
 
     [Rpc(MultiplayerApi.RpcMode.AnyPeer)]
