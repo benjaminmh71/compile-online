@@ -72,7 +72,7 @@ public partial class Player : Node
 
         foreach (Card card in Game.instance.GetCards())
         {
-            if (Game.instance.IsLocal(card))
+            if (Game.instance.IsLocal(card) && !card.flipped)
                 await card.info.OnStart(card);
         }
 
@@ -156,7 +156,7 @@ public partial class Player : Node
 
         foreach (Card card in Game.instance.GetCards())
         {
-            if (Game.instance.IsLocal(card))
+            if (Game.instance.IsLocal(card) && !card.flipped)
                 await card.info.OnEnd(card);
         }
 

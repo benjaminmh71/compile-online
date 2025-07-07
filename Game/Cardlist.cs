@@ -694,6 +694,79 @@ public static class Cardlist
             await Game.instance.localPlayer.SendCommand(command);
         };
         gravity.cards.Add(gravity6);
+
+        ProtocolInfo hate = new ProtocolInfo("Hate");
+        hate.backgroundColor = new Color((float)100 / 256, (float)70 / 256, (float)70 / 256);
+        protocols["Hate"] = hate;
+
+        CardInfo hate0 = new CardInfo("Hate", 0);
+        hate0.middleText = "Delete 1 card.";
+        hate.cards.Add(hate0);
+
+        CardInfo hate1 = new CardInfo("Hate", 1);
+        hate1.middleText = "Discard 3 cards. Delete 1 card. Delete 1 card.";
+        hate.cards.Add(hate1);
+
+        CardInfo hate2 = new CardInfo("Hate", 2);
+        hate2.middleText = "Delete your highest value card. Delete your opponent's highest value card.";
+        hate.cards.Add(hate2);
+
+        CardInfo hate3 = new CardInfo("Hate", 3);
+        hate3.topText = "After you delete cards: draw 1 card.";
+        hate.cards.Add(hate3);
+
+        CardInfo hate4 = new CardInfo("Hate", 4);
+        hate4.bottomText = "When this card would be covered: first, delete the lowest value covered card in this line.";
+        hate4.OnCover = async (Card card) =>
+        {
+            Protocol protocol = Game.instance.GetProtocolOfCard(card);
+            List<Card> lowests = new List<Card>();
+            foreach (Card c in protocol.cards)
+            {
+                if (!c.covered) continue;
+                if (lowests.Count == 0 || c.GetValue() == lowests[0].GetValue())
+                    lowests.Add(c);
+                if (c.GetValue() < lowests[0].GetValue())
+                {
+                    lowests.Clear();
+                    lowests.Add(c);
+                }
+            }
+            foreach (Card c in Game.instance.GetOpposingProtocol(protocol).cards)
+            {
+                if (!c.covered) continue;
+                if (lowests.Count == 0 || c.GetValue() == lowests[0].GetValue())
+                    lowests.Add(c);
+                if (c.GetValue() < lowests[0].GetValue())
+                {
+                    lowests.Clear();
+                    lowests.Add(c);
+                }
+            }
+            if (lowests.Count == 1)
+                await Game.instance.localPlayer.Delete(lowests[0]);
+            else if (lowests.Count > 1)
+            {
+                String prevText = Game.instance.promptLabel.Text;
+                Game.instance.promptLabel.Text = "Delete 1 covered card of those with the lowest value.";
+                PromptManager.PromptAction([PromptManager.Prompt.Select], lowests);
+                Response response = await Game.instance.localPlayer.WaitForResponse();
+                Game.instance.promptLabel.Text = prevText;
+                await Game.instance.localPlayer.Delete(response.card);
+            }
+        };
+        hate.cards.Add(hate4);
+
+        CardInfo hate5 = new CardInfo("Hate", 5);
+        hate5.middleText = "Discard a card.";
+        hate5.OnPlay = async (Card card) =>
+        {
+            if (Game.instance.localPlayer.hand.Count > 0)
+            {
+                await Game.instance.localPlayer.Discard(1);
+            }
+        };
+        hate.cards.Add(hate5);
     }
 
     public static CardInfo GetCard(String name)
