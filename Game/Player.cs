@@ -222,6 +222,11 @@ public partial class Player : Node
             RpcId(oppId, nameof(OppLose));
             await WaitForResponse();
         }
+
+        foreach (Card c in Game.instance.GetCards())
+        {
+            if (Game.instance.IsLocal(c) && !c.flipped) await c.info.OnDelete(c);
+        }
     }
 
     public async Task Play(Protocol protocol, Card card, bool flipped)
@@ -268,7 +273,7 @@ public partial class Player : Node
             Game.instance.IndexOfProtocol(protocol));
     }
 
-    public void Draw(int n)
+    public async Task Draw(int n)
     {
         if (n <= 0) return;
 
@@ -391,6 +396,10 @@ public partial class Player : Node
         RpcId(oppId, nameof(OppDelete),
             cardLocation.local, cardLocation.protocolIndex, cardLocation.cardIndex);
         await WaitForOppResponse();
+        foreach (Card c in Game.instance.GetCards())
+        {
+            if (Game.instance.IsLocal(c) && !c.flipped) await c.info.OnDelete(c);
+        }
         if (!wasCovered && protocol.cards.Count > 0)
         {
             await Uncover(protocol.cards[protocol.cards.Count - 1], protocol);
@@ -524,8 +533,6 @@ public partial class Player : Node
                 protocol.cards[protocol.cards.Count - 1].covered = false;
         }
 
-        // TODO: on delete
-
         List<String> locations = new List<String>();
         foreach (Card c in uncoveredCards)
         {
@@ -535,6 +542,11 @@ public partial class Player : Node
 
         RpcId(oppId, nameof(OppMultiDelete), Json.Stringify(new Godot.Collections.Array<String>(locations)));
         await WaitForOppResponse();
+
+        foreach (Card c in Game.instance.GetCards())
+        {
+            if (Game.instance.IsLocal(c) && !c.flipped) await c.info.OnDelete(c);
+        }
 
         foreach (Card card in uncoveredCards)
         {
@@ -582,7 +594,7 @@ public partial class Player : Node
     public void OppPlay(String cardName, int protocolIndex, bool flipped)
     {
         Card card = null;
-        if (oppDeck.Count > 0 && oppDeck[0].info.GetCardName() == cardName)
+        if (oppDeck.Count > 0 && oppDeck[0].info.GetCardName() == cardName) // Don't forget about this one. evil of me
         {
             card = oppDeck[0];
             oppDeck.Remove(card);
@@ -648,7 +660,7 @@ public partial class Player : Node
         Card card = oppDeck[0];
         oppDeck.Remove(card);
         oppHand.Add(card);
-        card.flipped = true;
+        //card.flipped = true; UNCOMMENT THIS
         Game.instance.oppCardsContainer.AddChild(card);
     }
 

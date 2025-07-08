@@ -713,6 +713,7 @@ public static class Cardlist
 
         CardInfo hate3 = new CardInfo("Hate", 3);
         hate3.topText = "After you delete cards: draw 1 card.";
+        hate3.OnDelete = async (Card card) => { await Game.instance.localPlayer.Draw(1); };
         hate.cards.Add(hate3);
 
         CardInfo hate4 = new CardInfo("Hate", 4);
