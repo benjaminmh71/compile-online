@@ -12,6 +12,10 @@ public static class PromptManager
     static Prompt[] currPrompts = [];
     static List<Protocol> selectableProtocols = new List<Protocol>();
 
+    static List<int> swapA = new List<int>();
+    static List<int> swapB = new List<int>();
+    static bool swapLocal = false;
+
     public static void Init()
     {
         Game.instance.mousePosition.CardClicked += OnClick;
@@ -92,6 +96,8 @@ public static class PromptManager
         {
             MousePosition.SetSelectedProtocols(protocols);
             SetProtocolPrompt(protocols.ToArray());
+            leftUIElements.Add(Game.instance.resetControlButton);
+            leftUIElements.Add(Game.instance.endActionButton);
         }
 
         if (prompts.Contains(Prompt.Shift))
@@ -123,7 +129,7 @@ public static class PromptManager
 
     public static void SetProtocolPrompt(Protocol[] protocols)
     {
-        foreach (Protocol p in Game.instance.GetProtocols(true))
+        foreach (Protocol p in Game.instance.GetProtocols())
         {
             p.GetNode<Control>("SelectionIndicator").Visible = false;
         }
@@ -164,6 +170,14 @@ public static class PromptManager
             response = new Response(Prompt.EndAction);
             PromptAction([]);
         }
+        else if (currPrompts.Contains(Prompt.Control))
+        {
+            SetProtocolPrompt([]);
+            response = new Response(swapLocal, new List<int>(swapA), new List<int>(swapB), Prompt.Control);
+            PromptAction([]);
+            swapA.Clear();
+            swapB.Clear();
+        }
     }
 
     public static void OnRefresh()
@@ -179,7 +193,15 @@ public static class PromptManager
     {
         if (currPrompts.Contains(Prompt.Control))
         {
-            GD.Print("Finish this later");
+            for (int i = swapA.Count-1; i >= 0; i--)
+            {
+                MousePosition.Swap(Game.instance.GetProtocols(swapLocal)[swapB[i]],
+                   Game.instance.GetProtocols(swapLocal)[swapA[i]]);
+            }
+            swapA.Clear();
+            swapB.Clear();
+            MousePosition.SetSelectedProtocols(Game.instance.GetProtocols());
+            SetProtocolPrompt(Game.instance.GetProtocols().ToArray());
         }
     }
 
@@ -216,18 +238,16 @@ public static class PromptManager
         }
     }
 
-    public static void OnSwap(Protocol protocol)
+    public static void OnSwap(Protocol protocolA, Protocol protocolB)
     {
         if (currPrompts.Contains(Prompt.Control))
         {
-            if (Game.instance.IsLocal(protocol))
-            {
-                MousePosition.SetSelectedProtocols(Game.instance.GetProtocols(true));
-            } 
-            else
-            {
-                MousePosition.SetSelectedProtocols(Game.instance.GetProtocols(false));
-            }
+            List<Protocol> protocols = Game.instance.GetProtocols(Game.instance.IsLocal(protocolA));
+            MousePosition.SetSelectedProtocols(protocols);
+            SetProtocolPrompt(protocols.ToArray());
+            swapA.Add(Game.instance.IndexOfProtocol(protocolB));
+            swapB.Add(Game.instance.IndexOfProtocol(protocolA));
+            swapLocal = Game.instance.IsLocal(protocolA);
         }
     }
 }

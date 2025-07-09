@@ -11,13 +11,13 @@ public partial class MousePosition : Control
     [Signal]
     public delegate void CardPlacedEventHandler(Protocol protocol, Card card);
     [Signal]
-    public delegate void ProtocolSwappedEventHandler(Protocol protocol);
+    public delegate void ProtocolSwappedEventHandler(Protocol protocolA, Protocol protocolB);
 
     bool dragging = false;
     Card draggedCard = null;
     Node draggedCardParent = null;
     int draggedCardIndex = -1;
-    Protocol draggedProtocol = null;
+    Control draggedProtocol = null;
     Protocol referencedProtocol = null;
     static List<Card> clickableCards = new List<Card>();
     // Click and drag cards:
@@ -82,11 +82,11 @@ public partial class MousePosition : Control
                     protocol.GlobalPosition.Y + (Game.instance.IsLocal(protocol) ? 1 : -1) * Constants.CARD_HEIGHT),
                     new Vector2(protocol.GlobalPosition.X + (Game.instance.IsLocal(protocol) ? 1 : -1) * Constants.CARD_WIDTH, protocol.GlobalPosition.Y)]))
                 {
-                    Protocol copiedProtocol = protocol.Duplicate() as Protocol;
+                    Control copiedProtocol = protocol.Duplicate(0) as Control;
                     draggedProtocol = copiedProtocol;
                     referencedProtocol = protocol;
                     protocol.HideProtocol();
-                    copiedProtocol.GetParent().RemoveChild(copiedProtocol);
+                    copiedProtocol.GetNode("Cards").QueueFree();
                     AddChild(copiedProtocol);
                 }
             }
@@ -125,29 +125,12 @@ public partial class MousePosition : Control
                 if (otherProtocol != null && 
                     (Game.instance.IsLocal(referencedProtocol) == Game.instance.IsLocal(otherProtocol)))
                 {
-                    int oldPosition = referencedProtocol.GetIndex();
-                    int newPosition = otherProtocol.GetIndex();
-                    Control oldCards = referencedProtocol.GetNode<Control>("Cards");
-                    Control newCards = otherProtocol.GetNode<Control>("Cards");
-                    referencedProtocol.RemoveChild(oldCards);
-                    otherProtocol.RemoveChild(newCards);
-                    referencedProtocol.AddChild(newCards);
-                    otherProtocol.AddChild(oldCards);
-                    if (Game.instance.IsLocal(referencedProtocol))
-                    {
-                        Game.instance.localProtocolsContainer.MoveChild(referencedProtocol, newPosition);
-                        Game.instance.localProtocolsContainer.MoveChild(otherProtocol, oldPosition);
-                    }
-                    else
-                    {
-                        Game.instance.oppProtocolsContainer.MoveChild(referencedProtocol, newPosition);
-                        Game.instance.oppProtocolsContainer.MoveChild(otherProtocol, oldPosition);
-                    }
+                    Swap(referencedProtocol, otherProtocol);
                     draggedProtocol.QueueFree();
                     referencedProtocol.UnHideProtocol();
+                    EmitSignal("ProtocolSwapped", referencedProtocol, otherProtocol);
                     draggedProtocol = null;
                     referencedProtocol = null;
-                    EmitSignal("ProtocolSwapped", referencedProtocol);
                 } 
                 else
                 {
@@ -157,6 +140,28 @@ public partial class MousePosition : Control
                     referencedProtocol = null;
                 }
             }
+        }
+    }
+
+    public static void Swap(Protocol A, Protocol B)
+    {
+        int oldPosition = A.GetIndex();
+        int newPosition = B.GetIndex();
+        Control oldCards = A.GetNode<Control>("Cards");
+        Control newCards = B.GetNode<Control>("Cards");
+        A.RemoveChild(oldCards);
+        B.RemoveChild(newCards);
+        A.AddChild(newCards);
+        B.AddChild(oldCards);
+        if (Game.instance.IsLocal(A))
+        {
+            Game.instance.localProtocolsContainer.MoveChild(A, newPosition);
+            Game.instance.localProtocolsContainer.MoveChild(B, oldPosition);
+        }
+        else
+        {
+            Game.instance.oppProtocolsContainer.MoveChild(A, newPosition);
+            Game.instance.oppProtocolsContainer.MoveChild(B, oldPosition);
         }
     }
 

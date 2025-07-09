@@ -50,12 +50,14 @@ public partial class Protocol : Control
     {
         GetNode<Control>("Panel").Visible = false;
         GetNode<Control>("TextContainer").Visible = false;
+        GetNode<Control>("SelectionIndicator").Visible = false;
     }
 
     public void UnHideProtocol()
     {
         GetNode<Control>("Panel").Visible = true;
         GetNode<Control>("TextContainer").Visible = true;
+        GetNode<Control>("SelectionIndicator").Visible = true;
     }
 
     public void AddCard(Card card)

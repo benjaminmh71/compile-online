@@ -473,6 +473,7 @@ public static class Cardlist
         fire3.OnEnd = async (Card card) =>
         {
             if (Game.instance.localPlayer.hand.Count == 0) return;
+            if (card.covered) return;
             String prevText = Game.instance.promptLabel.Text;
             Game.instance.promptLabel.Text = "You may discard 1 card.";
             PromptManager.PromptAction([PromptManager.Prompt.EndAction, PromptManager.Prompt.Select],

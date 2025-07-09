@@ -172,17 +172,29 @@ public partial class Player : Node
 
     public async Task UseControl()
     {
-        /*hasControl = false; FINISH LATER
+        hasControl = false;
         Game.instance.control.OffsetTop = Constants.CONTROL_TOP;
         Game.instance.control.OffsetBottom = Constants.CONTROL_BOTTOM;
-        RpcId(oppId, nameof(OppUseControl));
 
         PromptManager.PromptAction([PromptManager.Prompt.Control], 
-            Game.instance.GetProtocols(true).Concat(Game.instance.GetProtocols(false)).ToList());
+            Game.instance.GetProtocols());
 
-        Response response = await WaitForResponse();*/
+        Response response = await WaitForResponse();
 
-        
+        List<String> protocolALocations = new List<String>();
+        foreach (int p in response.swapA)
+        {
+            protocolALocations.Add(response.swapLocal + "," + p);
+        }
+        List<String> protocolBLocations = new List<String>();
+        foreach (int p in response.swapB)
+        {
+            protocolBLocations.Add(response.swapLocal + "," + p);
+        }
+
+        RpcId(oppId, nameof(OppUseControl),
+            Json.Stringify(new Godot.Collections.Array<String>(protocolALocations)),
+            Json.Stringify(new Godot.Collections.Array<String>(protocolBLocations)));
     }
 
     public async Task Refresh()
@@ -192,7 +204,7 @@ public partial class Player : Node
             await UseControl();
         }
 
-        Draw(5 - hand.Count);
+        await Draw(5 - hand.Count);
     }
 
     public async Task Compile(Protocol protocol)
@@ -677,10 +689,21 @@ public partial class Player : Node
     }
 
     [Rpc(MultiplayerApi.RpcMode.AnyPeer)]
-    public void OppUseControl()
+    public void OppUseControl(String protocolAJson, String protocolBJson)
     {
         Game.instance.control.OffsetTop = Constants.CONTROL_TOP;
         Game.instance.control.OffsetBottom = Constants.CONTROL_BOTTOM;
+
+        List<String> protocolALocations = new Godot.Collections.Array<String>(Json.ParseString(protocolAJson).AsGodotArray()).ToList();
+        List<String> protocolBLocations = new Godot.Collections.Array<String>(Json.ParseString(protocolBJson).AsGodotArray()).ToList();
+        for (int i = 0; i < protocolALocations.Count; i++)
+        {
+            String[] splitA = protocolALocations[i].Split(',');
+            Protocol protocolA = Game.instance.GetProtocols(!Boolean.Parse(splitA[0]))[Int32.Parse(splitA[1])];
+            String[] splitB = protocolBLocations[i].Split(',');
+            Protocol protocolB = Game.instance.GetProtocols(!Boolean.Parse(splitB[0]))[Int32.Parse(splitB[1])];
+            MousePosition.Swap(protocolA, protocolB);
+        }
     }
 
     [Rpc(MultiplayerApi.RpcMode.AnyPeer)]
@@ -879,7 +902,6 @@ public partial class Player : Node
 
         foreach (Card card in uncoveredCards)
         {
-            GD.Print(card.GetValue());
             Protocol protocol = Game.instance.GetProtocolOfCard(card);
             if (protocol.cards.IndexOf(card) == protocol.cards.Count - 1)
             {

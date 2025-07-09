@@ -54,15 +54,20 @@ public partial class Game : Control
         losePanel = GetNode<PanelContainer>("LosePanel");
         mousePosition = GetNode<MousePosition>("MousePosition");
 
-        String[] protocolNames = new String[3]{ "Hate", "Hate", "Hate" };
-        foreach (String name in protocolNames)
+        String[] localProtocolNames;
+        if (host) localProtocolNames = new String[3] { "Apathy", "Darkness", "Death" };
+        else localProtocolNames = new String[3] { "Fire", "Gravity", "Hate" };
+        String[] oppProtocolNames;
+        if (host) oppProtocolNames = new String[3] { "Fire", "Gravity", "Hate" };
+        else oppProtocolNames = new String[3] { "Apathy", "Darkness", "Death" };
+        foreach (String name in localProtocolNames)
         {
             PackedScene protocolScene = GD.Load("res://Game/Protocol.tscn") as PackedScene;
             Protocol protocol = protocolScene.Instantiate<Protocol>();
             protocol.info = Cardlist.protocols[name];
             localProtocolsContainer.AddChild(protocol);
         }
-        foreach (String name in protocolNames)
+        foreach (String name in oppProtocolNames)
         {
             PackedScene protocolScene = GD.Load("res://Game/Protocol.tscn") as PackedScene;
             Protocol protocol = protocolScene.Instantiate<Protocol>();

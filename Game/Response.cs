@@ -12,6 +12,10 @@ namespace CompileOnline.Game
         public Protocol protocol;
         public bool flipped;
 
+        public List<int> swapA;
+        public List<int> swapB;
+        public bool swapLocal;
+
         public PromptManager.Prompt type;
 
         public Response(PromptManager.Prompt type)
@@ -44,6 +48,14 @@ namespace CompileOnline.Game
             this.protocol = protocol;
             this.flipped = flipped;
             this.type = type;
+        }
+
+        public Response(bool swapLocal, List<int> swapA, List<int> swapB, PromptManager.Prompt type)
+        {
+            this.type = type;
+            this.swapLocal = swapLocal;
+            this.swapA = swapA;
+            this.swapB = swapB;
         }
     }
 }
