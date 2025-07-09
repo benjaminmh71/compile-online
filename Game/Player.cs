@@ -231,7 +231,7 @@ public partial class Player : Node
 
     public async Task Play(Protocol protocol, Card card, bool flipped)
     {
-        bool top = card == deck[0];
+        bool top = deck.Count > 0 && card == deck[0];
         if (hand.Contains(card))
             hand.Remove(card);
         if (protocol.cards.Count > 0)
@@ -333,6 +333,7 @@ public partial class Player : Node
 
     public async Task Discard()
     {
+        if (hand.Count == 0) return;
         PromptManager.PromptAction([PromptManager.Prompt.Select], hand);
         Response response = await WaitForResponse();
         SendToDiscard(response.card);

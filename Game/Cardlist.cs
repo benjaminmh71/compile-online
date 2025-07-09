@@ -96,10 +96,7 @@ public static class Cardlist
         apathy5.middleText = "Discard a card.";
         apathy5.OnPlay = async (Card card) =>
         {
-            if (Game.instance.localPlayer.hand.Count > 0)
-            {
-                await Game.instance.localPlayer.Discard(1);
-            }
+            await Game.instance.localPlayer.Discard(1);
         };
         apathy.cards.Add(apathy5);
 
@@ -112,7 +109,7 @@ public static class Cardlist
         darkness0.middleText = "Draw 3 cards. Shift 1 of your opponent's covered cards.";
         darkness0.OnPlay = async (Card card) =>
         {
-            Game.instance.localPlayer.Draw(3);
+            await Game.instance.localPlayer.Draw(3);
             List<Card> shiftableCards = new List<Card>();
             foreach (Card c in Game.instance.GetCards())
             {
@@ -229,10 +226,7 @@ public static class Cardlist
         darkness5.middleText = "Discard a card.";
         darkness5.OnPlay = async (Card card) =>
         {
-            if (Game.instance.localPlayer.hand.Count > 0)
-            {
-                await Game.instance.localPlayer.Discard(1);
-            }
+            await Game.instance.localPlayer.Discard(1);
         };
         darkness.cards.Add(darkness5);
 
@@ -291,6 +285,7 @@ public static class Cardlist
             Game.instance.promptLabel.Text = prevText;
             if (response.type == PromptManager.Prompt.EndAction) return;
 
+            await Game.instance.localPlayer.Draw(1);
             List<Card> deletableCards = new List<Card>();
             foreach (Card c in Game.instance.GetCards())
             {
@@ -379,10 +374,7 @@ public static class Cardlist
         death5.middleText = "Discard a card.";
         death5.OnPlay = async (Card card) =>
         {
-            if (Game.instance.localPlayer.hand.Count > 0)
-            {
-                await Game.instance.localPlayer.Discard(1);
-            }
+            await Game.instance.localPlayer.Discard(1);
         };
         death.cards.Add(death5);
 
@@ -394,7 +386,7 @@ public static class Cardlist
         fire0.middleText = "Draw 2 cards. Flip 1 other card.";
         fire0.bottomText = "When this card would be covered: first, draw 1 card, then flip 1 other card.";
         fire0.OnPlay = async (Card card) => {
-            Game.instance.localPlayer.Draw(2);
+            await Game.instance.localPlayer.Draw(2);
             String prevText = Game.instance.promptLabel.Text;
             Game.instance.promptLabel.Text = "Flip 1 card.";
             List<Card> flippableCards = new List<Card>();
@@ -412,7 +404,7 @@ public static class Cardlist
         };
         fire0.OnCover = async (Card card) =>
         {
-            Game.instance.localPlayer.Draw(1);
+            await Game.instance.localPlayer.Draw(1);
             String prevText = Game.instance.promptLabel.Text;
             Game.instance.promptLabel.Text = "Flip 1 card.";
             List<Card> flippableCards = new List<Card>();
@@ -512,7 +504,7 @@ public static class Cardlist
         fire4.OnPlay = async (Card card) => {
             if (Game.instance.localPlayer.hand.Count == 0)
             {
-                Game.instance.localPlayer.Draw(1);
+                await Game.instance.localPlayer.Draw(1);
                 return;
             }
             await Game.instance.localPlayer.Discard(1);
@@ -531,7 +523,7 @@ public static class Cardlist
                     Game.instance.localPlayer.hand);
             }
             Game.instance.promptLabel.Text = prevText;
-            Game.instance.localPlayer.Draw(count + 1);
+            await Game.instance.localPlayer.Draw(count + 1);
         };
         fire.cards.Add(fire4);
 
@@ -539,10 +531,7 @@ public static class Cardlist
         fire5.middleText = "Discard a card.";
         fire5.OnPlay = async (Card card) =>
         {
-            if (Game.instance.localPlayer.hand.Count > 0)
-            {
-                await Game.instance.localPlayer.Discard(1);
-            }
+            await Game.instance.localPlayer.Discard(1);
         };
         fire.cards.Add(fire5);
 
@@ -566,7 +555,7 @@ public static class Cardlist
         gravity1.middleText = "Draw 2 cards. Shift 1 card either to or from this line.";
         gravity1.OnPlay = async (Card card) =>
         {
-            Game.instance.localPlayer.Draw(2);
+            await Game.instance.localPlayer.Draw(2);
             Protocol protocol = Game.instance.GetProtocolOfCard(card);
             List<Card> shiftableToCards = new List<Card>();
             List<Card> shiftableFromCards = new List<Card>();
@@ -677,10 +666,7 @@ public static class Cardlist
         gravity5.middleText = "Discard a card.";
         gravity5.OnPlay = async (Card card) =>
         {
-            if (Game.instance.localPlayer.hand.Count > 0)
-            {
-                await Game.instance.localPlayer.Discard(1);
-            }
+            await Game.instance.localPlayer.Discard(1);
         };
         gravity.cards.Add(gravity5);
 
@@ -701,10 +687,59 @@ public static class Cardlist
 
         CardInfo hate0 = new CardInfo("Hate", 0);
         hate0.middleText = "Delete 1 card.";
+        hate0.OnPlay = async (Card card) =>
+        {
+            List<Card> deleteableCards = new List<Card>();
+            foreach (Card c in Game.instance.GetCards())
+            {
+                if (!c.covered) deleteableCards.Add(c);
+            }
+            if (deleteableCards.Count > 0)
+            {
+                String prevText = Game.instance.promptLabel.Text;
+                Game.instance.promptLabel.Text = "Delete 1 card.";
+                PromptManager.PromptAction([PromptManager.Prompt.Select], deleteableCards);
+                Response response = await Game.instance.localPlayer.WaitForResponse();
+                Game.instance.promptLabel.Text = prevText;
+                await Game.instance.localPlayer.Delete(response.card);
+            }
+        };
         hate.cards.Add(hate0);
 
         CardInfo hate1 = new CardInfo("Hate", 1);
         hate1.middleText = "Discard 3 cards. Delete 1 card. Delete 1 card.";
+        hate1.OnPlay = async (Card card) =>
+        {
+            await Game.instance.localPlayer.Discard(3);
+            List<Card> deleteableCards = new List<Card>();
+            foreach (Card c in Game.instance.GetCards())
+            {
+                if (!c.covered) deleteableCards.Add(c);
+            }
+            if (deleteableCards.Count > 0)
+            {
+                String prevText = Game.instance.promptLabel.Text;
+                Game.instance.promptLabel.Text = "Delete 1 card.";
+                PromptManager.PromptAction([PromptManager.Prompt.Select], deleteableCards);
+                Response response = await Game.instance.localPlayer.WaitForResponse();
+                Game.instance.promptLabel.Text = prevText;
+                await Game.instance.localPlayer.Delete(response.card);
+            }
+            deleteableCards.Clear();
+            foreach (Card c in Game.instance.GetCards())
+            {
+                if (!c.covered) deleteableCards.Add(c);
+            }
+            if (deleteableCards.Count > 0)
+            {
+                String prevText = Game.instance.promptLabel.Text;
+                Game.instance.promptLabel.Text = "Delete 1 card.";
+                PromptManager.PromptAction([PromptManager.Prompt.Select], deleteableCards);
+                Response response = await Game.instance.localPlayer.WaitForResponse();
+                Game.instance.promptLabel.Text = prevText;
+                await Game.instance.localPlayer.Delete(response.card);
+            }
+        };
         hate.cards.Add(hate1);
 
         CardInfo hate2 = new CardInfo("Hate", 2);
@@ -723,7 +758,6 @@ public static class Cardlist
                     highests.Add(c);
                 }
             }
-            GD.Print(highests.Count);
             if (highests.Count == 1) await Game.instance.localPlayer.Delete(highests[0]);
             else
             {
@@ -810,10 +844,7 @@ public static class Cardlist
         hate5.middleText = "Discard a card.";
         hate5.OnPlay = async (Card card) =>
         {
-            if (Game.instance.localPlayer.hand.Count > 0)
-            {
-                await Game.instance.localPlayer.Discard(1);
-            }
+            await Game.instance.localPlayer.Discard(1);
         };
         hate.cards.Add(hate5);
     }
