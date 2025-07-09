@@ -709,6 +709,54 @@ public static class Cardlist
 
         CardInfo hate2 = new CardInfo("Hate", 2);
         hate2.middleText = "Delete your highest value card. Delete your opponent's highest value card.";
+        hate2.OnPlay = async (Card card) =>
+        {
+            List<Card> highests = new List<Card>();
+            foreach (Card c in Game.instance.GetCards())
+            {
+                if (c.covered || !Game.instance.IsLocal(c)) continue;
+                if (highests.Count == 0 || c.GetValue() == highests[0].GetValue())
+                    highests.Add(c);
+                if (c.GetValue() > highests[0].GetValue())
+                {
+                    highests.Clear();
+                    highests.Add(c);
+                }
+            }
+            GD.Print(highests.Count);
+            if (highests.Count == 1) await Game.instance.localPlayer.Delete(highests[0]);
+            else
+            {
+                String prevText = Game.instance.promptLabel.Text;
+                Game.instance.promptLabel.Text = "Delete 1 of your cards among those with the highest value.";
+                PromptManager.PromptAction([PromptManager.Prompt.Select], highests);
+                Response response = await Game.instance.localPlayer.WaitForResponse();
+                Game.instance.promptLabel.Text = prevText;
+                await Game.instance.localPlayer.Delete(response.card);
+            }
+            highests.Clear();
+            foreach (Card c in Game.instance.GetCards())
+            {
+                if (c.covered || Game.instance.IsLocal(c)) continue;
+                if (highests.Count == 0 || c.GetValue() == highests[0].GetValue())
+                    highests.Add(c);
+                if (c.GetValue() > highests[0].GetValue())
+                {
+                    highests.Clear();
+                    highests.Add(c);
+                }
+            }
+            if (highests.Count == 1) await Game.instance.localPlayer.Delete(highests[0]);
+            else
+            {
+                String prevText = Game.instance.promptLabel.Text;
+                Game.instance.promptLabel.Text = "Delete 1 of your opponent's cards among those with the highest value.";
+                PromptManager.PromptAction([PromptManager.Prompt.Select], highests);
+                Response response = await Game.instance.localPlayer.WaitForResponse();
+                Game.instance.promptLabel.Text = prevText;
+                await Game.instance.localPlayer.Delete(response.card);
+            }
+        };
         hate.cards.Add(hate2);
 
         CardInfo hate3 = new CardInfo("Hate", 3);

@@ -231,6 +231,7 @@ public partial class Player : Node
 
     public async Task Play(Protocol protocol, Card card, bool flipped)
     {
+        bool top = card == deck[0];
         if (hand.Contains(card))
             hand.Remove(card);
         if (protocol.cards.Count > 0)
@@ -243,11 +244,12 @@ public partial class Player : Node
         protocol.AddCard(card);
         foreach (CardInfo.Passive passive in card.info.passives)
         {
-            passives[passive] = new PassiveLocation(Game.instance.Line(protocol), true);
+            if (!flipped)
+                passives[passive] = new PassiveLocation(Game.instance.Line(protocol), true);
         }
         card.Render();
         RpcId(oppId, nameof(OppPlay),
-            card.info.GetCardName(), Game.instance.IndexOfProtocol(protocol), flipped);
+            card.info.GetCardName(), Game.instance.IndexOfProtocol(protocol), flipped, top);
         await Uncover(card, protocol);
     }
 
@@ -591,10 +593,10 @@ public partial class Player : Node
     }
 
     [Rpc(MultiplayerApi.RpcMode.AnyPeer)]
-    public void OppPlay(String cardName, int protocolIndex, bool flipped)
+    public void OppPlay(String cardName, int protocolIndex, bool flipped, bool top)
     {
         Card card = null;
-        if (oppDeck.Count > 0 && oppDeck[0].info.GetCardName() == cardName) // Don't forget about this one. evil of me
+        if (top)
         {
             card = oppDeck[0];
             oppDeck.Remove(card);
@@ -612,7 +614,8 @@ public partial class Player : Node
         }
         foreach (CardInfo.Passive passive in card.info.passives)
         {
-            passives[passive] = new PassiveLocation(Game.instance.Line(protocols[protocolIndex]), false);
+            if (!flipped)
+                passives[passive] = new PassiveLocation(Game.instance.Line(protocols[protocolIndex]), false);
         }
         protocols[protocolIndex].AddCard(card);
         card.Render();
