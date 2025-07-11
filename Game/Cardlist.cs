@@ -849,6 +849,39 @@ public static class Cardlist
             await Game.instance.localPlayer.Discard(1);
         };
         hate.cards.Add(hate5);
+
+        ProtocolInfo life = new ProtocolInfo("Life");
+        life.backgroundColor = new Color((float)50 / 256, (float)120 / 256, (float)50 / 256);
+        protocols["Life"] = life;
+
+        CardInfo life0 = new CardInfo("Life", 0);
+        life0.topText = "Start: Delete this card.";
+        life0.middleText = "Play the top card of your deck face-down in each line where you have a card.";
+        life.cards.Add(life0);
+
+        CardInfo life1 = new CardInfo("Life", 1);
+        life1.middleText = "Flip 1 card. Flip 1 card.";
+        life.cards.Add(life1);
+
+        CardInfo life2 = new CardInfo("Life", 2);
+        life2.middleText = "Draw 1 card. You may flip 1 face-down card.";
+        life.cards.Add(life2);
+
+        CardInfo life3 = new CardInfo("Life", 3);
+        life3.bottomText = "When this card would be covered: first, play the top card of your deck face-down in another line.";
+        life.cards.Add(life3);
+
+        CardInfo life4 = new CardInfo("Life", 4);
+        life4.middleText = "If this card is covering a card, draw 1 card.";
+        life.cards.Add(life4);
+
+        CardInfo life5 = new CardInfo("Life", 5);
+        life5.middleText = "Discard a card.";
+        life5.OnPlay = async (Card card) =>
+        {
+            await Game.instance.localPlayer.Discard(1);
+        };
+        life.cards.Add(life5);
     }
 
     public static CardInfo GetCard(String name)
