@@ -57,6 +57,7 @@ public partial class Game : Control
         String[] localProtocolNames;
         if (host) localProtocolNames = new String[3] { "Apathy", "Darkness", "Death" };
         else localProtocolNames = new String[3] { "Fire", "Gravity", "Hate" };
+        localProtocolNames = new String[3] { "Fire", "Fire", "Fire" };
         String[] oppProtocolNames;
         if (host) oppProtocolNames = new String[3] { "Fire", "Gravity", "Hate" };
         else oppProtocolNames = new String[3] { "Apathy", "Darkness", "Death" };

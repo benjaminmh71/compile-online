@@ -80,5 +80,6 @@ public partial class Card : Control
         flipped = false;
         placeholder = false;
         covered = false;
+        Render();
     }
 }
