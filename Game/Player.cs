@@ -95,8 +95,6 @@ public partial class Player : Node
             RpcId(oppId, nameof(OppGainControl));
         }
 
-        // TODO: Start of turn effects
-
         // Compiling:
         List<Protocol> compilableProtcols = new List<Protocol>();
         foreach (Protocol p in Game.instance.GetProtocols(true))
@@ -152,6 +150,12 @@ public partial class Player : Node
         if (response.type == PromptManager.Prompt.Refresh)
         {
             await Refresh();
+        }
+
+        // Check cache:
+        if (hand.Count > 5)
+        {
+            await Discard(hand.Count - 5);
         }
 
         foreach (Card card in Game.instance.GetCards())
@@ -241,9 +245,8 @@ public partial class Player : Node
         }
     }
 
-    public async Task Play(Protocol protocol, Card card, bool flipped)
+    public async Task Play(Protocol protocol, Card card, bool flipped, bool top = false)
     {
-        bool top = deck.Count > 0 && card == deck[0];
         if (hand.Contains(card))
             hand.Remove(card);
         if (protocol.cards.Count > 0)
@@ -270,7 +273,7 @@ public partial class Player : Node
         if (deck.Count == 0) return;
         Card card = deck[0];
         deck.Remove(card);
-        await Play(protocol, card, true);
+        await Play(protocol, card, true, true);
     }
 
     public void PlayTopUnderneath(Protocol protocol)

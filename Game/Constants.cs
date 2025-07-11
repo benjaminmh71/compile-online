@@ -1,3 +1,4 @@
+using Godot;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -19,5 +20,8 @@ namespace CompileOnline.Game
         public const int CONTROL_PLAYER_BOTTOM = 200;
         public const int CONTROL_TOP = -100;
         public const int CONTROL_BOTTOM = 100;
+
+        public readonly static Color DEFAULT_COLOR = 
+            new Color((float)153 / 256, (float)153 / 256, (float)153 / 256);
     }
 }

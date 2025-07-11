@@ -22,7 +22,6 @@ public partial class Card : Control
     public void Render()
     {
         ProtocolInfo protocolInfo = Cardlist.protocols[info.protocol];
-        GetNode<Panel>("Background").SelfModulate = protocolInfo.backgroundColor;
 
         if (placeholder)
         {
@@ -43,6 +42,7 @@ public partial class Card : Control
 
         if (flipped)
         {
+            GetNode<Panel>("Background").SelfModulate = Constants.DEFAULT_COLOR;
             GetNode<Label>("Name").Text = "2";
             GetNode<Label>("TopText").Text = "";
             GetNode<Label>("MiddleText").Text = "";
@@ -50,6 +50,7 @@ public partial class Card : Control
         }
         else
         {
+            GetNode<Panel>("Background").SelfModulate = protocolInfo.backgroundColor;
             GetNode<Label>("Name").Text = info.GetCardName();
             GetNode<Label>("TopText").Text = info.topText;
             GetNode<Label>("MiddleText").Text = info.middleText;
