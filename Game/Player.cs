@@ -96,7 +96,7 @@ public partial class Player : Node
         }
 
         // Compiling:
-        List<Protocol> compilableProtcols = new List<Protocol>();
+        List<int> compilableProtcols = new List<int>();
         foreach (Protocol p in Game.instance.GetProtocols(true))
         {
             int total = Game.instance.SumStack(p);
@@ -105,7 +105,7 @@ public partial class Player : Node
                 int oppTotal = Game.instance.SumStack(Game.instance.GetOpposingProtocol(p));
                 if (oppTotal < total)
                 {
-                    compilableProtcols.Add(p);
+                    compilableProtcols.Add(Game.instance.IndexOfProtocol(p));
                 }
             }
         }
@@ -115,17 +115,18 @@ public partial class Player : Node
         }
         if (compilableProtcols.Count == 1)
         {
-            await Compile(compilableProtcols[0]);
-            EndTurn();
+            await Compile(Game.instance.GetProtocols(true)[compilableProtcols[0]]);
+            await EndTurn();
             return;
         } else if (compilableProtcols.Count > 1)
         {
-            PromptManager.PromptAction([PromptManager.Prompt.Compile], compilableProtcols);
+            PromptManager.PromptAction([PromptManager.Prompt.Compile], 
+                (List<Protocol>)compilableProtcols.Select((int val) => Game.instance.GetProtocols(true)[val]));
 
             Response compileResponse = await WaitForResponse();
 
             await Compile(compileResponse.protocol);
-            EndTurn();
+            await EndTurn();
             return;
         }
 
@@ -133,7 +134,7 @@ public partial class Player : Node
         if (hand.Count == 0)
         {
             await Refresh();
-            EndTurn();
+            await EndTurn();
             return;
         }
 
@@ -152,6 +153,11 @@ public partial class Player : Node
             await Refresh();
         }
 
+        await EndTurn();
+    }
+
+    public async Task EndTurn()
+    {
         // Check cache:
         if (hand.Count > 5)
         {
@@ -164,11 +170,6 @@ public partial class Player : Node
                 await card.info.OnEnd(card);
         }
 
-        EndTurn();
-    }
-
-    public void EndTurn()
-    {
         Game.instance.promptLabel.Text = "It is your opponent's turn.";
         MousePosition.SetSelectedCards(empty, emptyp);
         RpcId(oppId, nameof(StartTurn));

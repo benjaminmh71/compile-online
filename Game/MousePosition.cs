@@ -33,6 +33,15 @@ public partial class MousePosition : Control
     {
         GlobalPosition = GetGlobalMousePosition();
 
+        // TESTING
+        if (Input.IsActionJustPressed("right_click") && Game.instance.GetHoveredProtocol() != null)
+        {
+            foreach (Card card in Game.instance.GetHoveredProtocol().cards)
+            {
+                GD.Print(card.info.GetCardName());
+            }
+        }
+
         if (Input.IsActionJustPressed("click"))
         {
             foreach (Card card in clickableCards)
@@ -126,7 +135,8 @@ public partial class MousePosition : Control
             {
                 Protocol otherProtocol = Game.instance.GetHoveredProtocol();
                 if (otherProtocol != null && 
-                    (Game.instance.IsLocal(referencedProtocol) == Game.instance.IsLocal(otherProtocol)))
+                    (Game.instance.IsLocal(referencedProtocol) == Game.instance.IsLocal(otherProtocol))
+                    && referencedProtocol != otherProtocol)
                 {
                     Swap(referencedProtocol, otherProtocol);
                     draggedProtocol.QueueFree();
@@ -156,6 +166,9 @@ public partial class MousePosition : Control
         B.RemoveChild(newCards);
         A.AddChild(newCards);
         B.AddChild(oldCards);
+        List<Card> tempCards = A.cards;
+        A.cards = B.cards;
+        B.cards = tempCards;
         if (Game.instance.IsLocal(A))
         {
             Game.instance.localProtocolsContainer.MoveChild(A, newPosition);
