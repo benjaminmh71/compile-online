@@ -60,8 +60,17 @@ public static class PromptManager
         PromptAction(prompts, new List<Card>(), protocols);
     }
 
-    public static void PromptAction(Prompt[] prompts, List<Card> cards, List<Protocol> protocols)
+    public static void PromptAction(Prompt[] prompts, List<Card> cards, List<Protocol> protocols,
+        Func<Card, Protocol, bool> CanBePlaced = null)
     {
+        if (CanBePlaced == null && prompts.Contains(Prompt.Play))
+        {
+            CanBePlaced = (Card c, Protocol p) =>
+            Game.instance.flippedCheckbox.GetNode<CheckBox>("CheckBox").ButtonPressed ||
+            p.info.name == c.info.protocol || Game.instance.GetOpposingProtocol(p).info.name == c.info.protocol; 
+        }
+        else if (CanBePlaced == null) CanBePlaced = (Card c, Protocol p) => true;
+        MousePosition.CanBePlaced = CanBePlaced;
         List<Control> leftUIElements = new List<Control>();
         currPrompts = prompts;
         MousePosition.ResetSelections();

@@ -27,6 +27,8 @@ public partial class MousePosition : Control
     // Click and drag protocols:
     static List<Protocol> selectedProtocols = new List<Protocol>();
 
+    public static Func<Card, Protocol, bool> CanBePlaced = (Card c, Protocol p) => true;
+
     public override void _Process(double delta)
     {
         GlobalPosition = GetGlobalMousePosition();
@@ -99,7 +101,8 @@ public partial class MousePosition : Control
             {
                 Protocol protocol = Game.instance.GetHoveredProtocol();
                 if (protocol != null && destinationProtocols.Contains(protocol) && !protocol.cards.Contains(draggedCard)
-                    && Game.instance.IsLocal(draggedCard) == Game.instance.IsLocal(protocol))
+                    && Game.instance.IsLocal(draggedCard) == Game.instance.IsLocal(protocol)
+                    && CanBePlaced(draggedCard, protocol))
                 {
                     EmitSignal("CardPlaced", protocol, draggedCard);
                 }

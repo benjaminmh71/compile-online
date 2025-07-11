@@ -193,7 +193,8 @@ public static class Cardlist
             {
                 String prevText = Game.instance.promptLabel.Text;
                 Game.instance.promptLabel.Text = "Play a card.";
-                PromptManager.PromptAction([PromptManager.Prompt.Play], Game.instance.localPlayer.hand, protocols);
+                PromptManager.PromptAction([PromptManager.Prompt.Play], Game.instance.localPlayer.hand, protocols,
+                    (Card c, Protocol p) => true);
                 Response response = await Game.instance.localPlayer.WaitForResponse();
                 Game.instance.promptLabel.Text = prevText;
                 await Game.instance.localPlayer.Play(response.protocol, response.card, true);
