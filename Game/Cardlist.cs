@@ -855,7 +855,7 @@ public static class Cardlist
         protocols["Life"] = life;
 
         CardInfo life0 = new CardInfo("Life", 0);
-        life0.topText = "Start: Delete this card.";
+        life0.topText = "End: if this card is covered, delete this card.";
         life0.middleText = "Play the top card of your deck face-down in each line where you have a card.";
         life.cards.Add(life0);
 
@@ -869,10 +869,34 @@ public static class Cardlist
 
         CardInfo life3 = new CardInfo("Life", 3);
         life3.bottomText = "When this card would be covered: first, play the top card of your deck face-down in another line.";
+        life3.OnCover = async (Card card) =>
+        {
+            List<Protocol> protocols = Game.instance.GetProtocols(true);
+            for (int i = protocols.Count-1; i >= 0; i--)
+            {
+                if (protocols[i].cards.Contains(card)) protocols.Remove(protocols[i]);
+            }
+            if (protocols.Count > 0)
+            {
+                String prevText = Game.instance.promptLabel.Text;
+                Game.instance.promptLabel.Text = "Select a line.";
+                PromptManager.PromptAction([PromptManager.Prompt.Select], protocols);
+                Response response = await Game.instance.localPlayer.WaitForResponse();
+                Game.instance.promptLabel.Text = prevText;
+                await Game.instance.localPlayer.PlayTop(response.protocol);
+            }
+        };
         life.cards.Add(life3);
 
         CardInfo life4 = new CardInfo("Life", 4);
         life4.middleText = "If this card is covering a card, draw 1 card.";
+        life4.OnPlay = async (Card card) =>
+        {
+            if (Game.instance.GetProtocolOfCard(card).cards.Count > 1)
+            {
+                await Game.instance.localPlayer.Draw(1);
+            }
+        };
         life.cards.Add(life4);
 
         CardInfo life5 = new CardInfo("Life", 5);
