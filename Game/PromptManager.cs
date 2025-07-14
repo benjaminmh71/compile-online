@@ -73,6 +73,7 @@ public static class PromptManager
         MousePosition.CanBePlaced = CanBePlaced;
         List<Control> leftUIElements = new List<Control>();
         currPrompts = prompts;
+        SetProtocolPrompt([]);
         MousePosition.ResetSelections();
         if (prompts.Contains(Prompt.EndAction))
         {
@@ -99,6 +100,12 @@ public static class PromptManager
         if (prompts.Contains(Prompt.Refresh))
         {
             leftUIElements.Add(Game.instance.refreshButton);
+        }
+
+        if (prompts.Contains(Prompt.Compile))
+        {
+            selectableProtocols = protocols;
+            SetProtocolPrompt(protocols.ToArray());
         }
 
         if (prompts.Contains(Prompt.Control))

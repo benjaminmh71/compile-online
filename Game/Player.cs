@@ -120,10 +120,13 @@ public partial class Player : Node
             return;
         } else if (compilableProtcols.Count > 1)
         {
-            PromptManager.PromptAction([PromptManager.Prompt.Compile], 
-                (List<Protocol>)compilableProtcols.Select((int val) => Game.instance.GetProtocols(true)[val]));
+            PromptManager.PromptAction([PromptManager.Prompt.Compile],
+                compilableProtcols.Select((int val) => Game.instance.GetProtocols(true)[val]).ToList());
 
+            String prevText = Game.instance.promptLabel.Text;
+            Game.instance.promptLabel.Text = "Select a line to compile.";
             Response compileResponse = await WaitForResponse();
+            Game.instance.promptLabel.Text = prevText;
 
             await Compile(compileResponse.protocol);
             await EndTurn();
