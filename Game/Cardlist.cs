@@ -857,30 +857,91 @@ public static class Cardlist
         CardInfo life0 = new CardInfo("Life", 0);
         life0.topText = "End: if this card is covered, delete this card.";
         life0.middleText = "Play the top card of your deck face-down in each line where you have a card.";
+        life0.OnPlay = async (Card card) =>
+        {
+            foreach (Protocol protocol in Game.instance.GetProtocols(true))
+            {
+                if (protocol.cards.Count > 0)
+                    await Game.instance.localPlayer.PlayTop(protocol);
+            }
+        };
         life.cards.Add(life0);
 
         CardInfo life1 = new CardInfo("Life", 1);
         life1.middleText = "Flip 1 card. Flip 1 card.";
+        life1.OnPlay = async (Card card) =>
+        {
+            List<Card> flippableCards = new List<Card>();
+            foreach (Card c in Game.instance.GetCards())
+            {
+                if (!c.covered)
+                    flippableCards.Add(c);
+            }
+            if (flippableCards.Count > 0)
+            {
+                String prevText = Game.instance.promptLabel.Text;
+                Game.instance.promptLabel.Text = "Flip 1 card.";
+                PromptManager.PromptAction([PromptManager.Prompt.Select], flippableCards);
+                Response response = await Game.instance.localPlayer.WaitForResponse();
+                Game.instance.promptLabel.Text = prevText;
+                await Game.instance.localPlayer.Flip(response.card);
+            }
+            flippableCards.Clear();
+            foreach (Card c in Game.instance.GetCards())
+            {
+                if (!c.covered)
+                    flippableCards.Add(c);
+            }
+            if (flippableCards.Count > 0)
+            {
+                String prevText = Game.instance.promptLabel.Text;
+                Game.instance.promptLabel.Text = "Flip 1 card.";
+                PromptManager.PromptAction([PromptManager.Prompt.Select], flippableCards);
+                Response response = await Game.instance.localPlayer.WaitForResponse();
+                Game.instance.promptLabel.Text = prevText;
+                await Game.instance.localPlayer.Flip(response.card);
+            }
+        };
         life.cards.Add(life1);
 
         CardInfo life2 = new CardInfo("Life", 2);
         life2.middleText = "Draw 1 card. You may flip 1 face-down card.";
+        life2.OnPlay = async (Card card) =>
+        {
+            await Game.instance.localPlayer.Draw(1);
+            List<Card> flippableCards = new List<Card>();
+            foreach (Card c in Game.instance.GetCards())
+            {
+                if (!c.covered && c.flipped)
+                    flippableCards.Add(c);
+            }
+            if (flippableCards.Count > 0)
+            {
+                String prevText = Game.instance.promptLabel.Text;
+                Game.instance.promptLabel.Text = "You may flip 1 face-down card.";
+                PromptManager.PromptAction([PromptManager.Prompt.Select, PromptManager.Prompt.EndAction], flippableCards);
+                Response response = await Game.instance.localPlayer.WaitForResponse();
+                Game.instance.promptLabel.Text = prevText;
+                if (response.type == PromptManager.Prompt.EndAction) return;
+                await Game.instance.localPlayer.Flip(response.card);
+            }
+        };
         life.cards.Add(life2);
 
         CardInfo life3 = new CardInfo("Life", 3);
         life3.bottomText = "When this card would be covered: first, play the top card of your deck face-down in another line.";
         life3.OnCover = async (Card card) =>
         {
-            List<Protocol> protocols = Game.instance.GetProtocols(true);
-            for (int i = protocols.Count-1; i >= 0; i--)
+            List<Protocol> selectableProtocols = Game.instance.GetProtocols(true);
+            for (int i = selectableProtocols.Count-1; i >= 0; i--)
             {
-                if (protocols[i].cards.Contains(card)) protocols.Remove(protocols[i]);
+                if (selectableProtocols[i].cards.Contains(card)) selectableProtocols.Remove(selectableProtocols[i]);
             }
-            if (protocols.Count > 0)
+            if (selectableProtocols.Count > 0)
             {
                 String prevText = Game.instance.promptLabel.Text;
                 Game.instance.promptLabel.Text = "Select a line.";
-                PromptManager.PromptAction([PromptManager.Prompt.Select], protocols);
+                PromptManager.PromptAction([PromptManager.Prompt.Select], selectableProtocols);
                 Response response = await Game.instance.localPlayer.WaitForResponse();
                 Game.instance.promptLabel.Text = prevText;
                 await Game.instance.localPlayer.PlayTop(response.protocol);

@@ -517,6 +517,7 @@ public partial class Player : Node
             card.GetParent().RemoveChild(card);
             Game.instance.GetProtocols(cardLocation.local)[cardLocation.protocolIndex].cards.Remove(card);
             card.Reset();
+            card.Render();
             foreach (CardInfo.Passive passive in card.info.passives)
             {
                 passives[passive] = null;
