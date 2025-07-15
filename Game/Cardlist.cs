@@ -865,6 +865,11 @@ public static class Cardlist
                     await Game.instance.localPlayer.PlayTop(protocol);
             }
         };
+        life0.OnEnd = async (Card card) =>
+        {
+            if (card.covered)
+                await Game.instance.localPlayer.Delete(card);
+        };
         life.cards.Add(life0);
 
         CardInfo life1 = new CardInfo("Life", 1);
@@ -967,6 +972,42 @@ public static class Cardlist
             await Game.instance.localPlayer.Discard(1);
         };
         life.cards.Add(life5);
+
+        ProtocolInfo light = new ProtocolInfo("Light");
+        light.backgroundColor = new Color((float)200 / 256, (float)140 / 256, (float)0 / 256);
+        protocols["Light"] = light;
+
+        CardInfo light0 = new CardInfo("Light", 0);
+        light0.middleText = "Flip 1 card. Draw cards equal to that card's value.";
+        light.cards.Add(light0);
+
+        CardInfo light1 = new CardInfo("Light", 1);
+        light1.bottomText = "End: Draw 1 card.";
+        light.cards.Add(light1);
+
+        CardInfo light2 = new CardInfo("Light", 2);
+        light2.middleText = "Draw 2 cards. Reveal 1 card. You may shift or flip that card.";
+        light.cards.Add(light2);
+
+        CardInfo light3 = new CardInfo("Light", 3);
+        light3.middleText = "Shift all face-down cards in this line to another line.";
+        light.cards.Add(light3);
+
+        CardInfo light4 = new CardInfo("Light", 4);
+        light4.middleText = "Your opponent reveals their hand.";
+        light4.OnPlay = async (Card card) =>
+        {
+            Game.instance.localPlayer.Reveal(Game.instance.localPlayer.oppHand);
+        };
+        light.cards.Add(light4);
+
+        CardInfo light5 = new CardInfo("Light", 5);
+        light5.middleText = "Discard a card.";
+        light5.OnPlay = async (Card card) =>
+        {
+            await Game.instance.localPlayer.Discard(1);
+        };
+        light.cards.Add(light5);
     }
 
     public static CardInfo GetCard(String name)

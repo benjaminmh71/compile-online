@@ -27,6 +27,7 @@ public partial class Game : Control
     public Button customButtonA;
     public Button customButtonB;
     public HBoxContainer flippedCheckbox;
+    public PanelContainer revealPanel;
     public PanelContainer victoryPanel;
     public PanelContainer losePanel;
     public MousePosition mousePosition;
@@ -50,12 +51,13 @@ public partial class Game : Control
         customButtonA = leftUI.GetNode<Button>("CustomButtonA");
         customButtonB = leftUI.GetNode<Button>("CustomButtonB");
         flippedCheckbox = leftUI.GetNode<HBoxContainer>("FlippedCheckbox");
+        revealPanel = GetNode<PanelContainer>("RevealPanel");
         victoryPanel = GetNode<PanelContainer>("VictoryPanel");
         losePanel = GetNode<PanelContainer>("LosePanel");
         mousePosition = GetNode<MousePosition>("MousePosition");
 
-        String[] localProtocolNames = { "Life", "Life", "Life" };
-        String[] oppProtocolNames = { "Life", "Life", "Life" };
+        String[] localProtocolNames = { "Light", "Light", "Light" };
+        String[] oppProtocolNames = { "Light", "Light", "Light" };
         foreach (String name in localProtocolNames)
         {
             PackedScene protocolScene = GD.Load("res://Game/Protocol.tscn") as PackedScene;
