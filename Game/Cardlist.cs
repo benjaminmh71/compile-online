@@ -991,6 +991,23 @@ public static class Cardlist
 
         CardInfo light3 = new CardInfo("Light", 3);
         light3.middleText = "Shift all face-down cards in this line to another line.";
+        light3.OnPlay = async (Card card) =>
+        {
+            List<Card> faceDownCards = new List<Card>();
+            foreach (Card c in Game.instance.GetProtocolOfCard(card).cards)
+                if (c.flipped) faceDownCards.Add(c);
+            foreach (Card c in Game.instance.GetOpposingProtocol(Game.instance.GetProtocolOfCard(card)).cards)
+                if (c.flipped) faceDownCards.Add(c);
+            if (faceDownCards.Count == 0) return;
+            List<Protocol> selectableProtocols = Game.instance.GetProtocols(true);
+            selectableProtocols.Remove(Game.instance.GetProtocolOfCard(card));
+            String prevText = Game.instance.promptLabel.Text;
+            Game.instance.promptLabel.Text = "Select a line.";
+            PromptManager.PromptAction([PromptManager.Prompt.Select], selectableProtocols);
+            Response response = await Game.instance.localPlayer.WaitForResponse();
+            Game.instance.promptLabel.Text = prevText;
+            await Game.instance.localPlayer.MultiShift(faceDownCards, response.protocol);
+        };
         light.cards.Add(light3);
 
         CardInfo light4 = new CardInfo("Light", 4);

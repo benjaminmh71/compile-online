@@ -158,6 +158,7 @@ mouse_filter = 2
 script = ExtResource("2_vrr3t")
 
 [node name="RevealPanel" type="PanelContainer" parent="."]
+visible = false
 layout_mode = 1
 anchors_preset = -1
 anchor_left = 0.5
