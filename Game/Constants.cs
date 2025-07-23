@@ -20,7 +20,7 @@ namespace CompileOnline.Game
         public const int CONTROL_PLAYER_BOTTOM = 200;
         public const int CONTROL_TOP = -100;
         public const int CONTROL_BOTTOM = 100;
-        public const int REVEAL_PANEL_MARGINS = 25;
+        public const int REVEAL_PANEL_MARGINS = 175;
 
         public readonly static Color DEFAULT_COLOR = 
             new Color((float)153 / 256, (float)153 / 256, (float)153 / 256);

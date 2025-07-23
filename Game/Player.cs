@@ -508,9 +508,9 @@ public partial class Player : Node
     {
         Control revealPanel = Game.instance.revealPanel;
         revealPanel.Visible = true;
-        revealPanel.Size = new Vector2(Constants.CARD_WIDTH * cards.Count + Constants.REVEAL_PANEL_MARGINS, revealPanel.Size.Y);
-        revealPanel.OffsetLeft = (float)(revealPanel.Size.X * -0.5);
-        revealPanel.OffsetRight = (float)(revealPanel.Size.X * 0.5);
+        float size = Constants.CARD_WIDTH * cards.Count + Constants.REVEAL_PANEL_MARGINS;
+        revealPanel.OffsetLeft = size * (float)-0.5;
+        revealPanel.OffsetRight = size * (float)0.5;
         foreach (Node card in revealPanel.GetNode("MarginContainer").GetNode("Cards").GetChildren())
         {
             card.QueueFree();

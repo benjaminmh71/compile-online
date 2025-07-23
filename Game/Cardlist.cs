@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Godot;
 using CompileOnline.Game;
 using System.Threading.Tasks;
+using System.Linq;
 
 public static class Cardlist
 {
@@ -986,7 +987,39 @@ public static class Cardlist
         light.cards.Add(light1);
 
         CardInfo light2 = new CardInfo("Light", 2);
-        light2.middleText = "Draw 2 cards. Reveal 1 card. You may shift or flip that card.";
+        light2.middleText = "Draw 2 cards. Reveal 1 face-down card. You may shift or flip that card.";
+        light2.OnPlay = async (Card card) =>
+        {
+            await Game.instance.localPlayer.Draw(2);
+            List<Card> faceDownCards = Game.instance.GetCards().FindAll(c => c.flipped);
+            if (faceDownCards.Count == 0) return;
+            String prevText = Game.instance.promptLabel.Text;
+            Game.instance.promptLabel.Text = "Select a face-down card.";
+            PromptManager.PromptAction([PromptManager.Prompt.Select], faceDownCards);
+            Response response = await Game.instance.localPlayer.WaitForResponse();
+            Game.instance.promptLabel.Text = prevText;
+            Card selectedCard = response.card;
+            Game.instance.localPlayer.Reveal(new List<Card>{ selectedCard });
+            prevText = Game.instance.promptLabel.Text;
+            Game.instance.promptLabel.Text = "You may shift or flip that card.";
+            PromptManager.PromptAction([PromptManager.Prompt.CustomButtonA, PromptManager.Prompt.CustomButtonB,
+                PromptManager.Prompt.EndAction], "Shift", "Flip");
+            response = await Game.instance.localPlayer.WaitForResponse();
+            Game.instance.promptLabel.Text = prevText;
+            if (response.type == PromptManager.Prompt.CustomButtonA)
+            {
+                prevText = Game.instance.promptLabel.Text;
+                Game.instance.promptLabel.Text = "Shift the card.";
+                List<Protocol> protocols = Game.instance.GetProtocols(Game.instance.IsLocal(selectedCard));
+                PromptManager.PromptAction([PromptManager.Prompt.Shift], new List<Card> { selectedCard }, protocols);
+                response = await Game.instance.localPlayer.WaitForResponse();
+                Game.instance.promptLabel.Text = prevText;
+                await Game.instance.localPlayer.Shift(selectedCard, response.protocol);
+            } else if (response.type == PromptManager.Prompt.CustomButtonB)
+            {
+                await Game.instance.localPlayer.Flip(selectedCard);
+            }
+        };
         light.cards.Add(light2);
 
         CardInfo light3 = new CardInfo("Light", 3);
