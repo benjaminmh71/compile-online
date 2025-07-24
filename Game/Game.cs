@@ -56,8 +56,17 @@ public partial class Game : Control
         losePanel = GetNode<PanelContainer>("LosePanel");
         mousePosition = GetNode<MousePosition>("MousePosition");
 
-        String[] localProtocolNames = { "Light", "Light", "Light" };
-        String[] oppProtocolNames = { "Light", "Light", "Light" };
+        String[] localProtocolNames;
+        String[] oppProtocolNames;
+        if (isHost)
+        {
+            localProtocolNames = new String[] { "Life", "Life", "Life" };
+            oppProtocolNames = new String[]{ "Light", "Light", "Light" };
+        } else
+        {
+            localProtocolNames = new String[] { "Light", "Light", "Light" };
+            oppProtocolNames = new String[] { "Life", "Life", "Life" };
+        }
         foreach (String name in localProtocolNames)
         {
             PackedScene protocolScene = GD.Load("res://Game/Protocol.tscn") as PackedScene;

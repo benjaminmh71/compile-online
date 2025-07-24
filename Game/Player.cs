@@ -36,8 +36,6 @@ public partial class Player : Node
     bool hasControl = false;
     bool oppResponse = false;
 
-    public List<Card> cachedCards = null;
-
     public Player(int id, int oppId)
     {
         this.id = id;
@@ -615,6 +613,7 @@ public partial class Player : Node
             var cardLocation = Game.instance.GetCardLocation(card);
             Protocol sourceProtocol = Game.instance.GetProtocols(cardLocation.local)[cardLocation.protocolIndex];
             sourceProtocol.cards.Remove(card);
+            card.GetParent().RemoveChild(card);
             sourceProtocol.OrderCards();
             if (card.covered)
             {
@@ -627,24 +626,17 @@ public partial class Player : Node
             }
         }
 
-        RpcId(oppId, nameof(OppMultiShiftA), Json.Stringify(new Godot.Collections.Array<String>(locations)),
+        RpcId(oppId, nameof(OppMultiShift), Json.Stringify(new Godot.Collections.Array<String>(locations)),
             Game.instance.IndexOfProtocol(protocol));
         await WaitForOppResponse();
 
-        foreach (Card card in uncoveredCards)
-        {
-            await Uncover(card, Game.instance.GetProtocolOfCard(card));
-        }
         if (protocol.cards.Count > 0 && localCards.Count > 0)
             await protocol.cards[protocol.cards.Count-1].info.OnCover(protocol.cards[protocol.cards.Count - 1]);
-        Protocol oppProtocol = Game.instance.GetOpposingProtocol(protocol);
-        if (oppProtocol.cards.Count > 0 && localCards.Count < cards.Count)
-            await oppProtocol.cards[oppProtocol.cards.Count - 1].info.OnCover(oppProtocol.cards[oppProtocol.cards.Count - 1]);
 
-        uncoveredCards.Clear();
+        List<Card> uncoveredShiftedCards = new List<Card>();
         foreach (Card card in cards)
         {
-            Protocol currProtocol = localCards.Contains(card) ? protocol : oppProtocol;
+            Protocol currProtocol = localCards.Contains(card) ? protocol : Game.instance.GetOpposingProtocol(protocol);
             currProtocol.AddCard(card);
             if (currProtocol.cards.Count > 1)
             {
@@ -653,15 +645,18 @@ public partial class Player : Node
             if (currProtocol.cards.Count > 1 && !currProtocol.cards[currProtocol.cards.Count - 2].flipped &&
                 !cards.Contains(currProtocol.cards[currProtocol.cards.Count - 2]))
             {
-                uncoveredCards.Add(currProtocol.cards[currProtocol.cards.Count - 2]);
+                uncoveredShiftedCards.Add(currProtocol.cards[currProtocol.cards.Count - 2]);
             }
         }
 
-        RpcId(oppId, nameof(OppMultiShiftB), localCards.Aggregate("", 
-            (String s, Card card) => s + "[" + cards.IndexOf(card) + "]"), Game.instance.IndexOfProtocol(protocol));
+        RpcId(oppId, nameof(OppResponse));
         await WaitForOppResponse();
 
         foreach (Card card in uncoveredCards)
+        {
+            await Uncover(card, Game.instance.GetProtocolOfCard(card));
+        }
+        foreach (Card card in uncoveredShiftedCards)
         {
             if (!card.covered)
                 await Uncover(card, Game.instance.GetProtocolOfCard(card));
@@ -1014,7 +1009,7 @@ public partial class Player : Node
 
     // Remove from protocol and trigger OnCover
     [Rpc(MultiplayerApi.RpcMode.AnyPeer)]
-    public async void OppMultiShiftA(string json, int protocolIndex)
+    public async void OppMultiShift(string json, int protocolIndex)
     {
         List<String> locations = new Godot.Collections.Array<String>(Json.ParseString(json).AsGodotArray()).ToList();
         List<Card> cards = new List<Card>();
@@ -1033,6 +1028,7 @@ public partial class Player : Node
             var cardLocation = Game.instance.GetCardLocation(card);
             Protocol sourceProtocol = Game.instance.GetProtocols(cardLocation.local)[cardLocation.protocolIndex];
             sourceProtocol.cards.Remove(card);
+            card.GetParent().RemoveChild(card);
             sourceProtocol.OrderCards();
             if (card.covered)
             {
@@ -1048,35 +1044,18 @@ public partial class Player : Node
             }
         }
 
-        foreach (Card card in uncoveredCards)
-        {
-            await Uncover(card, Game.instance.GetProtocolOfCard(card));
-        }
-
-        Protocol protocol = Game.instance.GetProtocols(false)[protocolIndex];
-        if (protocol.cards.Count > 0 && localCards.Count < cards.Count)
-            await protocol.cards[protocol.cards.Count - 1].info.OnCover(protocol.cards[protocol.cards.Count - 1]);
-        Protocol localProtocol = Game.instance.GetOpposingProtocol(protocol);
+        Protocol oppProtocol = Game.instance.GetProtocols(false)[protocolIndex];
+        Protocol localProtocol = Game.instance.GetOpposingProtocol(oppProtocol);
         if (localProtocol.cards.Count > 0 && localCards.Count > 0)
             await localProtocol.cards[localProtocol.cards.Count - 1].info.OnCover(localProtocol.cards[localProtocol.cards.Count - 1]);
 
-        cachedCards = cards;
         RpcId(oppId, nameof(OppResponse));
-    }
+        await WaitForOppResponse();
 
-    // Add to new protocol and trigger middles + add passives
-    [Rpc(MultiplayerApi.RpcMode.AnyPeer)]
-    public async void OppMultiShiftB(String localCards, int protocolIndex)
-    {
-        List<Card> cards = cachedCards;
-        cachedCards = null;
-        Protocol oppProtocol = Game.instance.GetProtocols(false)[protocolIndex];
-
-        List<Card> uncoveredCards = new List<Card>();
+        List<Card> uncoveredShiftedCards = new List<Card>();
         foreach (Card card in cards)
         {
-            Protocol protocol = localCards.Contains("[" + cards.IndexOf(card) + "]") ? oppProtocol : 
-                Game.instance.GetOpposingProtocol(oppProtocol);
+            Protocol protocol = localCards.Contains(card) ? localProtocol : oppProtocol;
             protocol.AddCard(card);
             if (protocol.cards.Count > 1)
             {
@@ -1085,11 +1064,15 @@ public partial class Player : Node
             if (protocol.cards.Count > 1 && !protocol.cards[protocol.cards.Count - 2].flipped &&
                 !cards.Contains(protocol.cards[protocol.cards.Count - 2]))
             {
-                uncoveredCards.Add(protocol.cards[protocol.cards.Count - 2]);
+                uncoveredShiftedCards.Add(protocol.cards[protocol.cards.Count - 2]);
             }
         }
 
         foreach (Card card in uncoveredCards)
+        {
+            await Uncover(card, Game.instance.GetProtocolOfCard(card));
+        }
+        foreach (Card card in uncoveredShiftedCards)
         {
             if (!card.covered)
                 await Uncover(card, Game.instance.GetProtocolOfCard(card));

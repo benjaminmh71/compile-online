@@ -980,10 +980,26 @@ public static class Cardlist
 
         CardInfo light0 = new CardInfo("Light", 0);
         light0.middleText = "Flip 1 card. Draw cards equal to that card's value.";
+        light0.OnPlay = async (Card card) =>
+        {
+            List<Card> uncoveredCards = Game.instance.GetCards().FindAll(c => !c.covered);
+            if (uncoveredCards.Count == 0) return;
+            String prevText = Game.instance.promptLabel.Text;
+            Game.instance.promptLabel.Text = "Flip 1 card.";
+            PromptManager.PromptAction([PromptManager.Prompt.Select], uncoveredCards);
+            Response response = await Game.instance.localPlayer.WaitForResponse();
+            Game.instance.promptLabel.Text = prevText;
+            await Game.instance.localPlayer.Flip(response.card);
+            await Game.instance.localPlayer.Draw(response.card.GetValue());
+        };
         light.cards.Add(light0);
 
         CardInfo light1 = new CardInfo("Light", 1);
         light1.bottomText = "End: Draw 1 card.";
+        light1.OnEnd = async (Card card) =>
+        {
+            await Game.instance.localPlayer.Draw(1);
+        };
         light.cards.Add(light1);
 
         CardInfo light2 = new CardInfo("Light", 2);
@@ -991,7 +1007,7 @@ public static class Cardlist
         light2.OnPlay = async (Card card) =>
         {
             await Game.instance.localPlayer.Draw(2);
-            List<Card> faceDownCards = Game.instance.GetCards().FindAll(c => c.flipped);
+            List<Card> faceDownCards = Game.instance.GetCards().FindAll(c => c.flipped && !c.covered);
             if (faceDownCards.Count == 0) return;
             String prevText = Game.instance.promptLabel.Text;
             Game.instance.promptLabel.Text = "Select a face-down card.";
