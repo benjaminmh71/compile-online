@@ -20,7 +20,7 @@ public partial class Player : Node
             this.local = local;
         }
     }
-    public enum CommandType { PlayTop };
+    public enum CommandType { PlayTop, Draw, Reveal };
     public int id;
     public List<Card> deck = new List<Card>();
     public List<Card> hand = new List<Card>();
@@ -665,11 +665,19 @@ public partial class Player : Node
 
     public async Task SendCommand(Command command)
     {
+        List<String> handCards = new List<String>();
         List<String> locations = new List<String>();
         foreach (Card c in command.cards)
         {
-            var location = Game.instance.GetCardLocation(c);
-            locations.Add(location.local + "," + location.protocolIndex + "," + location.cardIndex);
+            if (hand.Contains(c))
+            {
+                handCards.Add(c.info.GetCardName());
+            }
+            else
+            {
+                var location = Game.instance.GetCardLocation(c);
+                locations.Add(location.local + "," + location.protocolIndex + "," + location.cardIndex);
+            }
         }
 
         List<String> protocolLocations = new List<String>();
@@ -680,7 +688,8 @@ public partial class Player : Node
 
         RpcId(oppId, nameof(OppHandleCommand), (int)command.type, command.num, 
             Json.Stringify(new Godot.Collections.Array<String>(protocolLocations)),
-            Json.Stringify(new Godot.Collections.Array<String>(locations)));
+            Json.Stringify(new Godot.Collections.Array<String>(locations)),
+            Json.Stringify(new Godot.Collections.Array<String>(handCards)));
         await WaitForOppResponse();
     }
 
@@ -1082,18 +1091,25 @@ public partial class Player : Node
     }
 
     [Rpc(MultiplayerApi.RpcMode.AnyPeer)]
-    public async void OppHandleCommand(int typeInt, int num, String protocolJson, String cardJson)
+    public async void OppHandleCommand(int typeInt, int num, String protocolJson, String cardJson, String handCardJson)
     {
         CommandType type = (CommandType)typeInt;
         List<String> cardLocations = new Godot.Collections.Array<String>(Json.ParseString(cardJson).AsGodotArray()).ToList();
         List<Card> cards = new List<Card>();
         foreach (String location in cardLocations)
         {
-            GD.Print(location);
             String[] split = location.Split(',');
             Card card = Game.instance.FindCard(
                 !Boolean.Parse(split[0]), Int32.Parse(split[1]), Int32.Parse(split[2]));
             cards.Add(card);
+        }
+
+        List<String> handCardLocations = new Godot.Collections.Array<String>(Json.ParseString(handCardJson).AsGodotArray()).ToList();
+        List<Card> handCards = new List<Card>();
+        foreach (String location in handCardLocations)
+        {
+            Card card = oppHand.Find(c => c.info.GetCardName() == location);
+            handCards.Add(card);
         }
 
         List<String> protocolLocations = new Godot.Collections.Array<String>(Json.ParseString(protocolJson).AsGodotArray()).ToList();
@@ -1111,6 +1127,16 @@ public partial class Player : Node
             {
                 await PlayTop(protocol);
             }
+        }
+
+        if (type == CommandType.Draw)
+        {
+            await Draw(num);
+        }
+
+        if (type == CommandType.Reveal)
+        {
+            Reveal(handCards);
         }
 
         RpcId(oppId, nameof(OppResponse));

@@ -1094,6 +1094,22 @@ public static class Cardlist
 
         CardInfo love4 = new CardInfo("Love", 4);
         love4.middleText = "Reveal 1 card from your hand. Flip 1 card.";
+        love4.OnPlay = async (Card card) =>
+        {
+            String prevText = Game.instance.promptLabel.Text;
+            Game.instance.promptLabel.Text = "Reveal 1 card in your hand.";
+            PromptManager.PromptAction([PromptManager.Prompt.Select], Game.instance.localPlayer.hand);
+            Response response = await Game.instance.localPlayer.WaitForResponse();
+            Game.instance.promptLabel.Text = prevText;
+            await Game.instance.localPlayer.SendCommand
+                (new Command(Player.CommandType.Reveal, new List<Card> { response.card }));
+            prevText = Game.instance.promptLabel.Text;
+            Game.instance.promptLabel.Text = "Flip 1 card.";
+            PromptManager.PromptAction([PromptManager.Prompt.Select], Game.instance.GetCards().FindAll(c => !c.covered));
+            response = await Game.instance.localPlayer.WaitForResponse();
+            Game.instance.promptLabel.Text = prevText;
+            await Game.instance.localPlayer.Flip(response.card);
+        };
         love.cards.Add(love4);
 
         CardInfo love5 = new CardInfo("Love", 5);
@@ -1106,6 +1122,11 @@ public static class Cardlist
 
         CardInfo love6 = new CardInfo("Love", 6);
         love6.middleText = "Your opponent draws 2 cards.";
+        love6.OnPlay = async (Card card) =>
+        {
+            Command command = new Command(Player.CommandType.Draw, 2);
+            await Game.instance.localPlayer.SendCommand(command);
+        };
         love.cards.Add(love6);
     }
 
