@@ -1074,6 +1074,39 @@ public static class Cardlist
             await Game.instance.localPlayer.Discard(1);
         };
         light.cards.Add(light5);
+
+        ProtocolInfo love = new ProtocolInfo("Love");
+        love.backgroundColor = new Color((float)225 / 256, (float)100 / 256, (float)100 / 256);
+        protocols["Love"] = love;
+
+        CardInfo love1 = new CardInfo("Love", 1);
+        love1.middleText = "Draw the top card of your opponent's deck.";
+        love1.bottomText = "End: you may give 1 card from your hand to your opponent.";
+        love.cards.Add(love1);
+
+        CardInfo love2 = new CardInfo("Love", 2);
+        love2.middleText = "Your opponent draws 1 card. Refresh.";
+        love.cards.Add(love2);
+
+        CardInfo love3 = new CardInfo("Love", 3);
+        love3.middleText = "Take 1 random card from your opponent's hand. Give 1 card from your hand to your opponent.";
+        love.cards.Add(love3);
+
+        CardInfo love4 = new CardInfo("Love", 4);
+        love4.middleText = "Reveal 1 card from your hand. Flip 1 card.";
+        love.cards.Add(love4);
+
+        CardInfo love5 = new CardInfo("Love", 5);
+        love5.middleText = "Discard a card.";
+        love5.OnPlay = async (Card card) =>
+        {
+            await Game.instance.localPlayer.Discard(1);
+        };
+        love.cards.Add(love5);
+
+        CardInfo love6 = new CardInfo("Love", 6);
+        love6.middleText = "Your opponent draws 2 cards.";
+        love.cards.Add(love6);
     }
 
     public static CardInfo GetCard(String name)

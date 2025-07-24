@@ -6,6 +6,7 @@
 [ext_resource type="Script" uid="uid://gd0kci4oyq63" path="res://Lobby/ReturnToMenuButton.cs" id="3_iv3md"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_vrr3t"]
+bg_color = Color(0.784314, 0.588235, 0.588235, 1)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_iv3md"]
 border_width_left = 4
