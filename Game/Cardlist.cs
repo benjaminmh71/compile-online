@@ -1081,11 +1081,32 @@ public static class Cardlist
 
         CardInfo love1 = new CardInfo("Love", 1);
         love1.middleText = "Draw the top card of your opponent's deck.";
-        love1.bottomText = "End: you may give 1 card from your hand to your opponent.";
+        love1.bottomText = "End: you may give 1 card from your hand to your opponent. If you do, draw 2 cards.";
+        love1.OnPlay = async (Card card) =>
+        {
+            await Game.instance.localPlayer.DrawFromOpp();
+        };
+        love1.OnEnd = async (Card card) =>
+        {
+            String prevText = Game.instance.promptLabel.Text;
+            Game.instance.promptLabel.Text = "You may give 1 card in your hand to your opponent.";
+            PromptManager.PromptAction([PromptManager.Prompt.Select, PromptManager.Prompt.EndAction], Game.instance.localPlayer.hand);
+            Response response = await Game.instance.localPlayer.WaitForResponse();
+            Game.instance.promptLabel.Text = prevText;
+            if (response.type == PromptManager.Prompt.EndAction) return;
+            await Game.instance.localPlayer.SendCommand(new Command(Player.CommandType.Give, new List<Card> { response.card }));
+            await Game.instance.localPlayer.Draw(2);
+        };
         love.cards.Add(love1);
 
         CardInfo love2 = new CardInfo("Love", 2);
         love2.middleText = "Your opponent draws 1 card. Refresh.";
+        love2.OnPlay = async (Card card) =>
+        {
+            Command command = new Command(Player.CommandType.Draw, 1);
+            await Game.instance.localPlayer.SendCommand(command);
+            await Game.instance.localPlayer.Refresh();
+        };
         love.cards.Add(love2);
 
         CardInfo love3 = new CardInfo("Love", 3);

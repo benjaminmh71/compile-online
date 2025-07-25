@@ -321,7 +321,7 @@ public partial class Player : Node
             Game.instance.localDiscardTop.placeholder = true;
             Game.instance.localDeckTop.Render();
             Game.instance.localDiscardTop.Render();
-            RpcId(oppId, nameof(OppSetDeck), deck.Select<Card, String>((Card c) => c.info.GetCardName()).ToArray());
+            RpcId(oppId, nameof(OppSetDeck), deck.Select((Card c) => c.info.GetCardName()).ToArray());
         }
         if (deck.Count == 1) // Deck has no more cards
         {
@@ -333,6 +333,27 @@ public partial class Player : Node
         hand.Add(card);
         Game.instance.handCardsContainer.AddChild(card);
         RpcId(oppId, nameof(OppDraw));
+    }
+
+    public async Task DrawFromOpp()
+    {
+        RpcId(oppId, nameof(OppDrawFromOpp));
+        await WaitForOppResponse();
+        if (oppDeck.Count == 0) return;
+        if (oppDeck.Count == 1) // Deck has no more cards
+        {
+            Game.instance.oppDeckTop.placeholder = true;
+            Game.instance.oppDeckTop.Render();
+        }
+        else
+        {
+            Game.instance.oppDeckTop.placeholder = false;
+            Game.instance.oppDeckTop.Render();
+        }
+        Card card = oppDeck[0];
+        oppDeck.Remove(card);
+        hand.Add(card);
+        Game.instance.handCardsContainer.AddChild(card);
     }
 
     public async Task Discard(int n)
@@ -807,7 +828,40 @@ public partial class Player : Node
         oppDeck.Remove(card);
         oppHand.Add(card);
         //card.flipped = true; UNCOMMENT THIS
+        card.Render();
         Game.instance.oppCardsContainer.AddChild(card);
+    }
+
+    [Rpc(MultiplayerApi.RpcMode.AnyPeer)]
+    public void OppDrawFromOpp()
+    {
+        if (deck.Count == 0) // Shuffle in discard
+        {
+            if (discard.Count == 0) return;
+            while (discard.Count > 0)
+            {
+                Card c = discard[Utility.random.RandiRange(0, discard.Count - 1)];
+                discard.Remove(c);
+                deck.Add(c);
+            }
+            Game.instance.localDeckTop.placeholder = false;
+            Game.instance.localDiscardTop.placeholder = true;
+            Game.instance.localDeckTop.Render();
+            Game.instance.localDiscardTop.Render();
+            RpcId(oppId, nameof(OppSetDeck), deck.Select((Card c) => c.info.GetCardName()).ToArray());
+        }
+        if (deck.Count == 1) // Deck has no more cards
+        {
+            Game.instance.localDeckTop.placeholder = true;
+            Game.instance.localDeckTop.Render();
+        }
+        Card card = deck[0];
+        deck.Remove(card);
+        oppHand.Add(card);
+        Game.instance.oppCardsContainer.AddChild(card);
+        // card.flipped = true; UNCOMMENT THIS
+        card.Render();
+        RpcId(oppId, nameof(OppResponse));
     }
 
     [Rpc(MultiplayerApi.RpcMode.AnyPeer)]
