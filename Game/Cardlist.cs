@@ -1163,6 +1163,39 @@ public static class Cardlist
             await Game.instance.localPlayer.SendCommand(command);
         };
         love.cards.Add(love6);
+
+        ProtocolInfo metal = new ProtocolInfo("Metal");
+        metal.backgroundColor = new Color((float)140 / 256, (float)170 / 256, (float)170 / 256);
+        protocols["Metal"] = metal;
+
+        CardInfo metal0 = new CardInfo("Metal", 0);
+        metal0.topText = "Your opponent's total value in this line is reduced by 2.";
+        metal0.middleText = "Flip 1 card.";
+        metal.cards.Add(metal0);
+
+        CardInfo metal1 = new CardInfo("Metal", 1);
+        metal1.middleText = "Draw 2 cards. Your opponent can't compile next turn.";
+        metal.cards.Add(metal1);
+
+        CardInfo metal2 = new CardInfo("Metal", 2);
+        metal2.topText = "Your opponent cannot play cards face-down in this line.";
+        metal.cards.Add(metal2);
+
+        CardInfo metal3 = new CardInfo("Metal", 3);
+        metal3.middleText = "Draw 1 card. Delete all cards in 1 other line with 8 or more cards.";
+        metal.cards.Add(metal3);
+
+        CardInfo metal5 = new CardInfo("Metal", 5);
+        metal5.middleText = "Discard a card.";
+        metal5.OnPlay = async (Card card) =>
+        {
+            await Game.instance.localPlayer.Discard(1);
+        };
+        metal.cards.Add(metal5);
+
+        CardInfo metal6 = new CardInfo("Metal", 6);
+        metal6.topText = "When this card would be covered or flipped: first, delete this card.";
+        metal.cards.Add(metal6);
     }
 
     public static CardInfo GetCard(String name)
