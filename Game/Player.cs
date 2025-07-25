@@ -20,7 +20,7 @@ public partial class Player : Node
             this.local = local;
         }
     }
-    public enum CommandType { PlayTop, Draw, Reveal };
+    public enum CommandType { PlayTop, Draw, Reveal, Give, Steal };
     public int id;
     public List<Card> deck = new List<Card>();
     public List<Card> hand = new List<Card>();
@@ -666,12 +666,17 @@ public partial class Player : Node
     public async Task SendCommand(Command command)
     {
         List<String> handCards = new List<String>();
+        List<String> oppHandCards = new List<String>();
         List<String> locations = new List<String>();
         foreach (Card c in command.cards)
         {
             if (hand.Contains(c))
             {
                 handCards.Add(c.info.GetCardName());
+            }
+            else if (oppHand.Contains(c))
+            {
+                oppHandCards.Add(c.info.GetCardName());
             }
             else
             {
@@ -686,10 +691,33 @@ public partial class Player : Node
             protocolLocations.Add(Game.instance.IsLocal(p) + "," + Game.instance.IndexOfProtocol(p));
         }
 
+        if (command.type == CommandType.Give)
+        {
+            foreach (Card card in command.cards)
+            {
+                hand.Remove(card);
+                card.GetParent().RemoveChild(card);
+                oppHand.Add(card);
+                Game.instance.oppCardsContainer.AddChild(card);
+            }
+        }
+
+        if (command.type == CommandType.Steal)
+        {
+            foreach (Card card in command.cards)
+            {
+                oppHand.Remove(card);
+                card.GetParent().RemoveChild(card);
+                hand.Add(card);
+                Game.instance.handCardsContainer.AddChild(card);
+            }
+        }
+
         RpcId(oppId, nameof(OppHandleCommand), (int)command.type, command.num, 
             Json.Stringify(new Godot.Collections.Array<String>(protocolLocations)),
             Json.Stringify(new Godot.Collections.Array<String>(locations)),
-            Json.Stringify(new Godot.Collections.Array<String>(handCards)));
+            Json.Stringify(new Godot.Collections.Array<String>(handCards)),
+            Json.Stringify(new Godot.Collections.Array<String>(oppHandCards)));
         await WaitForOppResponse();
     }
 
@@ -1091,7 +1119,8 @@ public partial class Player : Node
     }
 
     [Rpc(MultiplayerApi.RpcMode.AnyPeer)]
-    public async void OppHandleCommand(int typeInt, int num, String protocolJson, String cardJson, String handCardJson)
+    public async void OppHandleCommand(int typeInt, int num, String protocolJson, String cardJson, 
+        String handCardJson, String oppHandCardJson)
     {
         CommandType type = (CommandType)typeInt;
         List<String> cardLocations = new Godot.Collections.Array<String>(Json.ParseString(cardJson).AsGodotArray()).ToList();
@@ -1110,6 +1139,15 @@ public partial class Player : Node
         {
             Card card = oppHand.Find(c => c.info.GetCardName() == location);
             handCards.Add(card);
+        }
+
+        List<String> oppHandCardLocations = 
+            new Godot.Collections.Array<String>(Json.ParseString(oppHandCardJson).AsGodotArray()).ToList();
+        List<Card> oppHandCards = new List<Card>();
+        foreach (String location in oppHandCardLocations)
+        {
+            Card card = hand.Find(c => c.info.GetCardName() == location);
+            oppHandCards.Add(card);
         }
 
         List<String> protocolLocations = new Godot.Collections.Array<String>(Json.ParseString(protocolJson).AsGodotArray()).ToList();
@@ -1139,6 +1177,27 @@ public partial class Player : Node
             Reveal(handCards);
         }
 
+        if (type == CommandType.Give)
+        {
+            foreach (Card c in handCards)
+            {
+                oppHand.Remove(c);
+                c.GetParent().RemoveChild(c);
+                hand.Add(c);
+                Game.instance.handCardsContainer.AddChild(c);
+            }
+        }
+
+        if (type == CommandType.Steal)
+        {
+            foreach (Card c in oppHandCards)
+            {
+                hand.Remove(c);
+                c.GetParent().RemoveChild(c);
+                oppHand.Add(c);
+                Game.instance.oppCardsContainer.AddChild(c);
+            }
+        }
         RpcId(oppId, nameof(OppResponse));
     }
 

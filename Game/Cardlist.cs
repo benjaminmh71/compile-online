@@ -1090,6 +1090,20 @@ public static class Cardlist
 
         CardInfo love3 = new CardInfo("Love", 3);
         love3.middleText = "Take 1 random card from your opponent's hand. Give 1 card from your hand to your opponent.";
+        love3.OnPlay = async (Card card) =>
+        {
+            List<Card> oppHand = Game.instance.localPlayer.oppHand;
+            Card randomCard = oppHand[Utility.random.RandiRange(0, oppHand.Count-1)];
+            Command command = new Command(Player.CommandType.Steal, new List<Card> { randomCard });
+            await Game.instance.localPlayer.SendCommand(command);
+            String prevText = Game.instance.promptLabel.Text;
+            Game.instance.promptLabel.Text = "Give 1 card in your hand to your opponent.";
+            PromptManager.PromptAction([PromptManager.Prompt.Select], Game.instance.localPlayer.hand);
+            Response response = await Game.instance.localPlayer.WaitForResponse();
+            Game.instance.promptLabel.Text = prevText;
+            await Game.instance.localPlayer.SendCommand
+                (new Command(Player.CommandType.Give, new List<Card> { response.card }));
+        };
         love.cards.Add(love3);
 
         CardInfo love4 = new CardInfo("Love", 4);
