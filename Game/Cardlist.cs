@@ -1183,6 +1183,33 @@ public static class Cardlist
 
         CardInfo metal3 = new CardInfo("Metal", 3);
         metal3.middleText = "Draw 1 card. Delete all cards in 1 other line with 8 or more cards.";
+        metal3.OnPlay = async (Card card) =>
+        {
+            await Game.instance.localPlayer.Draw(1);
+            List<Protocol> protocols = new List<Protocol>();
+            foreach (Protocol protocol in Game.instance.GetProtocols(true))
+            {
+                if (protocol.cards.Count + Game.instance.GetOpposingProtocol(protocol).cards.Count >= 8)
+                {
+                    protocols.Add(protocol);
+                }
+            }
+            if (protocols.Count == 0) return;
+            if (protocols.Count == 1)
+            {
+                await Game.instance.localPlayer.MultiDelete(
+                    protocols[0].cards.Concat(Game.instance.GetOpposingProtocol(protocols[0]).cards).ToList());
+            } else
+            {
+                String prevText = Game.instance.promptLabel.Text;
+                Game.instance.promptLabel.Text = "Select a line to delete in.";
+                PromptManager.PromptAction([PromptManager.Prompt.Select], protocols);
+                Response response = await Game.instance.localPlayer.WaitForResponse();
+                Game.instance.promptLabel.Text = prevText;
+                await Game.instance.localPlayer.MultiDelete(
+                    response.protocol.cards.Concat(Game.instance.GetOpposingProtocol(response.protocol).cards).ToList());
+            }
+        };
         metal.cards.Add(metal3);
 
         CardInfo metal5 = new CardInfo("Metal", 5);
@@ -1195,6 +1222,14 @@ public static class Cardlist
 
         CardInfo metal6 = new CardInfo("Metal", 6);
         metal6.topText = "When this card would be covered or flipped: first, delete this card.";
+        metal6.OnCover = async (Card card) =>
+        {
+            await Game.instance.localPlayer.Delete(card);
+        };
+        metal6.OnFlip = async (Card card) =>
+        {
+            await Game.instance.localPlayer.Delete(card);
+        };
         metal.cards.Add(metal6);
     }
 
