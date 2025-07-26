@@ -1179,6 +1179,7 @@ public static class Cardlist
 
         CardInfo metal2 = new CardInfo("Metal", 2);
         metal2.topText = "Your opponent cannot play cards face-down in this line.";
+        metal2.passives = [ CardInfo.Passive.NoFaceDown ];
         metal.cards.Add(metal2);
 
         CardInfo metal3 = new CardInfo("Metal", 3);

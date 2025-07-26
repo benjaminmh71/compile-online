@@ -65,9 +65,7 @@ public static class PromptManager
     {
         if (CanBePlaced == null && prompts.Contains(Prompt.Play))
         {
-            CanBePlaced = (Card c, Protocol p) =>
-            Game.instance.flippedCheckbox.GetNode<CheckBox>("CheckBox").ButtonPressed ||
-            p.info.name == c.info.protocol || Game.instance.GetOpposingProtocol(p).info.name == c.info.protocol; 
+            CanBePlaced = Game.instance.localPlayer.CanBePlaced;
         }
         else if (CanBePlaced == null) CanBePlaced = (Card c, Protocol p) => true;
         MousePosition.CanBePlaced = CanBePlaced;

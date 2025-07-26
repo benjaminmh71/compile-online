@@ -29,6 +29,7 @@ public partial class Player : Node
     public List<Card> oppHand = new List<Card>();
     public Dictionary<CardInfo.Passive, PassiveLocation?> passives = 
         new Dictionary<CardInfo.Passive, PassiveLocation?>();
+    public Func<Card, Protocol, bool> CanBePlaced;
     List<Card> empty = new List<Card>();
     List<Protocol> emptyp = new List<Protocol>();
     int oppId;
@@ -45,6 +46,12 @@ public partial class Player : Node
         {
             passives[passive] = null;
         }
+
+        CanBePlaced = (Card c, Protocol p) =>
+            !(Game.instance.flippedCheckbox.GetNode<CheckBox>("CheckBox").ButtonPressed &&
+            StackContainsPassive(false, p, CardInfo.Passive.NoFaceDown)) && 
+            (Game.instance.flippedCheckbox.GetNode<CheckBox>("CheckBox").ButtonPressed ||
+            p.info.name == c.info.protocol || Game.instance.GetOpposingProtocol(p).info.name == c.info.protocol);
 
         foreach (Protocol protocol in Game.instance.GetProtocols(true))
         {
