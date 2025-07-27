@@ -1175,6 +1175,11 @@ public static class Cardlist
 
         CardInfo metal1 = new CardInfo("Metal", 1);
         metal1.middleText = "Draw 2 cards. Your opponent can't compile next turn.";
+        metal1.OnPlay = async (Card card) =>
+        {
+            await Game.instance.localPlayer.Draw(2);
+            Game.instance.localPlayer.ApplyTempEffect(CardInfo.TempEffect.NoCompile, 1);
+        };
         metal.cards.Add(metal1);
 
         CardInfo metal2 = new CardInfo("Metal", 2);

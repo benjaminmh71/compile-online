@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Dynamic;
 using System.Linq;
 using System.Threading.Tasks;
+using static CardInfo;
 
 public partial class Player : Node
 {
@@ -27,8 +28,8 @@ public partial class Player : Node
     public List<Card> discard = new List<Card>();
     public List<Card> oppDeck = new List<Card>();
     public List<Card> oppHand = new List<Card>();
-    public Dictionary<CardInfo.Passive, PassiveLocation?> passives = 
-        new Dictionary<CardInfo.Passive, PassiveLocation?>();
+    public Dictionary<CardInfo.Passive, PassiveLocation?> passives = new Dictionary<CardInfo.Passive, PassiveLocation?>();
+    public Dictionary<CardInfo.TempEffect, int> tempEffects = new Dictionary<CardInfo.TempEffect, int>();
     public Func<Card, Protocol, bool> CanBePlaced;
     List<Card> empty = new List<Card>();
     List<Protocol> emptyp = new List<Protocol>();
@@ -45,6 +46,11 @@ public partial class Player : Node
         foreach (CardInfo.Passive passive in Enum.GetValues(typeof(CardInfo.Passive)))
         {
             passives[passive] = null;
+        }
+
+        foreach (CardInfo.TempEffect tempEffect in Enum.GetValues(typeof(CardInfo.TempEffect)))
+        {
+            tempEffects[tempEffect] = 0;
         }
 
         CanBePlaced = (Card c, Protocol p) =>
@@ -76,6 +82,11 @@ public partial class Player : Node
     public async void StartTurn()
     {
         Game.instance.promptLabel.Text = "It is your turn.";
+
+        foreach(CardInfo.TempEffect tempEffect in Enum.GetValues(typeof(CardInfo.TempEffect)))
+        {
+            if (tempEffects[tempEffect] > 0) tempEffects[tempEffect] -= 1;
+        }
 
         foreach (Card card in Game.instance.GetCards())
         {
@@ -120,12 +131,12 @@ public partial class Player : Node
         {
             await UseControl();
         }
-        if (compilableProtcols.Count == 1)
+        if (compilableProtcols.Count == 1 && tempEffects[CardInfo.TempEffect.NoCompile] == 0)
         {
             await Compile(Game.instance.GetProtocols(true)[compilableProtcols[0]]);
             await EndTurn();
             return;
-        } else if (compilableProtcols.Count > 1)
+        } else if (compilableProtcols.Count > 1 && tempEffects[CardInfo.TempEffect.NoCompile] == 0)
         {
             PromptManager.PromptAction([PromptManager.Prompt.Compile],
                 compilableProtcols.Select((int val) => Game.instance.GetProtocols(true)[val]).ToList());
@@ -552,6 +563,12 @@ public partial class Player : Node
             tempCard.info = card.info;
             revealPanel.GetNode("MarginContainer").GetNode("Cards").AddChild(tempCard);
         }
+    }
+
+    public void ApplyTempEffect(CardInfo.TempEffect effect, int time)
+    {
+        tempEffects[effect] = time;
+        RpcId(oppId, nameof(OppApplyTempEffect), (int)effect, time);
     }
 
     public void SendToDiscard(Card card)
@@ -1052,6 +1069,12 @@ public partial class Player : Node
         }
 
         RpcId(oppId, nameof(OppResponse));
+    }
+
+    [Rpc(MultiplayerApi.RpcMode.AnyPeer)]
+    public void OppApplyTempEffect(int effect, int time)
+    {
+        tempEffects[(CardInfo.TempEffect)effect] = time + 1;
     }
 
     [Rpc(MultiplayerApi.RpcMode.AnyPeer)]

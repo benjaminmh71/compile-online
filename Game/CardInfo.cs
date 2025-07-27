@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 public partial class CardInfo : Node
 {
     public enum Passive { NoMiddleCommands, PlusOneForFaceDown, FaceDownFours, NoFaceDown };
+    public enum TempEffect { NoCompile };
 
     public String protocol = "Apathy";
     public int value = 5;
