@@ -399,11 +399,8 @@ public partial class Player : Node
 
     public async Task Flip(Card card)
     {
-        if (Game.instance.IsLocal(card))
-        {
-            await card.info.OnFlip(card);
-            if (Game.instance.GetProtocolOfCard(card) == null) return; // May leave field
-        }
+        await card.info.OnFlip(card);
+        if (Game.instance.GetProtocolOfCard(card) == null) return; // May leave field
         card.flipped = !card.flipped;
         card.Render();
         var cardLocation = Game.instance.GetCardLocation(card);

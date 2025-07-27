@@ -1171,6 +1171,16 @@ public static class Cardlist
         CardInfo metal0 = new CardInfo("Metal", 0);
         metal0.topText = "Your opponent's total value in this line is reduced by 2.";
         metal0.middleText = "Flip 1 card.";
+        metal0.passives = [CardInfo.Passive.ReduceOppValueByTwo];
+        metal0.OnPlay = async (Card card) =>
+        {
+            String prevText = Game.instance.promptLabel.Text;
+            Game.instance.promptLabel.Text = "Flip 1 card.";
+            PromptManager.PromptAction([PromptManager.Prompt.Select], Game.instance.GetCards().FindAll(c => !c.covered));
+            Response response = await Game.instance.localPlayer.WaitForResponse();
+            Game.instance.promptLabel.Text = prevText;
+            await Game.instance.localPlayer.Flip(response.card);
+        };
         metal.cards.Add(metal0);
 
         CardInfo metal1 = new CardInfo("Metal", 1);

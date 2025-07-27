@@ -155,6 +155,7 @@ public partial class Game : Control
                 if (card.flipped) total++;
             }
         }
+        if (localPlayer.StackContainsPassive(!IsLocal(p), p, CardInfo.Passive.ReduceOppValueByTwo)) total -= 2;
         return total;
     }
 

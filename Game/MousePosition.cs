@@ -40,6 +40,7 @@ public partial class MousePosition : Control
             {
                 GD.Print(card.info.GetCardName());
             }
+            GD.Print(Game.instance.SumStack(Game.instance.GetHoveredProtocol()));
         }
 
         if (Input.IsActionJustPressed("click"))
