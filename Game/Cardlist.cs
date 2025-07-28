@@ -1247,6 +1247,40 @@ public static class Cardlist
             await Game.instance.localPlayer.Delete(card);
         };
         metal.cards.Add(metal6);
+
+        ProtocolInfo plague = new ProtocolInfo("Plague");
+        plague.backgroundColor = new Color((float)110 / 256, (float)150 / 256, (float)90 / 256);
+        protocols["Plague"] = plague;
+
+        CardInfo plague0 = new CardInfo("Plague", 0);
+        plague0.middleText = "Your opponent discards 1 card.";
+        plague0.bottomText = "Your opponent cannot play cards in this line.";
+        plague.cards.Add(plague0);
+
+        CardInfo plague1 = new CardInfo("Plague", 1);
+        plague1.topText = "After your opponent discards cards: draw 1 card.";
+        plague1.middleText = "Your opponent discards 1 card.";
+        plague.cards.Add(plague1);
+
+        CardInfo plague2 = new CardInfo("Plague", 2);
+        plague2.middleText = "Discard 1 or more cards. Your opponent discards the amount of cards discarded plus 1.";
+        plague.cards.Add(plague2);
+
+        CardInfo plague3 = new CardInfo("Plague", 3);
+        plague3.middleText = "Flip each other face-up card.";
+        plague.cards.Add(plague3);
+
+        CardInfo plague4 = new CardInfo("Plague", 4);
+        plague4.bottomText = "End: your opponent deletes one of their face down cards. You may flip this card.";
+        plague.cards.Add(plague4);
+
+        CardInfo plague5 = new CardInfo("Plague", 5);
+        plague5.middleText = "Discard a card.";
+        plague5.OnPlay = async (Card card) =>
+        {
+            await Game.instance.localPlayer.Discard(1);
+        };
+        plague.cards.Add(plague5);
     }
 
     public static CardInfo GetCard(String name)
