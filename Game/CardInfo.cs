@@ -14,6 +14,7 @@ public partial class CardInfo : Node
     public String middleText = "";
     public String bottomText = "";
     public Passive[] passives = new Passive[0];
+    public Passive[] bottomPassives = new Passive[0];
 
 # pragma warning disable CS1998 // Warning for async without await
     public Func<Card, Task> OnPlay = async (Card card) => { };

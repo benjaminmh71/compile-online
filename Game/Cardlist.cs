@@ -1000,6 +1000,7 @@ public static class Cardlist
         light1.bottomText = "End: Draw 1 card.";
         light1.OnEnd = async (Card card) =>
         {
+            if (card.covered) return;
             await Game.instance.localPlayer.Draw(1);
         };
         light.cards.Add(light1);
@@ -1086,6 +1087,7 @@ public static class Cardlist
         love1.bottomText = "End: you may give 1 card from your hand to your opponent. If you do, draw 2 cards.";
         love1.OnPlay = async (Card card) =>
         {
+            if (card.covered) return;
             await Game.instance.localPlayer.DrawFromOpp();
         };
         love1.OnEnd = async (Card card) =>
@@ -1258,6 +1260,7 @@ public static class Cardlist
         plague0.middleText = "Your opponent discards 1 card.";
         plague0.bottomText = "Your opponent cannot play cards in this line.";
         plague0.passives = [ CardInfo.Passive.NoPlay ];
+        plague0.bottomPassives = [ CardInfo.Passive.NoPlay ];
         plague0.OnPlay = async (Card card) =>
         {
             await Game.instance.localPlayer.SendCommand(new Command(Player.CommandType.Discard, 1));
@@ -1322,6 +1325,7 @@ public static class Cardlist
         plague4.bottomText = "End: your opponent deletes one of their face-down cards. You may flip this card.";
         plague4.OnEnd = async (Card card) =>
         {
+            if (card.covered) return;
             List<Card> cards = Game.instance.GetCards().FindAll(c => !c.covered && c.flipped && !Game.instance.IsLocal(c));
             if (cards.Count > 0) {
                 if (cards.Count == 1) await Game.instance.localPlayer.Delete(cards[0]);
@@ -1368,7 +1372,21 @@ public static class Cardlist
         psychic.cards.Add(psychic3);
 
         CardInfo psychic4 = new CardInfo("Psychic", 4);
-        psychic4.bottomText = "You may return 1 of your opponent's cards. If you do, flip this card.";
+        psychic4.bottomText = "End: you may return 1 of your opponent's cards. If you do, flip this card.";
+        psychic4.OnEnd = async (Card card) =>
+        {
+            if (card.covered) return;
+            List<Card> cards = Game.instance.GetCards().FindAll(c => !c.covered && !Game.instance.IsLocal(c));
+            if (cards.Count == 0) return;
+            String prevText = Game.instance.promptLabel.Text;
+            Game.instance.promptLabel.Text = "You may return 1 of your opponent's cards.";
+            PromptManager.PromptAction([PromptManager.Prompt.Select, PromptManager.Prompt.EndAction], cards);
+            Response response = await Game.instance.localPlayer.WaitForResponse();
+            Game.instance.promptLabel.Text = prevText;
+            if (response.type == PromptManager.Prompt.EndAction) return;
+            await Game.instance.localPlayer.Return(response.card);
+            await Game.instance.localPlayer.Flip(card);
+        };
         psychic.cards.Add(psychic4);
 
         CardInfo psychic5 = new CardInfo("Psychic", 5);

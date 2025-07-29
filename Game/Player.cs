@@ -272,9 +272,7 @@ public partial class Player : Node
             hand.Remove(card);
         if (protocol.cards.Count > 0)
         {
-            if (!protocol.cards[protocol.cards.Count - 1].flipped)
-                await protocol.cards[protocol.cards.Count - 1].info.OnCover(protocol.cards[protocol.cards.Count - 1]);
-            protocol.cards[protocol.cards.Count - 1].covered = true;
+            await Cover(protocol.cards[protocol.cards.Count - 1], protocol);
         }
         card.flipped = flipped;
         protocol.AddCard(card);
@@ -531,7 +529,7 @@ public partial class Player : Node
         await WaitForOppResponse();
         if (protocol.cards.Count > 1 && !protocol.cards[protocol.cards.Count - 2].flipped)
         {
-            await protocol.cards[protocol.cards.Count - 2].info.OnCover(protocol.cards[protocol.cards.Count - 2]);
+            await Cover(protocol.cards[protocol.cards.Count - 2], protocol);
         }
         if (card.covered)
         {
@@ -677,8 +675,7 @@ public partial class Player : Node
             Game.instance.IndexOfProtocol(protocol));
         await WaitForOppResponse();
 
-        if (protocol.cards.Count > 0 && localCards.Count > 0)
-            await protocol.cards[protocol.cards.Count-1].info.OnCover(protocol.cards[protocol.cards.Count - 1]);
+        await Cover(protocol.cards[protocol.cards.Count - 1], protocol);
 
         List<Card> uncoveredShiftedCards = new List<Card>();
         foreach (Card card in cards)
@@ -768,10 +765,22 @@ public partial class Player : Node
         await WaitForOppResponse();
     }
 
+    public async Task Cover(Card card, Protocol protocol)
+    {
+        if (!card.flipped) await card.info.OnCover(card);
+        card.covered = true;
+        foreach (Passive passive in card.info.bottomPassives) passives[passive] = null;
+    }
+
     public async Task Uncover(Card card, Protocol protocol)
     {
-        if (Game.instance.IsLocal(card) && !card.flipped && !LineContainsPassive(protocol, CardInfo.Passive.NoMiddleCommands))
-            await card.info.OnPlay(card);
+        if (!card.flipped)
+        {
+            foreach (Passive passive in card.info.bottomPassives)
+                passives[passive] = new PassiveLocation(Game.instance.Line(protocol), Game.instance.IsLocal(card));
+            if (Game.instance.IsLocal(card) && !LineContainsPassive(protocol, CardInfo.Passive.NoMiddleCommands))
+                await card.info.OnPlay(card);
+        }
     }
 
     [Rpc(MultiplayerApi.RpcMode.AnyPeer)]
@@ -1064,7 +1073,7 @@ public partial class Player : Node
 
         if (protocol.cards.Count > 1)
         {
-            await protocol.cards[protocol.cards.Count - 2].info.OnCover(protocol.cards[protocol.cards.Count - 2]);
+            await Cover(protocol.cards[protocol.cards.Count - 2], protocol);
         }
         if (wasCovered)
         {
@@ -1185,7 +1194,7 @@ public partial class Player : Node
         Protocol oppProtocol = Game.instance.GetProtocols(false)[protocolIndex];
         Protocol localProtocol = Game.instance.GetOpposingProtocol(oppProtocol);
         if (localProtocol.cards.Count > 0 && localCards.Count > 0)
-            await localProtocol.cards[localProtocol.cards.Count - 1].info.OnCover(localProtocol.cards[localProtocol.cards.Count - 1]);
+            await Cover(localProtocol.cards[localProtocol.cards.Count - 1], localProtocol);
 
         RpcId(oppId, nameof(OppResponse));
         await WaitForOppResponse();
