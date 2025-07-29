@@ -1452,10 +1452,47 @@ public static class Cardlist
         CardInfo speed3 = new CardInfo("Speed", 3);
         speed3.middleText = "Shift 1 of your other cards.";
         speed3.bottomText = "End: you may shift 1 of your cards. If you do, flip this card.";
+        speed3.OnPlay = async (Card card) =>
+        {
+            List<Card> cards = Game.instance.GetCards().FindAll(c => !c.covered && Game.instance.IsLocal(c) && c != card);
+            if (cards.Count == 0) return;
+            String prevText = Game.instance.promptLabel.Text;
+            Game.instance.promptLabel.Text = "Shift 1 of your cards.";
+            PromptManager.PromptAction([PromptManager.Prompt.Shift], cards, Game.instance.GetProtocols());
+            Response response = await Game.instance.localPlayer.WaitForResponse();
+            Game.instance.promptLabel.Text = prevText;
+            await Game.instance.localPlayer.Shift(response.card, response.protocol);
+        };
+        speed3.OnEnd = async (Card card) =>
+        {
+            if (card.covered) return;
+            List<Card> cards = Game.instance.GetCards().FindAll(c => !c.covered && Game.instance.IsLocal(c));
+            if (cards.Count == 0) return;
+            String prevText = Game.instance.promptLabel.Text;
+            Game.instance.promptLabel.Text = "You may shift 1 of your cards.";
+            PromptManager.PromptAction([PromptManager.Prompt.Shift, PromptManager.Prompt.EndAction], 
+                cards, Game.instance.GetProtocols());
+            Response response = await Game.instance.localPlayer.WaitForResponse();
+            Game.instance.promptLabel.Text = prevText;
+            if (response.type == PromptManager.Prompt.EndAction) return;
+            await Game.instance.localPlayer.Shift(response.card, response.protocol);
+            await Game.instance.localPlayer.Flip(card);
+        };
         speed.cards.Add(speed3);
 
         CardInfo speed4 = new CardInfo("Speed", 4);
         speed4.middleText = "Shift 1 of your opponent's face-down cards.";
+        speed4.OnPlay = async (Card card) =>
+        {
+            List<Card> cards = Game.instance.GetCards().FindAll(c => !c.covered && c.flipped && !Game.instance.IsLocal(c));
+            if (cards.Count == 0) return;
+            String prevText = Game.instance.promptLabel.Text;
+            Game.instance.promptLabel.Text = "Shift 1 of your opponent's face-down cards.";
+            PromptManager.PromptAction([PromptManager.Prompt.Shift], cards, Game.instance.GetProtocols());
+            Response response = await Game.instance.localPlayer.WaitForResponse();
+            Game.instance.promptLabel.Text = prevText;
+            await Game.instance.localPlayer.Shift(response.card, response.protocol);
+        };
         speed.cards.Add(speed4);
 
         CardInfo speed5 = new CardInfo("Speed", 5);
