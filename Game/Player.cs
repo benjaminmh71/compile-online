@@ -295,7 +295,7 @@ public partial class Player : Node
         await Play(protocol, card, true, true);
     }
 
-    public void PlayTopUnderneath(Protocol protocol)
+    public async Task PlayTopUnderneath(Protocol protocol)
     {
         if (deck.Count == 0 || !CanBePlaced(new Card(), protocol, true)) return;
         if (protocol.cards.Count == 0) return;
@@ -307,6 +307,7 @@ public partial class Player : Node
         protocol.OrderCards();
         RpcId(oppId, nameof(OppPlayTopUnderneath),
             Game.instance.IndexOfProtocol(protocol));
+        await WaitForOppResponse();
     }
 
     public async Task Draw(int n)
@@ -830,6 +831,7 @@ public partial class Player : Node
         protocol.InsertCard(protocol.cards.Count - 1, card);
         card.Render();
         protocol.OrderCards();
+        RpcId(oppId, nameof(OppResponse));
     }
 
     [Rpc(MultiplayerApi.RpcMode.AnyPeer)]

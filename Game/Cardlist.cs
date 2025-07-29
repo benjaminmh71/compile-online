@@ -550,7 +550,7 @@ public static class Cardlist
             int total = 0;
             foreach (Card c in protocol.cards) total++;
             foreach (Card c in Game.instance.GetOpposingProtocol(protocol).cards) total++;
-            for (int i = 0; i < total / 2; i++) Game.instance.localPlayer.PlayTopUnderneath(protocol);
+            for (int i = 0; i < total / 2; i++) await Game.instance.localPlayer.PlayTopUnderneath(protocol);
         };
         gravity.cards.Add(gravity0);
 
@@ -1369,6 +1369,18 @@ public static class Cardlist
 
         CardInfo psychic3 = new CardInfo("Psychic", 3);
         psychic3.middleText = "Your opponent discards 1 card. Shift 1 of their cards.";
+        psychic3.OnPlay = async (Card card) =>
+        {
+            await Game.instance.localPlayer.SendCommand(new Command(Player.CommandType.Discard, 1));
+            List<Card> cards = Game.instance.GetCards().FindAll(c => !c.covered && !Game.instance.IsLocal(c));
+            if (cards.Count == 0) return;
+            String prevText = Game.instance.promptLabel.Text;
+            Game.instance.promptLabel.Text = "Shift 1 of your opponent's cards.";
+            PromptManager.PromptAction([PromptManager.Prompt.Shift], cards, Game.instance.GetProtocols());
+            Response response = await Game.instance.localPlayer.WaitForResponse();
+            Game.instance.promptLabel.Text = prevText;
+            await Game.instance.localPlayer.Shift(response.card, response.protocol);
+        };
         psychic.cards.Add(psychic3);
 
         CardInfo psychic4 = new CardInfo("Psychic", 4);
