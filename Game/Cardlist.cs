@@ -1529,6 +1529,47 @@ public static class Cardlist
             await Game.instance.localPlayer.Discard(1);
         };
         speed.cards.Add(speed5);
+
+        ProtocolInfo spirit = new ProtocolInfo("Spirit");
+        spirit.backgroundColor = new Color((float)100 / 256, (float)40 / 256, (float)160 / 256);
+        protocols["Spirit"] = spirit;
+
+        CardInfo spirit0 = new CardInfo("Spirit", 0);
+        spirit0.middleText = "Refresh. Draw 1 card.";
+        spirit0.bottomText = "Skip your check cache phase.";
+        spirit.cards.Add(spirit0);
+
+        CardInfo spirit1 = new CardInfo("Spirit", 1);
+        spirit1.topText = "You can play cards in any line.";
+        spirit1.middleText = "Draw 2 cards";
+        spirit1.bottomText = "Start: either discard 1 card or flip this card.";
+        /*spirit1.passives = [CardInfo.Passive.PlayAnywhere];
+        spirit1.OnPlay = async (Card card) =>
+        {
+            await Game.instance.localPlayer.Draw(2);
+        };
+        spirit1.OnStart = async*/
+        spirit.cards.Add(spirit1);
+
+        CardInfo spirit2 = new CardInfo("Spirit", 2);
+        spirit2.middleText = "Flip 1 card";
+        spirit.cards.Add(spirit2);
+
+        CardInfo spirit3 = new CardInfo("Spirit", 3);
+        spirit3.topText = "After you draw cards: you may shift this card, even if this card is covered.";
+        spirit.cards.Add(spirit3);
+
+        CardInfo spirit4 = new CardInfo("Spirit", 4);
+        spirit4.middleText = "Swap the positions of 2 of your protocols.";
+        spirit.cards.Add(spirit4);
+
+        CardInfo spirit5 = new CardInfo("Spirit", 5);
+        spirit5.middleText = "Discard a card.";
+        spirit5.OnPlay = async (Card card) =>
+        {
+            await Game.instance.localPlayer.Discard(1);
+        };
+        spirit.cards.Add(spirit5);
     }
 
     public static CardInfo GetCard(String name)
