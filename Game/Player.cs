@@ -54,6 +54,7 @@ public partial class Player : Node
         }
 
         CanBePlaced = (Card c, Protocol p, bool facedown) =>
+            (facedown || passives[Passive.OnlyFaceDown] == null) &&
             !(facedown && StackContainsPassive(false, p, CardInfo.Passive.NoFaceDown)) && 
             !StackContainsPassive(false, p, CardInfo.Passive.NoPlay) &&
             (facedown || p.info.name == c.info.protocol || Game.instance.GetOpposingProtocol(p).info.name == c.info.protocol);

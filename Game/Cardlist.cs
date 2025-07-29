@@ -1357,11 +1357,23 @@ public static class Cardlist
 
         CardInfo psychic0 = new CardInfo("Psychic", 0);
         psychic0.middleText = "Draw 2 cards. Your opponent discards 2 cards, then reveals their hand.";
+        psychic0.OnPlay = async (Card card) =>
+        {
+            await Game.instance.localPlayer.Draw(2);
+            await Game.instance.localPlayer.SendCommand(new Command(Player.CommandType.Discard, 2));
+            Game.instance.localPlayer.Reveal(Game.instance.localPlayer.oppHand);
+        };
         psychic.cards.Add(psychic0);
 
         CardInfo psychic1 = new CardInfo("Psychic", 1);
         psychic1.topText = "Your opponent can only play cards face-down";
         psychic1.bottomText = "Start: flip this card";
+        psychic1.passives = [CardInfo.Passive.OnlyFaceDown];
+        psychic1.OnStart = async (Card card) =>
+        {
+            if (card.covered) return;
+            await Game.instance.localPlayer.Flip(card);
+        };
         psychic.cards.Add(psychic1);
 
         CardInfo psychic2 = new CardInfo("Psychic", 2);
