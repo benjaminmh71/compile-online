@@ -6,7 +6,8 @@ using System.Linq;
 
 public static class PromptManager
 {
-    public enum Prompt { EndAction, CustomButtonA, CustomButtonB, Play, Refresh, Compile, Control, Shift, Select };
+    public enum Prompt { EndAction, CustomButtonA, CustomButtonB, Play, Refresh, Compile, Control, Rearrange,
+        Shift, Select };
     public static Response response = null;
 
     static Prompt[] currPrompts = [];
@@ -114,6 +115,13 @@ public static class PromptManager
             leftUIElements.Add(Game.instance.endActionButton);
         }
 
+        if (prompts.Contains(Prompt.Rearrange))
+        {
+            MousePosition.SetSelectedProtocols(protocols);
+            SetProtocolPrompt(protocols.ToArray());
+            leftUIElements.Add(Game.instance.endActionButton);
+        }
+
         if (prompts.Contains(Prompt.Shift))
         {
             MousePosition.SetSelectedCards(cards, protocols);
@@ -184,10 +192,11 @@ public static class PromptManager
             response = new Response(Prompt.EndAction);
             PromptAction([]);
         }
-        else if (currPrompts.Contains(Prompt.Control))
+        else if (currPrompts.Contains(Prompt.Control) || currPrompts.Contains(Prompt.Rearrange))
         {
             SetProtocolPrompt([]);
-            response = new Response(swapLocal, new List<int>(swapA), new List<int>(swapB), Prompt.Control);
+            response = new Response(swapLocal, new List<int>(swapA), new List<int>(swapB), 
+                currPrompts.Contains(Prompt.Control) ? Prompt.Control : Prompt.Rearrange);
             PromptAction([]);
             swapA.Clear();
             swapB.Clear();
@@ -259,6 +268,13 @@ public static class PromptManager
             List<Protocol> protocols = Game.instance.GetProtocols(Game.instance.IsLocal(protocolA));
             MousePosition.SetSelectedProtocols(protocols);
             SetProtocolPrompt(protocols.ToArray());
+            swapA.Add(Game.instance.IndexOfProtocol(protocolB));
+            swapB.Add(Game.instance.IndexOfProtocol(protocolA));
+            swapLocal = Game.instance.IsLocal(protocolA);
+        }
+
+        if (currPrompts.Contains(Prompt.Rearrange))
+        {
             swapA.Add(Game.instance.IndexOfProtocol(protocolB));
             swapB.Add(Game.instance.IndexOfProtocol(protocolA));
             swapLocal = Game.instance.IsLocal(protocolA);

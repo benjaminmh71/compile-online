@@ -103,6 +103,7 @@ public partial class MousePosition : Control
                 }
             }
         }
+
         if (Input.IsActionJustReleased("click") && dragging)
         {
             dragging = false;
@@ -137,7 +138,7 @@ public partial class MousePosition : Control
                 Protocol otherProtocol = Game.instance.GetHoveredProtocol();
                 if (otherProtocol != null && 
                     (Game.instance.IsLocal(referencedProtocol) == Game.instance.IsLocal(otherProtocol))
-                    && referencedProtocol != otherProtocol)
+                    && referencedProtocol != otherProtocol && selectedProtocols.Contains(otherProtocol))
                 {
                     Swap(referencedProtocol, otherProtocol);
                     draggedProtocol.QueueFree();

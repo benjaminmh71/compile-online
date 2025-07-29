@@ -4,6 +4,7 @@ using Godot;
 using CompileOnline.Game;
 using System.Threading.Tasks;
 using System.Linq;
+using static Godot.OpenXRHand;
 
 public static class Cardlist
 {
@@ -1365,6 +1366,16 @@ public static class Cardlist
 
         CardInfo psychic2 = new CardInfo("Psychic", 2);
         psychic2.middleText = "Your opponent discards 2 cards. Rearrange their protocols.";
+        psychic2.OnPlay = async (Card card) =>
+        {
+            await Game.instance.localPlayer.SendCommand(new Command(Player.CommandType.Discard, 2));
+            String prevText = Game.instance.promptLabel.Text;
+            Game.instance.promptLabel.Text = "Rearrange your opponents protocols.";
+            PromptManager.PromptAction([PromptManager.Prompt.Rearrange], Game.instance.GetProtocols(false));
+            Response response = await Game.instance.localPlayer.WaitForResponse();
+            Game.instance.promptLabel.Text = prevText;
+            await Game.instance.localPlayer.Rearrange(response);
+        };
         psychic.cards.Add(psychic2);
 
         CardInfo psychic3 = new CardInfo("Psychic", 3);

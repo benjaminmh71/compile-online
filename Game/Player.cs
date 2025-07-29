@@ -222,6 +222,25 @@ public partial class Player : Node
             Json.Stringify(new Godot.Collections.Array<String>(protocolBLocations)));
     }
 
+    public async Task Rearrange(Response response)
+    {
+        List<String> protocolALocations = new List<String>();
+        foreach (int p in response.swapA)
+        {
+            protocolALocations.Add(response.swapLocal + "," + p);
+        }
+        List<String> protocolBLocations = new List<String>();
+        foreach (int p in response.swapB)
+        {
+            protocolBLocations.Add(response.swapLocal + "," + p);
+        }
+
+        RpcId(oppId, nameof(OppRearrange),
+            Json.Stringify(new Godot.Collections.Array<String>(protocolALocations)),
+            Json.Stringify(new Godot.Collections.Array<String>(protocolBLocations)));
+        await WaitForOppResponse();
+    }
+
     public async Task Refresh()
     {
         if (hasControl)
@@ -935,6 +954,23 @@ public partial class Player : Node
             Protocol protocolB = Game.instance.GetProtocols(!Boolean.Parse(splitB[0]))[Int32.Parse(splitB[1])];
             MousePosition.Swap(protocolA, protocolB);
         }
+    }
+
+    [Rpc(MultiplayerApi.RpcMode.AnyPeer)]
+    public void OppRearrange(String protocolAJson, String protocolBJson)
+    {
+        List<String> protocolALocations = new Godot.Collections.Array<String>(Json.ParseString(protocolAJson).AsGodotArray()).ToList();
+        List<String> protocolBLocations = new Godot.Collections.Array<String>(Json.ParseString(protocolBJson).AsGodotArray()).ToList();
+        for (int i = 0; i < protocolALocations.Count; i++)
+        {
+            String[] splitA = protocolALocations[i].Split(',');
+            Protocol protocolA = Game.instance.GetProtocols(!Boolean.Parse(splitA[0]))[Int32.Parse(splitA[1])];
+            String[] splitB = protocolBLocations[i].Split(',');
+            Protocol protocolB = Game.instance.GetProtocols(!Boolean.Parse(splitB[0]))[Int32.Parse(splitB[1])];
+            MousePosition.Swap(protocolA, protocolB);
+        }
+
+        RpcId(oppId, nameof(OppResponse));
     }
 
     [Rpc(MultiplayerApi.RpcMode.AnyPeer)]
