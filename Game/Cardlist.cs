@@ -1268,6 +1268,14 @@ public static class Cardlist
 
         CardInfo plague3 = new CardInfo("Plague", 3);
         plague3.middleText = "Flip each other face-up card.";
+        plague3.OnPlay = async (Card card) =>
+        {
+            foreach (Protocol p in Game.instance.GetProtocols())
+            {
+                if (p.cards.Count > 0 && p.cards[p.cards.Count-1] != card && !p.cards[p.cards.Count - 1].flipped)
+                    await Game.instance.localPlayer.Flip(p.cards[p.cards.Count-1]);
+            }
+        };
         plague.cards.Add(plague3);
 
         CardInfo plague4 = new CardInfo("Plague", 4);
