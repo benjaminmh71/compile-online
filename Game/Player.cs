@@ -188,6 +188,12 @@ public partial class Player : Node
         foreach (Card card in Game.instance.GetCards())
         {
             if (Game.instance.IsLocal(card) && !card.flipped)
+                await card.info.OnCheckCache(card);
+        }
+
+        foreach (Card card in Game.instance.GetCards())
+        {
+            if (Game.instance.IsLocal(card) && !card.flipped)
                 await card.info.OnEnd(card);
         }
 

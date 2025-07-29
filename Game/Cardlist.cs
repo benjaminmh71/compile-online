@@ -5,6 +5,7 @@ using CompileOnline.Game;
 using System.Threading.Tasks;
 using System.Linq;
 using static Godot.OpenXRHand;
+using static Godot.OpenXRInterface;
 
 public static class Cardlist
 {
@@ -1438,11 +1439,29 @@ public static class Cardlist
 
         CardInfo speed0 = new CardInfo("Speed", 0);
         speed0.middleText = "Play 1 card.";
+        speed0.OnPlay = async (Card card) =>
+        {
+            String prevText = Game.instance.promptLabel.Text;
+            Game.instance.promptLabel.Text = "Play 1 card.";
+            PromptManager.PromptAction([PromptManager.Prompt.Play], 
+                Game.instance.localPlayer.hand, Game.instance.GetProtocols(true));
+            Response response = await Game.instance.localPlayer.WaitForResponse();
+            Game.instance.promptLabel.Text = prevText;
+            await Game.instance.localPlayer.Play(response.protocol, response.card, response.flipped);
+        };
         speed.cards.Add(speed0);
 
         CardInfo speed1 = new CardInfo("Speed", 1);
         speed1.topText = "After you clear cache: draw 1 card.";
         speed1.middleText = "Draw 2 cards";
+        speed1.OnCheckCache = async (Card card) =>
+        {
+            await Game.instance.localPlayer.Draw(1);
+        };
+        speed1.OnPlay = async (Card card) =>
+        {
+            await Game.instance.localPlayer.Draw(2);
+        };
         speed.cards.Add(speed1);
 
         CardInfo speed2 = new CardInfo("Speed", 2);
