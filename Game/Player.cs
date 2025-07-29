@@ -21,7 +21,7 @@ public partial class Player : Node
             this.local = local;
         }
     }
-    public enum CommandType { PlayTop, Draw, Reveal, Give, Steal };
+    public enum CommandType { PlayTop, Draw, Delete, Reveal, Give, Steal };
     public int id;
     public List<Card> deck = new List<Card>();
     public List<Card> hand = new List<Card>();
@@ -710,7 +710,7 @@ public partial class Player : Node
         }
     }
 
-    public async Task SendCommand(Command command)
+    public async Task SendCommand(Command command, String text = "")
     {
         List<String> handCards = new List<String>();
         List<String> oppHandCards = new List<String>();
@@ -764,7 +764,7 @@ public partial class Player : Node
             Json.Stringify(new Godot.Collections.Array<String>(protocolLocations)),
             Json.Stringify(new Godot.Collections.Array<String>(locations)),
             Json.Stringify(new Godot.Collections.Array<String>(handCards)),
-            Json.Stringify(new Godot.Collections.Array<String>(oppHandCards)));
+            Json.Stringify(new Godot.Collections.Array<String>(oppHandCards)), text);
         await WaitForOppResponse();
     }
 
@@ -1211,7 +1211,7 @@ public partial class Player : Node
 
     [Rpc(MultiplayerApi.RpcMode.AnyPeer)]
     public async void OppHandleCommand(int typeInt, int num, String protocolJson, String cardJson, 
-        String handCardJson, String oppHandCardJson)
+        String handCardJson, String oppHandCardJson, String text)
     {
         CommandType type = (CommandType)typeInt;
         List<String> cardLocations = new Godot.Collections.Array<String>(Json.ParseString(cardJson).AsGodotArray()).ToList();
@@ -1261,6 +1261,16 @@ public partial class Player : Node
         if (type == CommandType.Draw)
         {
             await Draw(num);
+        }
+
+        if (type == CommandType.Delete)
+        {
+            String prevText = Game.instance.promptLabel.Text;
+            Game.instance.promptLabel.Text = text;
+            PromptManager.PromptAction([PromptManager.Prompt.Select], cards);
+            Response response = await Game.instance.localPlayer.WaitForResponse();
+            Game.instance.promptLabel.Text = prevText;
+            await Delete(response.card);
         }
 
         if (type == CommandType.Reveal)

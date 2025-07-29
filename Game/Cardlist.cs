@@ -1271,7 +1271,23 @@ public static class Cardlist
         plague.cards.Add(plague3);
 
         CardInfo plague4 = new CardInfo("Plague", 4);
-        plague4.bottomText = "End: your opponent deletes one of their face down cards. You may flip this card.";
+        plague4.bottomText = "End: your opponent deletes one of their face-down cards. You may flip this card.";
+        plague4.OnEnd = async (Card card) =>
+        {
+            List<Card> cards = Game.instance.GetCards().FindAll(c => !c.covered && c.flipped && !Game.instance.IsLocal(c));
+            if (cards.Count > 0) {
+                if (cards.Count == 1) await Game.instance.localPlayer.Delete(cards[0]);
+                else await Game.instance.localPlayer.SendCommand(new Command(Player.CommandType.Delete, cards),
+                        "Delete 1 of your face-down cards.");
+            }
+            String prevText = Game.instance.promptLabel.Text;
+            Game.instance.promptLabel.Text = "You may flip Plague 4.";
+            PromptManager.PromptAction([PromptManager.Prompt.CustomButtonA, PromptManager.Prompt.EndAction], "Flip Plague 4.");
+            Response response = await Game.instance.localPlayer.WaitForResponse();
+            Game.instance.promptLabel.Text = prevText;
+            if (response.type == PromptManager.Prompt.EndAction) return;
+            await Game.instance.localPlayer.Flip(card);
+        };
         plague.cards.Add(plague4);
 
         CardInfo plague5 = new CardInfo("Plague", 5);
