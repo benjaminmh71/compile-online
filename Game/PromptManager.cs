@@ -61,13 +61,13 @@ public static class PromptManager
     }
 
     public static void PromptAction(Prompt[] prompts, List<Card> cards, List<Protocol> protocols,
-        Func<Card, Protocol, bool> CanBePlaced = null)
+        Func<Card, Protocol, bool, bool> CanBePlaced = null)
     {
         if (CanBePlaced == null && prompts.Contains(Prompt.Play))
         {
             CanBePlaced = Game.instance.localPlayer.CanBePlaced;
         }
-        else if (CanBePlaced == null) CanBePlaced = (Card c, Protocol p) => true;
+        else if (CanBePlaced == null) CanBePlaced = (Card c, Protocol p, bool facedown) => true;
         MousePosition.CanBePlaced = CanBePlaced;
         List<Control> leftUIElements = new List<Control>();
         currPrompts = prompts;

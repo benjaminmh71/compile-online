@@ -195,7 +195,7 @@ public static class Cardlist
                 String prevText = Game.instance.promptLabel.Text;
                 Game.instance.promptLabel.Text = "Play a card.";
                 PromptManager.PromptAction([PromptManager.Prompt.Play], Game.instance.localPlayer.hand, protocols,
-                    (Card c, Protocol p) => true);
+                    (Card c, Protocol p, bool facedown) => true);
                 Response response = await Game.instance.localPlayer.WaitForResponse();
                 Game.instance.promptLabel.Text = prevText;
                 await Game.instance.localPlayer.Play(response.protocol, response.card, true);
@@ -941,7 +941,9 @@ public static class Cardlist
             List<Protocol> selectableProtocols = Game.instance.GetProtocols(true);
             for (int i = selectableProtocols.Count-1; i >= 0; i--)
             {
-                if (selectableProtocols[i].cards.Contains(card)) selectableProtocols.Remove(selectableProtocols[i]);
+                if (selectableProtocols[i].cards.Contains(card) 
+                || !Game.instance.localPlayer.CanBePlaced(new Card(), selectableProtocols[i], true))
+                    selectableProtocols.Remove(selectableProtocols[i]);
             }
             if (selectableProtocols.Count > 0)
             {
@@ -1264,6 +1266,31 @@ public static class Cardlist
 
         CardInfo plague2 = new CardInfo("Plague", 2);
         plague2.middleText = "Discard 1 or more cards. Your opponent discards the amount of cards discarded plus 1.";
+        plague2.OnPlay = async (Card card) =>
+        {
+            if (Game.instance.localPlayer.hand.Count == 0)
+            {
+                await Game.instance.localPlayer.SendCommand(new Command(Player.CommandType.Discard, 1));
+                return;
+            }
+            await Game.instance.localPlayer.Discard(1);
+            String prevText = Game.instance.promptLabel.Text;
+            Game.instance.promptLabel.Text = "You may discard 1 card.";
+            PromptManager.PromptAction([PromptManager.Prompt.EndAction, PromptManager.Prompt.Select],
+                Game.instance.localPlayer.hand);
+            int count = 1;
+            Response response;
+            while ((response = await Game.instance.localPlayer.WaitForResponse()).type != PromptManager.Prompt.EndAction
+            && Game.instance.localPlayer.hand.Count > 0)
+            {
+                Game.instance.localPlayer.SendToDiscard(response.card);
+                count++;
+                PromptManager.PromptAction([PromptManager.Prompt.EndAction, PromptManager.Prompt.Select],
+                    Game.instance.localPlayer.hand);
+            }
+            Game.instance.promptLabel.Text = prevText;
+            await Game.instance.localPlayer.SendCommand(new Command(Player.CommandType.Discard, count + 1));
+        };
         plague.cards.Add(plague2);
 
         CardInfo plague3 = new CardInfo("Plague", 3);

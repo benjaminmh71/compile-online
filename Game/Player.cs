@@ -21,7 +21,7 @@ public partial class Player : Node
             this.local = local;
         }
     }
-    public enum CommandType { PlayTop, Draw, Delete, Reveal, Give, Steal };
+    public enum CommandType { PlayTop, Draw, Discard, Delete, Reveal, Give, Steal };
     public int id;
     public List<Card> deck = new List<Card>();
     public List<Card> hand = new List<Card>();
@@ -30,7 +30,7 @@ public partial class Player : Node
     public List<Card> oppHand = new List<Card>();
     public Dictionary<CardInfo.Passive, PassiveLocation?> passives = new Dictionary<CardInfo.Passive, PassiveLocation?>();
     public Dictionary<CardInfo.TempEffect, int> tempEffects = new Dictionary<CardInfo.TempEffect, int>();
-    public Func<Card, Protocol, bool> CanBePlaced;
+    public Func<Card, Protocol, bool, bool> CanBePlaced;
     List<Card> empty = new List<Card>();
     List<Protocol> emptyp = new List<Protocol>();
     int oppId;
@@ -53,11 +53,9 @@ public partial class Player : Node
             tempEffects[tempEffect] = 0;
         }
 
-        CanBePlaced = (Card c, Protocol p) =>
-            !(Game.instance.flippedCheckbox.GetNode<CheckBox>("CheckBox").ButtonPressed &&
-            StackContainsPassive(false, p, CardInfo.Passive.NoFaceDown)) && 
-            (Game.instance.flippedCheckbox.GetNode<CheckBox>("CheckBox").ButtonPressed ||
-            p.info.name == c.info.protocol || Game.instance.GetOpposingProtocol(p).info.name == c.info.protocol);
+        CanBePlaced = (Card c, Protocol p, bool facedown) =>
+            !(facedown && StackContainsPassive(false, p, CardInfo.Passive.NoFaceDown)) && 
+            (facedown || p.info.name == c.info.protocol || Game.instance.GetOpposingProtocol(p).info.name == c.info.protocol);
 
         foreach (Protocol protocol in Game.instance.GetProtocols(true))
         {
@@ -292,7 +290,7 @@ public partial class Player : Node
 
     public async Task PlayTop(Protocol protocol)
     {
-        if (deck.Count == 0) return;
+        if (deck.Count == 0 || !CanBePlaced(new Card(), protocol, true)) return;
         Card card = deck[0];
         deck.Remove(card);
         await Play(protocol, card, true, true);
@@ -300,7 +298,7 @@ public partial class Player : Node
 
     public void PlayTopUnderneath(Protocol protocol)
     {
-        if (deck.Count == 0) return;
+        if (deck.Count == 0 || !CanBePlaced(new Card(), protocol, true)) return;
         if (protocol.cards.Count == 0) return;
         Card card = deck[0];
         deck.Remove(card);
@@ -1261,6 +1259,11 @@ public partial class Player : Node
         if (type == CommandType.Draw)
         {
             await Draw(num);
+        }
+
+        if (type == CommandType.Discard)
+        {
+            await Discard(num);
         }
 
         if (type == CommandType.Delete)
