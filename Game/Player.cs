@@ -55,6 +55,7 @@ public partial class Player : Node
 
         CanBePlaced = (Card c, Protocol p, bool facedown) =>
             !(facedown && StackContainsPassive(false, p, CardInfo.Passive.NoFaceDown)) && 
+            !StackContainsPassive(false, p, CardInfo.Passive.NoPlay) &&
             (facedown || p.info.name == c.info.protocol || Game.instance.GetOpposingProtocol(p).info.name == c.info.protocol);
 
         foreach (Protocol protocol in Game.instance.GetProtocols(true))
@@ -384,7 +385,8 @@ public partial class Player : Node
 
         Game.instance.promptLabel.Text = prevText;
 
-        // Todo: on discard
+        RpcId(oppId, nameof(OppDiscardTriggers));
+        await WaitForOppResponse();
     }
 
     public async Task Discard()
@@ -457,13 +459,13 @@ public partial class Player : Node
         RpcId(oppId, nameof(OppDelete),
             cardLocation.local, cardLocation.protocolIndex, cardLocation.cardIndex);
         await WaitForOppResponse();
-        foreach (Card c in Game.instance.GetCards())
-        {
-            if (Game.instance.IsLocal(c) && !c.flipped) await c.info.OnDelete(c);
-        }
         if (!wasCovered && protocol.cards.Count > 0)
         {
             await Uncover(protocol.cards[protocol.cards.Count - 1], protocol);
+        }
+        foreach (Card c in Game.instance.GetCards())
+        {
+            if (Game.instance.IsLocal(c) && !c.flipped) await c.info.OnDelete(c);
         }
     }
 
@@ -854,6 +856,16 @@ public partial class Player : Node
         //card.flipped = true; UNCOMMENT THIS
         card.Render();
         Game.instance.oppCardsContainer.AddChild(card);
+    }
+
+    [Rpc(MultiplayerApi.RpcMode.AnyPeer)]
+    public async void OppDiscardTriggers()
+    {
+        foreach (Card c in Game.instance.GetCards())
+        {
+            if (Game.instance.IsLocal(c) && !c.flipped) await c.info.OnDiscard(c);
+        }
+        RpcId(oppId, nameof(OppResponse));
     }
 
     [Rpc(MultiplayerApi.RpcMode.AnyPeer)]

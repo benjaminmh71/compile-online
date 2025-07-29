@@ -1257,11 +1257,24 @@ public static class Cardlist
         CardInfo plague0 = new CardInfo("Plague", 0);
         plague0.middleText = "Your opponent discards 1 card.";
         plague0.bottomText = "Your opponent cannot play cards in this line.";
+        plague0.passives = [ CardInfo.Passive.NoPlay ];
+        plague0.OnPlay = async (Card card) =>
+        {
+            await Game.instance.localPlayer.SendCommand(new Command(Player.CommandType.Discard, 1));
+        };
         plague.cards.Add(plague0);
 
         CardInfo plague1 = new CardInfo("Plague", 1);
         plague1.topText = "After your opponent discards cards: draw 1 card.";
         plague1.middleText = "Your opponent discards 1 card.";
+        plague1.OnDiscard = async (Card card) =>
+        {
+            await Game.instance.localPlayer.Draw(1);
+        };
+        plague1.OnPlay = async (Card card) =>
+        {
+            await Game.instance.localPlayer.SendCommand(new Command(Player.CommandType.Discard, 1));
+        };
         plague.cards.Add(plague1);
 
         CardInfo plague2 = new CardInfo("Plague", 2);
