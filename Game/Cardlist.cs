@@ -1345,6 +1345,39 @@ public static class Cardlist
             await Game.instance.localPlayer.Discard(1);
         };
         plague.cards.Add(plague5);
+
+        ProtocolInfo psychic = new ProtocolInfo("Psychic");
+        psychic.backgroundColor = new Color((float)140 / 256, (float)0 / 256, (float)120 / 256);
+        protocols["Psychic"] = psychic;
+
+        CardInfo psychic0 = new CardInfo("Psychic", 0);
+        psychic0.middleText = "Draw 2 cards. Your opponent discards 2 cards, then reveals their hand.";
+        psychic.cards.Add(psychic0);
+
+        CardInfo psychic1 = new CardInfo("Psychic", 1);
+        psychic1.topText = "Your opponent can only play cards face-down";
+        psychic1.bottomText = "Start: flip this card";
+        psychic.cards.Add(psychic1);
+
+        CardInfo psychic2 = new CardInfo("Psychic", 2);
+        psychic2.middleText = "Your opponent discards 2 cards. Rearrange their protocols.";
+        psychic.cards.Add(psychic2);
+
+        CardInfo psychic3 = new CardInfo("Psychic", 3);
+        psychic3.middleText = "Your opponent discards 1 card. Shift 1 of their cards.";
+        psychic.cards.Add(psychic3);
+
+        CardInfo psychic4 = new CardInfo("Psychic", 4);
+        psychic4.bottomText = "You may return 1 of your opponent's cards. If you do, flip this card.";
+        psychic.cards.Add(psychic4);
+
+        CardInfo psychic5 = new CardInfo("Psychic", 5);
+        psychic5.middleText = "Discard a card.";
+        psychic5.OnPlay = async (Card card) =>
+        {
+            await Game.instance.localPlayer.Discard(1);
+        };
+        psychic.cards.Add(psychic5);
     }
 
     public static CardInfo GetCard(String name)
