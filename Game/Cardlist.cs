@@ -1447,6 +1447,14 @@ public static class Cardlist
 
         CardInfo speed2 = new CardInfo("Speed", 2);
         speed2.topText = "When this card would be deleted from compiling: shift this card, even if this card is covered.";
+        speed2.OnCompiled = async (Card card) => {
+            String prevText = Game.instance.promptLabel.Text;
+            Game.instance.promptLabel.Text = "Shift 1 of your cards.";
+            PromptManager.PromptAction([PromptManager.Prompt.Shift], new List<Card>{ card }, Game.instance.GetProtocols());
+            Response response = await Game.instance.localPlayer.WaitForResponse();
+            Game.instance.promptLabel.Text = prevText;
+            await Game.instance.localPlayer.Shift(response.card, response.protocol);
+        };
         speed.cards.Add(speed2);
 
         CardInfo speed3 = new CardInfo("Speed", 3);

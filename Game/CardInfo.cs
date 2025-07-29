@@ -20,6 +20,7 @@ public partial class CardInfo : Node
     public Func<Card, Task> OnPlay = async (Card card) => { };
     public Func<Card, Task> OnCover = async (Card card) => { };
     public Func<Card, Task> OnFlip = async (Card card) => { };
+    public Func<Card, Task> OnCompiled = null; // Needs to be checked
     public Func<Card, Task> OnStart = async (Card card) => { };
     public Func<Card, Task> OnEnd = async (Card card) => { };
     public Func<Card, Task> OnDiscard = async (Card card) => { };

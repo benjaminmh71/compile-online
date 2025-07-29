@@ -254,10 +254,10 @@ public partial class Player : Node
 
     public async Task Compile(Protocol protocol)
     {
-        // TODO: On compile effects (namely Speed 2)
         for (int i = protocol.cards.Count - 1; i >= 0; i--)
         {
-            SendToDiscard(protocol.cards[i]);
+            if (protocol.cards[i].info.OnCompiled == null || protocol.cards[i].flipped)
+                SendToDiscard(protocol.cards[i]);
         }
         Protocol oppProtocol = Game.instance.GetOpposingProtocol(protocol);
         for (int i = oppProtocol.cards.Count - 1; i >= 0; i--)
@@ -267,6 +267,7 @@ public partial class Player : Node
         protocol.compiled = true;
         protocol.Render();
         RpcId(oppId, nameof(OppCompile), Game.instance.IndexOfProtocol(protocol));
+        await WaitForOppResponse();
 
         int compiledProtocols = 0;
         foreach (Protocol p in Game.instance.GetProtocols(true))
@@ -278,6 +279,11 @@ public partial class Player : Node
             Game.instance.victoryPanel.Visible = true;
             RpcId(oppId, nameof(OppLose));
             await WaitForResponse();
+        }
+
+        for (int i = protocol.cards.Count - 1; i >= 0; i--)
+        {
+            await protocol.cards[i].info.OnCompiled(protocol.cards[i]);
         }
 
         foreach (Card c in Game.instance.GetCards())
@@ -805,11 +811,17 @@ public partial class Player : Node
     }
 
     [Rpc(MultiplayerApi.RpcMode.AnyPeer)]
-    public void OppCompile(int protocolIndex)
+    public async void OppCompile(int protocolIndex)
     {
         Protocol protocol = Game.instance.GetProtocols(false)[protocolIndex];
         protocol.compiled = true;
         protocol.Render();
+        Protocol localProtocol = Game.instance.GetOpposingProtocol(protocol);
+        for (int i = localProtocol.cards.Count - 1; i >= 0; i--)
+        {
+            await localProtocol.cards[i].info.OnCompiled(localProtocol.cards[i]);
+        }
+        RpcId(oppId, nameof(OppResponse));
     }
 
     [Rpc(MultiplayerApi.RpcMode.AnyPeer)]
