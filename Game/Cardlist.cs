@@ -1431,6 +1431,40 @@ public static class Cardlist
             await Game.instance.localPlayer.Discard(1);
         };
         psychic.cards.Add(psychic5);
+
+        ProtocolInfo speed = new ProtocolInfo("Speed");
+        speed.backgroundColor = new Color((float)140 / 256, (float)150 / 256, (float)180 / 256);
+        protocols["Speed"] = speed;
+
+        CardInfo speed0 = new CardInfo("Speed", 0);
+        speed0.middleText = "Play 1 card.";
+        speed.cards.Add(speed0);
+
+        CardInfo speed1 = new CardInfo("Speed", 1);
+        speed1.topText = "After you clear cache: draw 1 card.";
+        speed1.middleText = "Draw 2 cards";
+        speed.cards.Add(speed1);
+
+        CardInfo speed2 = new CardInfo("Speed", 2);
+        speed2.topText = "When this card would be deleted from compiling: shift this card, even if this card is covered.";
+        speed.cards.Add(speed2);
+
+        CardInfo speed3 = new CardInfo("Speed", 3);
+        speed3.middleText = "Shift 1 of your other cards.";
+        speed3.bottomText = "End: you may shift 1 of your cards. If you do, flip this card.";
+        speed.cards.Add(speed3);
+
+        CardInfo speed4 = new CardInfo("Speed", 4);
+        speed4.middleText = "Shift 1 of your opponent's face-down cards.";
+        speed.cards.Add(speed4);
+
+        CardInfo speed5 = new CardInfo("Speed", 5);
+        speed5.middleText = "Discard a card.";
+        speed5.OnPlay = async (Card card) =>
+        {
+            await Game.instance.localPlayer.Discard(1);
+        };
+        speed.cards.Add(speed5);
     }
 
     public static CardInfo GetCard(String name)
