@@ -57,7 +57,8 @@ public partial class Player : Node
             (facedown || passives[Passive.OnlyFaceDown] == null) &&
             !(facedown && StackContainsPassive(false, p, CardInfo.Passive.NoFaceDown)) && 
             !StackContainsPassive(false, p, CardInfo.Passive.NoPlay) &&
-            (facedown || p.info.name == c.info.protocol || Game.instance.GetOpposingProtocol(p).info.name == c.info.protocol);
+            (facedown || p.info.name == c.info.protocol || Game.instance.GetOpposingProtocol(p).info.name == c.info.protocol
+            || (passives[Passive.PlayAnywhere] != null && passives[Passive.PlayAnywhere].Value.local));
 
         foreach (Protocol protocol in Game.instance.GetProtocols(true))
         {

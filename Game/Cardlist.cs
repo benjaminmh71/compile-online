@@ -1543,16 +1543,44 @@ public static class Cardlist
         spirit1.topText = "You can play cards in any line.";
         spirit1.middleText = "Draw 2 cards";
         spirit1.bottomText = "Start: either discard 1 card or flip this card.";
-        /*spirit1.passives = [CardInfo.Passive.PlayAnywhere];
+        spirit1.passives = [CardInfo.Passive.PlayAnywhere];
         spirit1.OnPlay = async (Card card) =>
         {
             await Game.instance.localPlayer.Draw(2);
         };
-        spirit1.OnStart = async*/
+        spirit1.OnStart = async (Card card) =>
+        {
+            if (Game.instance.localPlayer.hand.Count == 0)
+            {
+                await Game.instance.localPlayer.Flip(card);
+                return;
+            }
+            String prevText = Game.instance.promptLabel.Text;
+            Game.instance.promptLabel.Text = "Either discard 1 card or flip Spirit 1.";
+            PromptManager.PromptAction([PromptManager.Prompt.CustomButtonA, PromptManager.Prompt.CustomButtonB], 
+                "Discard 1 card", "Flip Spirit 1");
+            Response response = await Game.instance.localPlayer.WaitForResponse();
+            Game.instance.promptLabel.Text = prevText;
+            if (response.type == PromptManager.Prompt.CustomButtonA)
+                await Game.instance.localPlayer.Discard(1);
+            else
+                await Game.instance.localPlayer.Flip(card);
+        };
         spirit.cards.Add(spirit1);
 
         CardInfo spirit2 = new CardInfo("Spirit", 2);
         spirit2.middleText = "Flip 1 card";
+        spirit2.OnPlay = async (Card card) =>
+        {
+            List<Card> flippableCards = Game.instance.GetCards().FindAll(c => !c.covered);
+            if (flippableCards.Count == 0) return;
+            String prevText = Game.instance.promptLabel.Text;
+            Game.instance.promptLabel.Text = "Flip 1 card.";
+            PromptManager.PromptAction([PromptManager.Prompt.Select], flippableCards);
+            Response response = await Game.instance.localPlayer.WaitForResponse();
+            Game.instance.promptLabel.Text = prevText;
+            await Game.instance.localPlayer.Flip(response.card);
+        };
         spirit.cards.Add(spirit2);
 
         CardInfo spirit3 = new CardInfo("Spirit", 3);
