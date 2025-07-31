@@ -1633,6 +1633,49 @@ public static class Cardlist
             await Game.instance.localPlayer.Discard(1);
         };
         spirit.cards.Add(spirit5);
+
+        ProtocolInfo water = new ProtocolInfo("Water");
+        water.backgroundColor = new Color((float)0 / 256, (float)80 / 256, (float)200 / 256);
+        protocols["Water"] = water;
+
+        CardInfo water0 = new CardInfo("Water", 0);
+        water0.middleText = "Flip 1 other card. Flip this card.";
+        water.cards.Add(water0);
+
+        CardInfo water1 = new CardInfo("Water", 1);
+        water1.middleText = "Play the top card of your deck face-down in each other line";
+        water.cards.Add(water1);
+
+        CardInfo water2 = new CardInfo("Water", 2);
+        water2.middleText = "Draw 2 cards. Rearrange your protocols";
+        water.cards.Add(water2);
+
+        CardInfo water3 = new CardInfo("Water", 3);
+        water3.middleText = "Return all cards with value of 2 in 1 line";
+        water.cards.Add(water3);
+
+        CardInfo water4 = new CardInfo("Water", 4);
+        water4.middleText = "Return 1 of your cards";
+        water4.OnPlay = async (Card card) =>
+        {
+            List<Card> cards = Game.instance.GetCards().FindAll(c => !c.covered && Game.instance.IsLocal(c));
+            if (cards.Count == 0) return;
+            String prevText = Game.instance.promptLabel.Text;
+            Game.instance.promptLabel.Text = "Return 1 of your cards.";
+            PromptManager.PromptAction([PromptManager.Prompt.Select], cards);
+            Response response = await Game.instance.localPlayer.WaitForResponse();
+            Game.instance.promptLabel.Text = prevText;
+            await Game.instance.localPlayer.Return(response.card);
+        };
+        water.cards.Add(water4);
+
+        CardInfo water5 = new CardInfo("Water", 5);
+        water5.middleText = "Discard a card.";
+        water5.OnPlay = async (Card card) =>
+        {
+            await Game.instance.localPlayer.Discard(1);
+        };
+        water.cards.Add(water5);
     }
 
     public static CardInfo GetCard(String name)
