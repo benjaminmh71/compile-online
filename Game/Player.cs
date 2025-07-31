@@ -181,7 +181,7 @@ public partial class Player : Node
     public async Task EndTurn()
     {
         // Check cache:
-        if (hand.Count > 5)
+        if (hand.Count > 5 && !(passives[Passive.SkipCheckCache] != null && passives[Passive.SkipCheckCache].Value.local))
         {
             await Discard(hand.Count - 5);
         }

@@ -1537,6 +1537,13 @@ public static class Cardlist
         CardInfo spirit0 = new CardInfo("Spirit", 0);
         spirit0.middleText = "Refresh. Draw 1 card.";
         spirit0.bottomText = "Skip your check cache phase.";
+        spirit0.passives = [CardInfo.Passive.SkipCheckCache];
+        spirit0.bottomPassives = [CardInfo.Passive.SkipCheckCache];
+        spirit0.OnPlay = async (Card card) =>
+        {
+            await Game.instance.localPlayer.Refresh();
+            await Game.instance.localPlayer.Draw(1);
+        };
         spirit.cards.Add(spirit0);
 
         CardInfo spirit1 = new CardInfo("Spirit", 1);
