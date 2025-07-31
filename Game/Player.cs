@@ -344,13 +344,17 @@ public partial class Player : Node
 
     public async Task Draw(int n)
     {
-        if (n <= 0) return;
-
-        // TODO: on draw effects
+        if (n <= 0 || (deck.Count == 0 && discard.Count == 0)) return;
 
         for (int i = 0; i < n; i++)
         {
             Draw();
+        }
+
+        foreach (Card card in Game.instance.GetCards())
+        {
+            if (Game.instance.IsLocal(card))
+                await card.info.OnDraw(card);
         }
     }
 
@@ -800,7 +804,7 @@ public partial class Player : Node
 
     public async Task Cover(Card card, Protocol protocol)
     {
-        if (!card.flipped) await card.info.OnCover(card);
+        if (!card.flipped && Game.instance.IsLocal(card)) await card.info.OnCover(card);
         card.covered = true;
         foreach (Passive passive in card.info.bottomPassives) passives[passive] = null;
     }

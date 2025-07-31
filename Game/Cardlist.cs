@@ -1557,10 +1557,38 @@ public static class Cardlist
 
         CardInfo spirit3 = new CardInfo("Spirit", 3);
         spirit3.topText = "After you draw cards: you may shift this card, even if this card is covered.";
+        spirit3.OnDraw = async (Card card) =>
+        {
+            String prevText = Game.instance.promptLabel.Text;
+            Game.instance.promptLabel.Text = "You may shift Spirit 3.";
+            PromptManager.PromptAction([PromptManager.Prompt.Shift, PromptManager.Prompt.EndAction],
+                new List<Card> { card }, Game.instance.GetProtocols());
+            Response response = await Game.instance.localPlayer.WaitForResponse();
+            Game.instance.promptLabel.Text = prevText;
+            if (response.type == PromptManager.Prompt.EndAction) return;
+            await Game.instance.localPlayer.Shift(response.card, response.protocol);
+        };
         spirit.cards.Add(spirit3);
 
         CardInfo spirit4 = new CardInfo("Spirit", 4);
         spirit4.middleText = "Swap the positions of 2 of your protocols.";
+        spirit4.OnPlay = async (Card card) =>
+        {
+            String prevText = Game.instance.promptLabel.Text;
+            Game.instance.promptLabel.Text = "Choose a protocol to swap.";
+            PromptManager.PromptAction([PromptManager.Prompt.Select], Game.instance.GetProtocols(true));
+            Response responseA = await Game.instance.localPlayer.WaitForResponse();
+            Game.instance.promptLabel.Text = "Choose a 2nd protocol to swap.";
+            List<Protocol> protocols = Game.instance.GetProtocols(true);
+            protocols.Remove(responseA.protocol);
+            PromptManager.PromptAction([PromptManager.Prompt.Select], protocols);
+            Response responseB = await Game.instance.localPlayer.WaitForResponse();
+            Game.instance.promptLabel.Text = prevText;
+            Response response = new Response(true, new List<int> { Game.instance.IndexOfProtocol(responseA.protocol) }, 
+                new List<int> { Game.instance.IndexOfProtocol(responseB.protocol) }, PromptManager.Prompt.Rearrange);
+            MousePosition.Swap(responseA.protocol, responseB.protocol);
+            await Game.instance.localPlayer.Rearrange(response);
+        };
         spirit.cards.Add(spirit4);
 
         CardInfo spirit5 = new CardInfo("Spirit", 5);
