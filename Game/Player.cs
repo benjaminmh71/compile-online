@@ -683,12 +683,17 @@ public partial class Player : Node
     public async Task MultiReturn(List<Card> cards)
     {
         List<String> locations = new List<String>();
+        foreach (Card card in cards)
+        {
+            var location = Game.instance.GetCardLocation(card);
+            locations.Add(location.local + "," + location.protocolIndex + "," + location.cardIndex);
+        }
+
         List<Card> uncoveredCards = new List<Card>();
         foreach (Card card in cards)
         {
             bool wasCovered = card.covered;
             var location = Game.instance.GetCardLocation(card);
-            locations.Add(location.local + "," + location.protocolIndex + "," + location.cardIndex);
             Protocol protocol = Game.instance.GetProtocolOfCard(card);
             if (protocol.cards.IndexOf(card) > 0 && !cards.Contains(protocol.cards[protocol.cards.IndexOf(card) - 1]))
                 uncoveredCards.Add(protocol.cards[protocol.cards.IndexOf(card) - 1]);

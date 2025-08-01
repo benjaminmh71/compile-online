@@ -1640,18 +1640,50 @@ public static class Cardlist
 
         CardInfo water0 = new CardInfo("Water", 0);
         water0.middleText = "Flip 1 other card. Flip this card.";
+        water0.OnPlay = async (Card card) =>
+        {
+            List<Card> flippableCards = Game.instance.GetCards().FindAll(c => !c.covered && c != card);
+            if (flippableCards.Count != 0)
+            {
+                String prevText = Game.instance.promptLabel.Text;
+                Game.instance.promptLabel.Text = "Flip 1 card.";
+                PromptManager.PromptAction([PromptManager.Prompt.Select], flippableCards);
+                Response response = await Game.instance.localPlayer.WaitForResponse();
+                Game.instance.promptLabel.Text = prevText;
+                await Game.instance.localPlayer.Flip(response.card);
+            }
+            await Game.instance.localPlayer.Flip(card);
+        };
         water.cards.Add(water0);
 
         CardInfo water1 = new CardInfo("Water", 1);
-        water1.middleText = "Play the top card of your deck face-down in each other line";
+        water1.middleText = "Play the top card of your deck face-down in each other line.";
+        water1.OnPlay = async (Card card) =>
+        {
+            foreach (Protocol protocol in Game.instance.GetProtocols(true))
+            {
+                if (!protocol.cards.Contains(card))
+                    await Game.instance.localPlayer.PlayTop(protocol);
+            }
+        };
         water.cards.Add(water1);
 
         CardInfo water2 = new CardInfo("Water", 2);
-        water2.middleText = "Draw 2 cards. Rearrange your protocols";
+        water2.middleText = "Draw 2 cards. Rearrange your protocols.";
+        water2.OnPlay = async (Card card) =>
+        {
+            await Game.instance.localPlayer.Draw(2);
+            String prevText = Game.instance.promptLabel.Text;
+            Game.instance.promptLabel.Text = "Rearrange your protocols.";
+            PromptManager.PromptAction([PromptManager.Prompt.Rearrange], Game.instance.GetProtocols(true));
+            Response response = await Game.instance.localPlayer.WaitForResponse();
+            Game.instance.promptLabel.Text = prevText;
+            await Game.instance.localPlayer.Rearrange(response);
+        };
         water.cards.Add(water2);
 
         CardInfo water3 = new CardInfo("Water", 3);
-        water3.middleText = "Return all cards with value of 2 in 1 line";
+        water3.middleText = "Return all cards with value of 2 in 1 line.";
         water3.OnPlay = async (Card card) =>
         {
             String prevText = Game.instance.promptLabel.Text;
