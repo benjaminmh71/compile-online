@@ -407,6 +407,11 @@ public partial class Player : Node
         oppDeck.Remove(card);
         hand.Add(card);
         Game.instance.handCardsContainer.AddChild(card);
+        foreach (Card c in Game.instance.GetCards())
+        {
+            if (Game.instance.IsLocal(c))
+                await c.info.OnDraw(c);
+        }
     }
 
     public async Task Discard(int n)
@@ -421,6 +426,14 @@ public partial class Player : Node
 
         Game.instance.promptLabel.Text = prevText;
 
+        RpcId(oppId, nameof(OppDiscardTriggers));
+        await WaitForOppResponse();
+    }
+
+    public async Task Discard(Card card)
+    {
+        if (!hand.Contains(card)) return;
+        SendToDiscard(card);
         RpcId(oppId, nameof(OppDiscardTriggers));
         await WaitForOppResponse();
     }

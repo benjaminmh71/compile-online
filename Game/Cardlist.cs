@@ -4,8 +4,6 @@ using Godot;
 using CompileOnline.Game;
 using System.Threading.Tasks;
 using System.Linq;
-using static Godot.OpenXRHand;
-using static Godot.OpenXRInterface;
 
 public static class Cardlist
 {
@@ -112,7 +110,10 @@ public static class Cardlist
         darkness0.middleText = "Draw 3 cards. Shift 1 of your opponent's covered cards.";
         darkness0.OnPlay = async (Card card) =>
         {
+            InterruptionWatcher watcher = new InterruptionWatcher();
+            SetInterruptionWatcher(watcher, card);
             await Game.instance.localPlayer.Draw(3);
+            if (watcher.interrupted) return;
             List<Card> shiftableCards = new List<Card>();
             foreach (Card c in Game.instance.GetCards())
             {
@@ -134,6 +135,8 @@ public static class Cardlist
         darkness1.middleText = "Flip 1 of your opponent's cards. You may shift that card.";
         darkness1.OnPlay = async (Card card) =>
         {
+            InterruptionWatcher watcher = new InterruptionWatcher();
+            SetInterruptionWatcher(watcher, card);
             List<Card> flippableCards = new List<Card>();
             foreach (Card c in Game.instance.GetCards())
             {
@@ -147,6 +150,7 @@ public static class Cardlist
                 Response response = await Game.instance.localPlayer.WaitForResponse();
                 Game.instance.promptLabel.Text = prevText;
                 await Game.instance.localPlayer.Flip(response.card);
+                if (watcher.interrupted) return;
                 Game.instance.promptLabel.Text = "You may shift that card.";
                 PromptManager.PromptAction([PromptManager.Prompt.Shift, PromptManager.Prompt.EndAction], 
                     [response.card], Game.instance.GetProtocols());
@@ -242,6 +246,8 @@ public static class Cardlist
         death0.middleText = "Delete 1 card from each other line.";
         death0.OnPlay = async (Card card) =>
         {
+            InterruptionWatcher watcher = new InterruptionWatcher();
+            SetInterruptionWatcher(watcher, card);
             Protocol protocol = Game.instance.GetProtocolOfCard(card);
             List<Card> deletableCards = new List<Card>();
             foreach (Card c in Game.instance.GetCards())
@@ -258,6 +264,7 @@ public static class Cardlist
                 Game.instance.promptLabel.Text = prevText;
                 Protocol protocol2 = Game.instance.GetProtocolOfCard(response.card);
                 await Game.instance.localPlayer.Delete(response.card);
+                if (watcher.interrupted) return;
 
                 deletableCards.Clear();
                 foreach (Card c in Game.instance.GetCards())
@@ -290,6 +297,7 @@ public static class Cardlist
             if (response.type == PromptManager.Prompt.EndAction) return;
 
             await Game.instance.localPlayer.Draw(1);
+            if (card.flipped || Game.instance.GetProtocolOfCard(card) == null) return;
             List<Card> deletableCards = new List<Card>();
             foreach (Card c in Game.instance.GetCards())
             {
@@ -303,6 +311,7 @@ public static class Cardlist
                 response = await Game.instance.localPlayer.WaitForResponse();
                 Game.instance.promptLabel.Text = prevText;
                 await Game.instance.localPlayer.Delete(response.card);
+                if (card.flipped || Game.instance.GetProtocolOfCard(card) == null) return;
             }
             await Game.instance.localPlayer.Delete(card);
         };
@@ -390,7 +399,10 @@ public static class Cardlist
         fire0.middleText = "Draw 2 cards. Flip 1 other card.";
         fire0.bottomText = "When this card would be covered: first, draw 1 card, then flip 1 other card.";
         fire0.OnPlay = async (Card card) => {
+            InterruptionWatcher watcher = new InterruptionWatcher();
+            SetInterruptionWatcher(watcher, card);
             await Game.instance.localPlayer.Draw(2);
+            if (watcher.interrupted) return;
             String prevText = Game.instance.promptLabel.Text;
             Game.instance.promptLabel.Text = "Flip 1 card.";
             List<Card> flippableCards = new List<Card>();
@@ -431,7 +443,10 @@ public static class Cardlist
         fire1.OnPlay = async (Card card) =>
         {
             if (Game.instance.localPlayer.hand.Count == 0) return;
+            InterruptionWatcher watcher = new InterruptionWatcher();
+            SetInterruptionWatcher(watcher, card);
             await Game.instance.localPlayer.Discard(1);
+            if (watcher.interrupted) return;
             List<Card> deleteableCards = new List<Card>();
             foreach (Card c in Game.instance.GetCards())
             {
@@ -454,7 +469,10 @@ public static class Cardlist
         fire2.OnPlay = async (Card card) =>
         {
             if (Game.instance.localPlayer.hand.Count == 0) return;
+            InterruptionWatcher watcher = new InterruptionWatcher();
+            SetInterruptionWatcher(watcher, card);
             await Game.instance.localPlayer.Discard(1);
+            if (watcher.interrupted) return;
             List<Card> returnableCards = new List<Card>();
             foreach (Card c in Game.instance.GetCards())
             {
@@ -478,6 +496,8 @@ public static class Cardlist
         {
             if (Game.instance.localPlayer.hand.Count == 0) return;
             if (card.covered) return;
+            InterruptionWatcher watcher = new InterruptionWatcher();
+            SetInterruptionWatcher(watcher, card);
             String prevText = Game.instance.promptLabel.Text;
             Game.instance.promptLabel.Text = "You may discard 1 card.";
             PromptManager.PromptAction([PromptManager.Prompt.EndAction, PromptManager.Prompt.Select],
@@ -485,7 +505,8 @@ public static class Cardlist
             Response response = await Game.instance.localPlayer.WaitForResponse();
             Game.instance.promptLabel.Text = prevText;
             if (response.type == PromptManager.Prompt.EndAction) return;
-            Game.instance.localPlayer.SendToDiscard(response.card);
+            await Game.instance.localPlayer.Discard(card);
+            if (watcher.interrupted) return;
 
             List<Card> flippableCards = new List<Card>();
             foreach (Card c in Game.instance.GetCards())
@@ -512,6 +533,8 @@ public static class Cardlist
                 await Game.instance.localPlayer.Draw(1);
                 return;
             }
+            InterruptionWatcher watcher = new InterruptionWatcher();
+            SetInterruptionWatcher(watcher, card);
             await Game.instance.localPlayer.Discard(1);
             String prevText = Game.instance.promptLabel.Text;
             Game.instance.promptLabel.Text = "You may discard 1 card.";
@@ -528,6 +551,7 @@ public static class Cardlist
                     Game.instance.localPlayer.hand);
             }
             Game.instance.promptLabel.Text = prevText;
+            if (watcher.interrupted) return;
             await Game.instance.localPlayer.Draw(count + 1);
         };
         fire.cards.Add(fire4);
@@ -560,7 +584,10 @@ public static class Cardlist
         gravity1.middleText = "Draw 2 cards. Shift 1 card either to or from this line.";
         gravity1.OnPlay = async (Card card) =>
         {
+            InterruptionWatcher watcher = new InterruptionWatcher();
+            SetInterruptionWatcher(watcher, card);
             await Game.instance.localPlayer.Draw(2);
+            if (watcher.interrupted) return;
             Protocol protocol = Game.instance.GetProtocolOfCard(card);
             List<Card> shiftableToCards = new List<Card>();
             List<Card> shiftableFromCards = new List<Card>();
@@ -628,12 +655,15 @@ public static class Cardlist
             }
             if (flippableCards.Count > 0)
             {
+                InterruptionWatcher watcher = new InterruptionWatcher();
+                SetInterruptionWatcher(watcher, card);
                 String prevText = Game.instance.promptLabel.Text;
                 Game.instance.promptLabel.Text = "Flip 1 card.";
                 PromptManager.PromptAction([PromptManager.Prompt.Select], flippableCards);
                 Response response = await Game.instance.localPlayer.WaitForResponse();
                 Game.instance.promptLabel.Text = prevText;
                 await Game.instance.localPlayer.Flip(response.card);
+                if (watcher.interrupted) return;
                 Protocol protocol = Game.instance.GetProtocolOfCard(card);
                 if (Game.instance.IsLocal(response.card))
                     await Game.instance.localPlayer.Shift(response.card, protocol);
@@ -715,7 +745,10 @@ public static class Cardlist
         hate1.middleText = "Discard 3 cards. Delete 1 card. Delete 1 card.";
         hate1.OnPlay = async (Card card) =>
         {
+            InterruptionWatcher watcher = new InterruptionWatcher();
+            SetInterruptionWatcher(watcher, card);
             await Game.instance.localPlayer.Discard(3);
+            if (watcher.interrupted) return;
             List<Card> deleteableCards = new List<Card>();
             foreach (Card c in Game.instance.GetCards())
             {
@@ -730,6 +763,7 @@ public static class Cardlist
                 Game.instance.promptLabel.Text = prevText;
                 await Game.instance.localPlayer.Delete(response.card);
             }
+            if (watcher.interrupted) return;
             deleteableCards.Clear();
             foreach (Card c in Game.instance.GetCards())
             {
@@ -751,6 +785,8 @@ public static class Cardlist
         hate2.middleText = "Delete your highest value card. Delete your opponent's highest value card.";
         hate2.OnPlay = async (Card card) =>
         {
+            InterruptionWatcher watcher = new InterruptionWatcher();
+            SetInterruptionWatcher(watcher, card);
             List<Card> highests = new List<Card>();
             foreach (Card c in Game.instance.GetCards())
             {
@@ -773,6 +809,7 @@ public static class Cardlist
                 Game.instance.promptLabel.Text = prevText;
                 await Game.instance.localPlayer.Delete(response.card);
             }
+            if (watcher.interrupted) return;
             highests.Clear();
             foreach (Card c in Game.instance.GetCards())
             {
@@ -919,7 +956,10 @@ public static class Cardlist
         life2.middleText = "Draw 1 card. You may flip 1 face-down card.";
         life2.OnPlay = async (Card card) =>
         {
+            InterruptionWatcher watcher = new InterruptionWatcher();
+            SetInterruptionWatcher(watcher, card);
             await Game.instance.localPlayer.Draw(1);
+            if (watcher.interrupted) return;
             List<Card> flippableCards = new List<Card>();
             foreach (Card c in Game.instance.GetCards())
             {
@@ -991,12 +1031,15 @@ public static class Cardlist
         {
             List<Card> uncoveredCards = Game.instance.GetCards().FindAll(c => !c.covered);
             if (uncoveredCards.Count == 0) return;
+            InterruptionWatcher watcher = new InterruptionWatcher();
+            SetInterruptionWatcher(watcher, card);
             String prevText = Game.instance.promptLabel.Text;
             Game.instance.promptLabel.Text = "Flip 1 card.";
             PromptManager.PromptAction([PromptManager.Prompt.Select], uncoveredCards);
             Response response = await Game.instance.localPlayer.WaitForResponse();
             Game.instance.promptLabel.Text = prevText;
             await Game.instance.localPlayer.Flip(response.card);
+            if (watcher.interrupted) return;
             await Game.instance.localPlayer.Draw(response.card.GetValue());
         };
         light.cards.Add(light0);
@@ -1014,7 +1057,10 @@ public static class Cardlist
         light2.middleText = "Draw 2 cards. Reveal 1 face-down card. You may shift or flip that card.";
         light2.OnPlay = async (Card card) =>
         {
+            InterruptionWatcher watcher = new InterruptionWatcher();
+            SetInterruptionWatcher(watcher, card);
             await Game.instance.localPlayer.Draw(2);
+            if (watcher.interrupted) return;
             List<Card> faceDownCards = Game.instance.GetCards().FindAll(c => c.flipped && !c.covered);
             if (faceDownCards.Count == 0) return;
             String prevText = Game.instance.promptLabel.Text;
@@ -1210,7 +1256,10 @@ public static class Cardlist
         metal3.middleText = "Draw 1 card. Delete all cards in 1 other line with 8 or more cards.";
         metal3.OnPlay = async (Card card) =>
         {
+            InterruptionWatcher watcher = new InterruptionWatcher();
+            SetInterruptionWatcher(watcher, card);
             await Game.instance.localPlayer.Draw(1);
+            if (watcher.interrupted) return;
             List<Protocol> protocols = new List<Protocol>();
             foreach (Protocol protocol in Game.instance.GetProtocols(true))
             {
@@ -1331,12 +1380,15 @@ public static class Cardlist
         plague4.OnEnd = async (Card card) =>
         {
             if (card.covered) return;
+            InterruptionWatcher watcher = new InterruptionWatcher();
+            SetInterruptionWatcher(watcher, card);
             List<Card> cards = Game.instance.GetCards().FindAll(c => !c.covered && c.flipped && !Game.instance.IsLocal(c));
             if (cards.Count > 0) {
                 if (cards.Count == 1) await Game.instance.localPlayer.Delete(cards[0]);
                 else await Game.instance.localPlayer.SendCommand(new Command(Player.CommandType.Delete, cards),
                         "Delete 1 of your face-down cards.");
             }
+            if (watcher.interrupted) return;
             String prevText = Game.instance.promptLabel.Text;
             Game.instance.promptLabel.Text = "You may flip Plague 4.";
             PromptManager.PromptAction([PromptManager.Prompt.CustomButtonA, PromptManager.Prompt.EndAction], "Flip Plague 4.");
@@ -1363,7 +1415,10 @@ public static class Cardlist
         psychic0.middleText = "Draw 2 cards. Your opponent discards 2 cards, then reveals their hand.";
         psychic0.OnPlay = async (Card card) =>
         {
+            InterruptionWatcher watcher = new InterruptionWatcher();
+            SetInterruptionWatcher(watcher, card);
             await Game.instance.localPlayer.Draw(2);
+            if (watcher.interrupted) return;
             await Game.instance.localPlayer.SendCommand(new Command(Player.CommandType.Discard, 2));
             Game.instance.localPlayer.Reveal(Game.instance.localPlayer.oppHand);
         };
@@ -1384,7 +1439,10 @@ public static class Cardlist
         psychic2.middleText = "Your opponent discards 2 cards. Rearrange their protocols.";
         psychic2.OnPlay = async (Card card) =>
         {
+            InterruptionWatcher watcher = new InterruptionWatcher();
+            SetInterruptionWatcher(watcher, card);
             await Game.instance.localPlayer.SendCommand(new Command(Player.CommandType.Discard, 2));
+            if (watcher.interrupted) return;
             String prevText = Game.instance.promptLabel.Text;
             Game.instance.promptLabel.Text = "Rearrange your opponents protocols.";
             PromptManager.PromptAction([PromptManager.Prompt.Rearrange], Game.instance.GetProtocols(false));
@@ -1398,7 +1456,10 @@ public static class Cardlist
         psychic3.middleText = "Your opponent discards 1 card. Shift 1 of their cards.";
         psychic3.OnPlay = async (Card card) =>
         {
+            InterruptionWatcher watcher = new InterruptionWatcher();
+            SetInterruptionWatcher(watcher, card);
             await Game.instance.localPlayer.SendCommand(new Command(Player.CommandType.Discard, 1));
+            if (watcher.interrupted) return;
             List<Card> cards = Game.instance.GetCards().FindAll(c => !c.covered && !Game.instance.IsLocal(c));
             if (cards.Count == 0) return;
             String prevText = Game.instance.promptLabel.Text;
@@ -1417,6 +1478,8 @@ public static class Cardlist
             if (card.covered) return;
             List<Card> cards = Game.instance.GetCards().FindAll(c => !c.covered && !Game.instance.IsLocal(c));
             if (cards.Count == 0) return;
+            InterruptionWatcher watcher = new InterruptionWatcher();
+            SetInterruptionWatcher(watcher, card);
             String prevText = Game.instance.promptLabel.Text;
             Game.instance.promptLabel.Text = "You may return 1 of your opponent's cards.";
             PromptManager.PromptAction([PromptManager.Prompt.Select, PromptManager.Prompt.EndAction], cards);
@@ -1424,6 +1487,7 @@ public static class Cardlist
             Game.instance.promptLabel.Text = prevText;
             if (response.type == PromptManager.Prompt.EndAction) return;
             await Game.instance.localPlayer.Return(response.card);
+            if (watcher.interrupted) return;
             await Game.instance.localPlayer.Flip(card);
         };
         psychic.cards.Add(psychic4);
@@ -1544,7 +1608,10 @@ public static class Cardlist
         spirit0.bottomPassives = [CardInfo.Passive.SkipCheckCache];
         spirit0.OnPlay = async (Card card) =>
         {
+            InterruptionWatcher watcher = new InterruptionWatcher();
+            SetInterruptionWatcher(watcher, card);
             await Game.instance.localPlayer.Refresh();
+            if (watcher.interrupted) return;
             await Game.instance.localPlayer.Draw(1);
         };
         spirit.cards.Add(spirit0);
@@ -1646,6 +1713,8 @@ public static class Cardlist
         water0.OnPlay = async (Card card) =>
         {
             List<Card> flippableCards = Game.instance.GetCards().FindAll(c => !c.covered && c != card);
+            InterruptionWatcher watcher = new InterruptionWatcher();
+            SetInterruptionWatcher(watcher, card);
             if (flippableCards.Count != 0)
             {
                 String prevText = Game.instance.promptLabel.Text;
@@ -1655,6 +1724,7 @@ public static class Cardlist
                 Game.instance.promptLabel.Text = prevText;
                 await Game.instance.localPlayer.Flip(response.card);
             }
+            if (watcher.interrupted) return;
             await Game.instance.localPlayer.Flip(card);
         };
         water.cards.Add(water0);
@@ -1675,7 +1745,10 @@ public static class Cardlist
         water2.middleText = "Draw 2 cards. Rearrange your protocols.";
         water2.OnPlay = async (Card card) =>
         {
+            InterruptionWatcher watcher = new InterruptionWatcher();
+            SetInterruptionWatcher(watcher, card);
             await Game.instance.localPlayer.Draw(2);
+            if (watcher.interrupted) return;
             String prevText = Game.instance.promptLabel.Text;
             Game.instance.promptLabel.Text = "Rearrange your protocols.";
             PromptManager.PromptAction([PromptManager.Prompt.Rearrange], Game.instance.GetProtocols(true));
