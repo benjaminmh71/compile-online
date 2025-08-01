@@ -60,12 +60,12 @@ public partial class Game : Control
         String[] oppProtocolNames;
         if (isHost)
         {
-            localProtocolNames = new String[] { "Water", "Water", "Water" };
-            oppProtocolNames = new String[] { "Water", "Water", "Water" };
+            localProtocolNames = new String[] { "Life", "Life", "Life" };
+            oppProtocolNames = new String[] { "Life", "Life", "Life" };
         } else
         {
-            localProtocolNames = new String[] { "Water", "Water", "Water" };
-            oppProtocolNames = new String[] { "Water", "Water", "Water" };
+            localProtocolNames = new String[] { "Life", "Life", "Life" };
+            oppProtocolNames = new String[] { "Life", "Life", "Life" };
         }
         foreach (String name in localProtocolNames)
         {

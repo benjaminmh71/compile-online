@@ -8,6 +8,7 @@ public partial class Card : Control
     public bool flipped = false;
     public bool placeholder = false;
     public bool covered = false;
+    public Action Interrupt = () => { };
 
     public override void _Ready()
     {

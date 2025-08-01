@@ -879,6 +879,8 @@ public static class Cardlist
         life1.middleText = "Flip 1 card. Flip 1 card.";
         life1.OnPlay = async (Card card) =>
         {
+            InterruptionWatcher watcher = new InterruptionWatcher();
+            SetInterruptionWatcher(watcher, card);
             List<Card> flippableCards = new List<Card>();
             foreach (Card c in Game.instance.GetCards())
             {
@@ -894,6 +896,7 @@ public static class Cardlist
                 Game.instance.promptLabel.Text = prevText;
                 await Game.instance.localPlayer.Flip(response.card);
             }
+            if (watcher.interrupted) return;
             flippableCards.Clear();
             foreach (Card c in Game.instance.GetCards())
             {
@@ -1733,5 +1736,10 @@ public static class Cardlist
             }
         }
         throw new Exception("Card not found");
+    }
+
+    public static void SetInterruptionWatcher(InterruptionWatcher watcher, Card card)
+    {
+        card.Interrupt = () => watcher.interrupted = true;
     }
 }

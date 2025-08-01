@@ -446,6 +446,7 @@ public partial class Player : Node
             {
                 passives[passive] = null;
             }
+            card.Interrupt();
         }
         bool wasFlipped = card.flipped;
         bool wasCovered = card.covered;
@@ -474,6 +475,8 @@ public partial class Player : Node
         {
             passives[passive] = null;
         }
+        card.Interrupt();
+
         if (cardLocation.local)
         {
             discard.Add(card);
@@ -517,6 +520,8 @@ public partial class Player : Node
         {
             passives[passive] = null;
         }
+        card.Interrupt();
+
         if (cardLocation.local)
         {
             hand.Add(card);
@@ -653,6 +658,7 @@ public partial class Player : Node
             Protocol protocol = Game.instance.GetProtocolOfCard(card);
             if (protocol.cards.IndexOf(card) > 0 && !cards.Contains(protocol.cards[protocol.cards.IndexOf(card) - 1]))
                 uncoveredCards.Add(protocol.cards[protocol.cards.IndexOf(card) - 1]);
+            card.Interrupt();
             SendToDiscard(card);
             if (!card.covered && protocol.cards.Count > 0)
                 protocol.cards[protocol.cards.Count - 1].covered = false;
@@ -697,6 +703,7 @@ public partial class Player : Node
             Protocol protocol = Game.instance.GetProtocolOfCard(card);
             if (protocol.cards.IndexOf(card) > 0 && !cards.Contains(protocol.cards[protocol.cards.IndexOf(card) - 1]))
                 uncoveredCards.Add(protocol.cards[protocol.cards.IndexOf(card) - 1]);
+            card.Interrupt();
             card.GetParent().RemoveChild(card);
             protocol.cards.Remove(card);
             card.Reset();
@@ -860,6 +867,7 @@ public partial class Player : Node
         if (!card.flipped && Game.instance.IsLocal(card)) await card.info.OnCover(card);
         card.covered = true;
         foreach (Passive passive in card.info.bottomPassives) passives[passive] = null;
+        card.Interrupt();
     }
 
     public async Task Uncover(Card card, Protocol protocol)
@@ -1065,6 +1073,7 @@ public partial class Player : Node
             if (Game.instance.GetProtocolOfCard(card) == null) return; // May leave field
         }
         card.flipped = !card.flipped;
+        card.Interrupt();
         card.Render();
         if (card.flipped)
         {
@@ -1091,6 +1100,7 @@ public partial class Player : Node
         Card card = Game.instance.FindCard(!local, protocolIndex, cardIndex);
         bool wasCovered = card.covered;
         Protocol protocol = Game.instance.GetProtocols(!local)[protocolIndex];
+        card.Interrupt();
         card.GetParent().RemoveChild(card);
         protocol.cards.Remove(card);
         card.Reset();
@@ -1130,6 +1140,7 @@ public partial class Player : Node
         Card card = Game.instance.FindCard(!local, protocolIndex, cardIndex);
         bool wasCovered = card.covered;
         Protocol protocol = Game.instance.GetProtocols(!local)[protocolIndex];
+        card.Interrupt();
         card.GetParent().RemoveChild(card);
         protocol.cards.Remove(card);
         card.Reset();
@@ -1223,6 +1234,7 @@ public partial class Player : Node
     {
         Protocol protocol = Game.instance.GetProtocols(!local)[protocolIndex];
         Card card = Game.instance.FindCard(!local, protocolIndex, cardIndex);
+        card.Interrupt();
         protocol.cards.Remove(card);
         card.QueueFree();
         foreach (CardInfo.Passive passive in card.info.passives)
@@ -1289,6 +1301,7 @@ public partial class Player : Node
             Protocol protocol = Game.instance.GetProtocolOfCard(card);
             if (protocol.cards.IndexOf(card) > 0 && !cards.Contains(protocol.cards[protocol.cards.IndexOf(card) - 1]))
                 uncoveredCards.Add(protocol.cards[protocol.cards.IndexOf(card) - 1]);
+            card.Interrupt();
             card.GetParent().RemoveChild(card);
             protocol.cards.Remove(card);
             card.Reset();
