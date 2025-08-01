@@ -680,6 +680,53 @@ public partial class Player : Node
         }
     }
 
+    public async Task MultiReturn(List<Card> cards)
+    {
+        List<String> locations = new List<String>();
+        List<Card> uncoveredCards = new List<Card>();
+        foreach (Card card in cards)
+        {
+            bool wasCovered = card.covered;
+            var location = Game.instance.GetCardLocation(card);
+            locations.Add(location.local + "," + location.protocolIndex + "," + location.cardIndex);
+            Protocol protocol = Game.instance.GetProtocolOfCard(card);
+            if (protocol.cards.IndexOf(card) > 0 && !cards.Contains(protocol.cards[protocol.cards.IndexOf(card) - 1]))
+                uncoveredCards.Add(protocol.cards[protocol.cards.IndexOf(card) - 1]);
+            card.GetParent().RemoveChild(card);
+            protocol.cards.Remove(card);
+            card.Reset();
+            foreach (CardInfo.Passive passive in card.info.passives)
+            {
+                passives[passive] = null;
+            }
+            if (location.local)
+            {
+                hand.Add(card);
+                Game.instance.handCardsContainer.AddChild(card);
+            }
+            else
+            {
+                oppHand.Add(card);
+                card.flipped = true;
+                Game.instance.oppCardsContainer.AddChild(card);
+            }
+            if (!wasCovered && protocol.cards.Count > 0)
+            {
+                protocol.cards[protocol.cards.Count - 1].covered = false;
+            }
+            protocol.OrderCards();
+        }
+
+        RpcId(oppId, nameof(OppMultiReturn), Json.Stringify(new Godot.Collections.Array<String>(locations)));
+        await WaitForOppResponse();
+
+        foreach (Card card in uncoveredCards)
+        {
+            if (!card.covered)
+                await Uncover(card, Game.instance.GetProtocolOfCard(card));
+        }
+    }
+
     public async Task MultiShift(List<Card> cards, Protocol protocol)
     {
         List<Card> localCards = cards.FindAll(Game.instance.IsLocal).ToList();
@@ -1211,6 +1258,61 @@ public partial class Player : Node
                 card.covered = false;
                 await Uncover(card, Game.instance.GetProtocolOfCard(card));
             }
+        }
+
+        RpcId(oppId, nameof(OppResponse));
+    }
+
+    [Rpc(MultiplayerApi.RpcMode.AnyPeer)]
+    public async void OppMultiReturn(string json)
+    {
+        List<String> cardLocations = new Godot.Collections.Array<String>(Json.ParseString(json).AsGodotArray()).ToList();
+        List<Card> cards = new List<Card>();
+        foreach (String location in cardLocations)
+        {
+            String[] split = location.Split(',');
+            Card card = Game.instance.FindCard(
+                !Boolean.Parse(split[0]), Int32.Parse(split[1]), Int32.Parse(split[2]));
+            cards.Add(card);
+        }
+
+        List<Card> uncoveredCards = new List<Card>();
+        foreach (Card card in cards)
+        {
+            bool wasCovered = card.covered;
+            var location = Game.instance.GetCardLocation(card);
+            Protocol protocol = Game.instance.GetProtocolOfCard(card);
+            if (protocol.cards.IndexOf(card) > 0 && !cards.Contains(protocol.cards[protocol.cards.IndexOf(card) - 1]))
+                uncoveredCards.Add(protocol.cards[protocol.cards.IndexOf(card) - 1]);
+            card.GetParent().RemoveChild(card);
+            protocol.cards.Remove(card);
+            card.Reset();
+            foreach (CardInfo.Passive passive in card.info.passives)
+            {
+                passives[passive] = null;
+            }
+            if (location.local)
+            {
+                hand.Add(card);
+                Game.instance.handCardsContainer.AddChild(card);
+            }
+            else
+            {
+                oppHand.Add(card);
+                card.flipped = true;
+                Game.instance.oppCardsContainer.AddChild(card);
+            }
+            if (!wasCovered && protocol.cards.Count > 0)
+            {
+                protocol.cards[protocol.cards.Count - 1].covered = false;
+            }
+            protocol.OrderCards();
+        }
+
+        foreach (Card card in uncoveredCards)
+        {
+            if (!card.covered)
+                await Uncover(card, Game.instance.GetProtocolOfCard(card));
         }
 
         RpcId(oppId, nameof(OppResponse));

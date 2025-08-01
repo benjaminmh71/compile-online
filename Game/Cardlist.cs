@@ -1652,6 +1652,19 @@ public static class Cardlist
 
         CardInfo water3 = new CardInfo("Water", 3);
         water3.middleText = "Return all cards with value of 2 in 1 line";
+        water3.OnPlay = async (Card card) =>
+        {
+            String prevText = Game.instance.promptLabel.Text;
+            Game.instance.promptLabel.Text = "Select a line to return all cards with value 2.";
+            PromptManager.PromptAction([PromptManager.Prompt.Select], Game.instance.GetProtocols(true));
+            Response response = await Game.instance.localPlayer.WaitForResponse();
+            Game.instance.promptLabel.Text = prevText;
+            List<Card> cards = response.protocol.cards.FindAll(c => c.GetValue() == 2);
+            cards = cards.Concat
+                (Game.instance.GetOpposingProtocol(response.protocol).cards.FindAll(c => c.GetValue() == 2)).ToList();
+            if (cards.Count == 0) return;
+            await Game.instance.localPlayer.MultiReturn(cards);
+        };
         water.cards.Add(water3);
 
         CardInfo water4 = new CardInfo("Water", 4);
