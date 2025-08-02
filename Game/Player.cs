@@ -271,6 +271,7 @@ public partial class Player : Node
         {
             SendToDiscard(oppProtocol.cards[i]);
         }
+        bool wasCompiled = protocol.compiled;
         protocol.compiled = true;
         protocol.Render();
         RpcId(oppId, nameof(OppCompile), Game.instance.IndexOfProtocol(protocol));
@@ -287,6 +288,8 @@ public partial class Player : Node
             RpcId(oppId, nameof(OppLose));
             await WaitForResponse();
         }
+
+        if (wasCompiled) await DrawFromOpp();
 
         for (int i = protocol.cards.Count - 1; i >= 0; i--)
         {
