@@ -43,6 +43,38 @@ public partial class MousePosition : Control
             GD.Print(Game.instance.SumStack(Game.instance.GetHoveredProtocol()));
         }
 
+        // Focused card:
+        Game.instance.focusedCard.Visible = false;
+        if (!dragging)
+        {
+            foreach (Card card in Game.instance.GetCards())
+            {
+                if (Geometry2D.IsPointInPolygon(GlobalPosition,
+                    [new Vector2(card.GlobalPosition.X, card.GlobalPosition.Y),
+                    new Vector2(card.GlobalPosition.X, card.GlobalPosition.Y + (Game.instance.IsLocal(card) ? 1 : -1) *
+                    (card.covered ? Constants.CARD_STACK_SEPARATION : Constants.CARD_HEIGHT)),
+                    new Vector2(card.GlobalPosition.X + (Game.instance.IsLocal(card) ? 1 : -1) * Constants.CARD_WIDTH,
+                    card.GlobalPosition.Y + (Game.instance.IsLocal(card) ? 1 : -1) *
+                    (card.covered ? Constants.CARD_STACK_SEPARATION : Constants.CARD_HEIGHT)),
+                    new Vector2(card.GlobalPosition.X + (Game.instance.IsLocal(card) ? 1 : -1) * Constants.CARD_WIDTH, card.GlobalPosition.Y)]))
+                {
+                    Game.instance.focusedCard.Visible = true;
+                    Game.instance.focusedCard.info = card.info;
+                    Game.instance.focusedCard.flipped = !Game.instance.IsLocal(card) && card.flipped;
+                    Game.instance.focusedCard.Render();
+                    Vector2 sizeDifference = Game.instance.focusedCard.Size - card.Size;
+                    if (Game.instance.IsLocal(card))
+                        Game.instance.focusedCard.GlobalPosition = new Vector2(
+                            card.GlobalPosition.X - sizeDifference.X / 2, card.GlobalPosition.Y - sizeDifference.Y / 2);
+                    else
+                        Game.instance.focusedCard.GlobalPosition = new Vector2(
+                            card.GlobalPosition.X - sizeDifference.X / 2 - card.Size.X, 
+                            card.GlobalPosition.Y - sizeDifference.Y / 2 - card.Size.Y);
+
+                }
+            }
+        }
+
         if (Input.IsActionJustPressed("click"))
         {
             foreach (Card card in clickableCards)

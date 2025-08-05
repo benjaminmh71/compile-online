@@ -19,6 +19,7 @@ public partial class Game : Control
     public Card oppDeckTop;
     public Card oppDiscardTop;
     public Panel control;
+    public Card focusedCard;
     public VBoxContainer leftUI;
     public Label promptLabel;
     public Button endActionButton;
@@ -43,6 +44,8 @@ public partial class Game : Control
         localProtocolsContainer = GetNode<HBoxContainer>("LocalProtocolsContainer");
         oppProtocolsContainer = GetNode<HBoxContainer>("OppProtocolsContainer");
         control = GetNode<Panel>("Control");
+        focusedCard = GetNode<Card>("FocusedCard");
+        focusedCard.Resize(1.2);
         leftUI = GetNode<VBoxContainer>("LeftUI");
         promptLabel = leftUI.GetNode<Label>("PromptLabel");
         endActionButton = leftUI.GetNode<Button>("EndActionButton");
@@ -60,12 +63,12 @@ public partial class Game : Control
         String[] oppProtocolNames;
         if (isHost)
         {
-            localProtocolNames = new String[] { "Spirit", "Spirit", "Spirit" };
-            oppProtocolNames = new String[] { "Spirit", "Spirit", "Spirit" };
+            localProtocolNames = new String[] { "Life", "Darkness", "Life" };
+            oppProtocolNames = new String[] { "Darkness", "Life", "Darkness" };
         } else
         {
-            localProtocolNames = new String[] { "Spirit", "Spirit", "Spirit" };
-            oppProtocolNames = new String[] { "Spirit", "Spirit", "Spirit" };
+            localProtocolNames = new String[] { "Darkness", "Life", "Darkness" };
+            oppProtocolNames = new String[] { "Life", "Darkness", "Life" };
         }
         foreach (String name in localProtocolNames)
         {

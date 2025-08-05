@@ -12,7 +12,8 @@ public partial class Card : Control
 
     public override void _Ready()
     {
-        Render();
+        if (info != null) 
+            Render();
     }
 
     public override void _Input(InputEvent @event)
@@ -56,6 +57,23 @@ public partial class Card : Control
             GetNode<Label>("TopText").Text = info.topText;
             GetNode<Label>("MiddleText").Text = info.middleText;
             GetNode<Label>("BottomText").Text = info.bottomText;
+        }
+    }
+
+    public void Resize(double mult)
+    {
+        CustomMinimumSize = new Vector2(CustomMinimumSize.X * (float)mult, CustomMinimumSize.Y * (float)mult);
+        foreach (Node node in GetChildren())
+        {
+            if (node is Label)
+            {
+                LabelSettings labelSettings = (LabelSettings)(node as Label).LabelSettings.Duplicate();
+                labelSettings.FontSize = (int)((node as Label).LabelSettings.FontSize * mult);
+                (node as Label).LabelSettings = labelSettings;
+                (node as Label).Position = new Vector2((node as Label).Position.X * (float)mult, 
+                    (node as Label).Position.Y * (float)mult);
+                (node as Label).Size = new Vector2((node as Label).Size.X * (float)mult, (node as Label).Size.Y);
+            }
         }
     }
 

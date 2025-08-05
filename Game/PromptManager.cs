@@ -175,12 +175,14 @@ public static class PromptManager
     {
         if (currPrompts.Contains(Prompt.Play))
         {
+            card.GetParent().RemoveChild(card);
             response = new Response(card, protocol, 
                 Game.instance.flippedCheckbox.GetNode<CheckBox>("CheckBox").ButtonPressed, Prompt.Play);
             PromptAction([]);
         }
         else if (currPrompts.Contains(Prompt.Shift))
         {
+            card.GetParent().RemoveChild(card);
             response = new Response(card, protocol, Prompt.Shift);
             PromptAction([]);
         }
