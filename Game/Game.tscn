@@ -1,10 +1,13 @@
-[gd_scene load_steps=8 format=3 uid="uid://cbg66a4o077cn"]
+[gd_scene load_steps=9 format=3 uid="uid://cbg66a4o077cn"]
 
 [ext_resource type="Script" uid="uid://cn2wi6f4g2i3x" path="res://Game/Game.cs" id="1_hqwdr"]
 [ext_resource type="PackedScene" uid="uid://18377dkvdfx" path="res://Game/Card.tscn" id="2_jxerj"]
 [ext_resource type="Script" uid="uid://b126068oiqswd" path="res://Game/MousePosition.cs" id="2_vrr3t"]
 [ext_resource type="Script" uid="uid://cmvpr42ujor86" path="res://Game/CloseRevealPanelButton.cs" id="3_37esa"]
 [ext_resource type="Script" uid="uid://gd0kci4oyq63" path="res://Lobby/ReturnToMenuButton.cs" id="3_iv3md"]
+
+[sub_resource type="LabelSettings" id="LabelSettings_jxerj"]
+font_size = 32
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_vrr3t"]
 
@@ -71,6 +74,26 @@ grow_horizontal = 0
 grow_vertical = 2
 rotation = 3.14159
 theme_override_constants/separation = 10
+
+[node name="DeckLabel" type="Label" parent="."]
+layout_mode = 1
+anchors_preset = -1
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_top = -123.0
+offset_right = 125.0
+grow_vertical = 0
+label_settings = SubResource("LabelSettings_jxerj")
+horizontal_alignment = 1
+
+[node name="OppDeckLabel" type="Label" parent="."]
+layout_mode = 1
+anchors_preset = -1
+offset_top = 77.0
+offset_right = 125.0
+offset_bottom = 123.0
+label_settings = SubResource("LabelSettings_jxerj")
+horizontal_alignment = 1
 
 [node name="Control" type="Panel" parent="."]
 custom_minimum_size = Vector2(125, 200)

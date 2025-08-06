@@ -43,6 +43,32 @@ public partial class MousePosition : Control
             GD.Print(Game.instance.SumStack(Game.instance.GetHoveredProtocol()));
         }
 
+        // Deck count:
+        Card deckTop = Game.instance.localDeckTop;
+        Game.instance.deckLabel.Visible = false;
+        if (Geometry2D.IsPointInPolygon(GlobalPosition,
+                    [new Vector2(deckTop.GlobalPosition.X, deckTop.GlobalPosition.Y),
+                    new Vector2(deckTop.GlobalPosition.X, deckTop.GlobalPosition.Y + Constants.CARD_HEIGHT),
+                    new Vector2(deckTop.GlobalPosition.X + Constants.CARD_WIDTH,
+                    deckTop.GlobalPosition.Y + Constants.CARD_HEIGHT),
+                    new Vector2(deckTop.GlobalPosition.X + Constants.CARD_WIDTH, deckTop.GlobalPosition.Y)]))
+        {
+            Game.instance.deckLabel.Visible = true;
+            Game.instance.deckLabel.Text = Game.instance.localPlayer.deck.Count.ToString();
+        }
+        Card oppDeckTop = Game.instance.oppDeckTop;
+        Game.instance.oppDeckLabel.Visible = false;
+        if (Geometry2D.IsPointInPolygon(GlobalPosition,
+                    [new Vector2(oppDeckTop.GlobalPosition.X, oppDeckTop.GlobalPosition.Y),
+                    new Vector2(oppDeckTop.GlobalPosition.X, oppDeckTop.GlobalPosition.Y + Constants.CARD_HEIGHT),
+                    new Vector2(oppDeckTop.GlobalPosition.X + Constants.CARD_WIDTH,
+                    oppDeckTop.GlobalPosition.Y + Constants.CARD_HEIGHT),
+                    new Vector2(oppDeckTop.GlobalPosition.X + Constants.CARD_WIDTH, oppDeckTop.GlobalPosition.Y)]))
+        {
+            Game.instance.oppDeckLabel.Visible = true;
+            Game.instance.oppDeckLabel.Text = Game.instance.localPlayer.oppDeck.Count.ToString();
+        }
+
         // Focused card:
         Game.instance.focusedCard.Visible = false;
         if (!dragging)

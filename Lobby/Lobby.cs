@@ -13,10 +13,12 @@ public partial class Lobby : Control
     ArrayList rooms = new ArrayList();
     Game game;
     VBoxContainer roomListContainer;
+    Panel gameSettingsPanel;
 
     public override void _Ready()
     {
         roomListContainer = GetNode<VBoxContainer>("RoomListContainer");
+        gameSettingsPanel = GetNode<Panel>("GameSettingsPanel");
         game = GD.Load<PackedScene>("res://Game/Game.tscn").Instantiate<Game>();
 
         Multiplayer.PeerConnected += PeerConnected;
@@ -73,7 +75,9 @@ public partial class Lobby : Control
 
     private void _on_create_game_pressed()
     {
-        Rpc(nameof(AddRoom), Multiplayer.GetUniqueId());
+        gameSettingsPanel.Visible = true;
+
+        //Rpc(nameof(AddRoom), Multiplayer.GetUniqueId());
     }
 
     private Room GetRoom(int id)

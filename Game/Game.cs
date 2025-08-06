@@ -14,6 +14,8 @@ public partial class Game : Control
     public HBoxContainer oppCardsContainer;
     public HBoxContainer localProtocolsContainer;
     public HBoxContainer oppProtocolsContainer;
+    public Label deckLabel;
+    public Label oppDeckLabel;
     public Card localDeckTop;
     public Card localDiscardTop;
     public Card oppDeckTop;
@@ -43,6 +45,8 @@ public partial class Game : Control
         oppCardsContainer = GetNode<HBoxContainer>("OppHandCardsContainer");
         localProtocolsContainer = GetNode<HBoxContainer>("LocalProtocolsContainer");
         oppProtocolsContainer = GetNode<HBoxContainer>("OppProtocolsContainer");
+        deckLabel = GetNode<Label>("DeckLabel");
+        oppDeckLabel = GetNode<Label>("OppDeckLabel");
         control = GetNode<Panel>("Control");
         focusedCard = GetNode<Card>("FocusedCard");
         focusedCard.Resize(1.2);
