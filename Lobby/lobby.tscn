@@ -1,6 +1,9 @@
-[gd_scene load_steps=2 format=3 uid="uid://s4nvaic3pibg"]
+[gd_scene load_steps=3 format=3 uid="uid://s4nvaic3pibg"]
 
 [ext_resource type="Script" uid="uid://c401herh1nkfi" path="res://Lobby/Lobby.cs" id="1_oxtak"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_oxtak"]
+bg_color = Color(0.301961, 0.301961, 0.301961, 1)
 
 [node name="Lobby" type="Control"]
 layout_mode = 3
@@ -24,4 +27,61 @@ offset_left = 575.5
 offset_right = 575.5
 size_flags_horizontal = 4
 
+[node name="GameSettingsPanel" type="Panel" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_oxtak")
+
+[node name="MarginContainer" type="MarginContainer" parent="GameSettingsPanel"]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+theme_override_constants/margin_left = 20
+theme_override_constants/margin_top = 10
+
+[node name="VBoxContainer" type="VBoxContainer" parent="GameSettingsPanel/MarginContainer"]
+layout_mode = 2
+
+[node name="RoomNameLabel" type="Label" parent="GameSettingsPanel/MarginContainer/VBoxContainer"]
+layout_mode = 2
+text = "Room name:"
+
+[node name="RoomNameTextEdit" type="TextEdit" parent="GameSettingsPanel/MarginContainer/VBoxContainer"]
+custom_minimum_size = Vector2(0, 40)
+layout_mode = 2
+
+[node name="RoomPasswordLabel" type="Label" parent="GameSettingsPanel/MarginContainer/VBoxContainer"]
+layout_mode = 2
+text = "Room password:"
+
+[node name="RoomPasswordTextEdit" type="TextEdit" parent="GameSettingsPanel/MarginContainer/VBoxContainer"]
+custom_minimum_size = Vector2(0, 40)
+layout_mode = 2
+
+[node name="DraftTypeLabel" type="Label" parent="GameSettingsPanel/MarginContainer/VBoxContainer"]
+layout_mode = 2
+text = "Draft type:"
+
+[node name="RandomCheckBox" type="CheckBox" parent="GameSettingsPanel/MarginContainer/VBoxContainer"]
+layout_mode = 2
+text = "6 Random"
+
+[node name="DraftCheckBox" type="CheckBox" parent="GameSettingsPanel/MarginContainer/VBoxContainer"]
+layout_mode = 2
+text = "7 Draft"
+
+[node name="BanDraftCheckBox" type="CheckBox" parent="GameSettingsPanel/MarginContainer/VBoxContainer"]
+layout_mode = 2
+button_pressed = true
+text = "8 Ban and Draft"
+
+[node name="FinishButton" type="Button" parent="GameSettingsPanel/MarginContainer/VBoxContainer"]
+layout_mode = 2
+text = "Finish"
+
 [connection signal="pressed" from="CreateGame" to="." method="_on_create_game_pressed"]
+[connection signal="pressed" from="GameSettingsPanel/MarginContainer/VBoxContainer/FinishButton" to="." method="OnFinishButtonPressed"]

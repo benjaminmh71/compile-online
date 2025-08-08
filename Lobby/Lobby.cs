@@ -1,6 +1,7 @@
 using Godot;
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -14,11 +15,17 @@ public partial class Lobby : Control
     Game game;
     VBoxContainer roomListContainer;
     Panel gameSettingsPanel;
+    VBoxContainer gameSettingsVBox;
+    List<CheckBox> draftCheckBoxes;
 
     public override void _Ready()
     {
         roomListContainer = GetNode<VBoxContainer>("RoomListContainer");
         gameSettingsPanel = GetNode<Panel>("GameSettingsPanel");
+        gameSettingsVBox = gameSettingsPanel.GetNode("MarginContainer").GetNode<VBoxContainer>("VBoxContainer");
+        draftCheckBoxes = [ gameSettingsVBox.GetNode<CheckBox>("RandomCheckBox"),
+        gameSettingsVBox.GetNode<CheckBox>("DraftCheckBox"),
+        gameSettingsVBox.GetNode<CheckBox>("BanDraftCheckBox")];
         game = GD.Load<PackedScene>("res://Game/Game.tscn").Instantiate<Game>();
 
         Multiplayer.PeerConnected += PeerConnected;
@@ -49,6 +56,11 @@ public partial class Lobby : Control
 
             Multiplayer.MultiplayerPeer = peer;
         }
+
+        foreach (CheckBox checkbox in draftCheckBoxes)
+        {
+            checkbox.Pressed += () => OnDraftCheckBoxPressed(checkbox);
+        }
     }
 
     private void PeerConnected(long id)
@@ -73,11 +85,23 @@ public partial class Lobby : Control
         GD.Print("Connected");
     }
 
+    private void OnDraftCheckBoxPressed(CheckBox checkbox)
+    {
+        foreach (CheckBox c in draftCheckBoxes)
+        {
+            if (c != checkbox) c.ButtonPressed = false;
+        }
+        checkbox.ButtonPressed = true;
+    }
+
+    private void OnFinishButtonPressed()
+    {
+        Rpc(nameof(AddRoom), Multiplayer.GetUniqueId());
+    }
+
     private void _on_create_game_pressed()
     {
         gameSettingsPanel.Visible = true;
-
-        //Rpc(nameof(AddRoom), Multiplayer.GetUniqueId());
     }
 
     private Room GetRoom(int id)
