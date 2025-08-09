@@ -15,17 +15,23 @@ public partial class Lobby : Control
     Game game;
     VBoxContainer roomListContainer;
     Panel gameSettingsPanel;
+    Panel waitRoomPanel;
     VBoxContainer gameSettingsVBox;
     List<CheckBox> draftCheckBoxes;
+    TextEdit roomNameTextEdit;
+    TextEdit roomPasswordTextEdit;
 
     public override void _Ready()
     {
         roomListContainer = GetNode<VBoxContainer>("RoomListContainer");
         gameSettingsPanel = GetNode<Panel>("GameSettingsPanel");
+        waitRoomPanel = GetNode<Panel>("WaitRoomPanel");
         gameSettingsVBox = gameSettingsPanel.GetNode("MarginContainer").GetNode<VBoxContainer>("VBoxContainer");
         draftCheckBoxes = [ gameSettingsVBox.GetNode<CheckBox>("RandomCheckBox"),
         gameSettingsVBox.GetNode<CheckBox>("DraftCheckBox"),
         gameSettingsVBox.GetNode<CheckBox>("BanDraftCheckBox")];
+        roomNameTextEdit = gameSettingsVBox.GetNode<TextEdit>("RoomNameTextEdit");
+        roomPasswordTextEdit = gameSettingsVBox.GetNode<TextEdit>("RoomPasswordTextEdit");
         game = GD.Load<PackedScene>("res://Game/Game.tscn").Instantiate<Game>();
 
         Multiplayer.PeerConnected += PeerConnected;
@@ -96,7 +102,10 @@ public partial class Lobby : Control
 
     private void OnFinishButtonPressed()
     {
-        Rpc(nameof(AddRoom), Multiplayer.GetUniqueId());
+        gameSettingsPanel.Visible = false;
+        waitRoomPanel.Visible = true;
+
+        Rpc(nameof(AddRoom), Multiplayer.GetUniqueId(), roomNameTextEdit.Text);
     }
 
     private void _on_create_game_pressed()
@@ -117,7 +126,7 @@ public partial class Lobby : Control
     }
 
     [Rpc(MultiplayerApi.RpcMode.AnyPeer, CallLocal = true)]
-    private void AddRoom(int id)
+    private void AddRoom(int id, String name)
     {
         Room room = new Room(id);
         rooms.Add(room);
@@ -125,6 +134,7 @@ public partial class Lobby : Control
         ListRoom listRoom = listRoomScene.Instantiate<ListRoom>();
         roomListContainer.AddChild(listRoom);
         listRoom.creatorId = id;
+        listRoom.GetNode<Label>("GameInfo").Text = name + ": ";
         listRoom.GetNode<Button>("JoinButton").Pressed += () => {
             room.player2Id = Multiplayer.GetUniqueId();
             Rpc(nameof(DeleteRoom), id);

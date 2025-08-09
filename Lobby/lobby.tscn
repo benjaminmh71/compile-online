@@ -28,6 +28,7 @@ offset_right = 575.5
 size_flags_horizontal = 4
 
 [node name="GameSettingsPanel" type="Panel" parent="."]
+visible = false
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -82,6 +83,27 @@ text = "8 Ban and Draft"
 [node name="FinishButton" type="Button" parent="GameSettingsPanel/MarginContainer/VBoxContainer"]
 layout_mode = 2
 text = "Finish"
+
+[node name="WaitRoomPanel" type="Panel" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_oxtak")
+
+[node name="MarginContainer" type="MarginContainer" parent="WaitRoomPanel"]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+theme_override_constants/margin_left = 20
+theme_override_constants/margin_top = 10
+
+[node name="WaitingLabel" type="Label" parent="WaitRoomPanel/MarginContainer"]
+layout_mode = 2
+text = "Waiting for a second player..."
 
 [connection signal="pressed" from="CreateGame" to="." method="_on_create_game_pressed"]
 [connection signal="pressed" from="GameSettingsPanel/MarginContainer/VBoxContainer/FinishButton" to="." method="OnFinishButtonPressed"]
