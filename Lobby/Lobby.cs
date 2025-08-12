@@ -104,6 +104,12 @@ public partial class Lobby : Control
     {
         gameSettingsPanel.Visible = false;
         waitRoomPanel.Visible = true;
+        if (draftCheckBoxes.Find(c => c.Name == "RandomCheckBox").IsPressed()) 
+            game.draftType = Draft.DraftType.Random;
+        if (draftCheckBoxes.Find(c => c.Name == "DraftCheckBox").IsPressed())
+            game.draftType = Draft.DraftType.Draft;
+        if (draftCheckBoxes.Find(c => c.Name == "BanDraftCheckBox").IsPressed())
+            game.draftType = Draft.DraftType.BanDraft;
 
         Rpc(nameof(AddRoom), Multiplayer.GetUniqueId(), roomNameTextEdit.Text);
     }
@@ -163,29 +169,32 @@ public partial class Lobby : Control
     }
 
     [Rpc(MultiplayerApi.RpcMode.AnyPeer, CallLocal = false)]
-    private void ClientJoinGame(int p1Id, int p2Id)
+    private async void ClientJoinGame(int p1Id, int p2Id)
     {
+        RpcId(p1Id, nameof(HostJoinGame), p1Id, p2Id);
         GetTree().Root.AddChild(game);
         GD.Print((p1Id == Multiplayer.GetUniqueId()) ? "Player 1: " + p1Id.ToString() + " " + p2Id.ToString() :
             "Player 2: " + p1Id.ToString() + " " + p2Id.ToString());
-        game.Init(p1Id, p2Id, p1Id == Multiplayer.GetUniqueId());
-        RpcId(p1Id, nameof(HostJoinGame), p1Id, p2Id);
+        QueueFree();
+        await game.Init(p1Id, p2Id, p1Id == Multiplayer.GetUniqueId());
+        
     }
 
     [Rpc(MultiplayerApi.RpcMode.AnyPeer, CallLocal = false)]
-    private void HostJoinGame(int p1Id, int p2Id)
+    private async void HostJoinGame(int p1Id, int p2Id)
     {
         GetTree().Root.AddChild(game);
         GD.Print((p1Id == Multiplayer.GetUniqueId()) ? "Player 1: " + p1Id.ToString() + " " + p2Id.ToString() :
             "Player 2: " + p1Id.ToString() + " " + p2Id.ToString());
-        game.Init(p1Id, p2Id, p1Id == Multiplayer.GetUniqueId());
-        RpcId(p2Id, nameof(ClientStartGame), p1Id);
+        QueueFree();
+        await game.Init(p1Id, p2Id, p1Id == Multiplayer.GetUniqueId());
+        //RpcId(p2Id, nameof(ClientStartGame), p1Id);
     }
 
     [Rpc(MultiplayerApi.RpcMode.AnyPeer, CallLocal = false)]
     private void ClientStartGame(int hostId)
     {
-        game.Start();
+        //game.Start();
         QueueFree();
         RpcId(hostId, nameof(HostStartGame));
     }
@@ -193,7 +202,7 @@ public partial class Lobby : Control
     [Rpc(MultiplayerApi.RpcMode.AnyPeer, CallLocal = false)]
     private void HostStartGame()
     {
-        game.Start();
+        //game.Start();
         QueueFree();
     }
 }

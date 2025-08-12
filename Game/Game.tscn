@@ -1,15 +1,19 @@
-[gd_scene load_steps=9 format=3 uid="uid://cbg66a4o077cn"]
+[gd_scene load_steps=11 format=3 uid="uid://cbg66a4o077cn"]
 
 [ext_resource type="Script" uid="uid://cn2wi6f4g2i3x" path="res://Game/Game.cs" id="1_hqwdr"]
 [ext_resource type="PackedScene" uid="uid://18377dkvdfx" path="res://Game/Card.tscn" id="2_jxerj"]
 [ext_resource type="Script" uid="uid://b126068oiqswd" path="res://Game/MousePosition.cs" id="2_vrr3t"]
 [ext_resource type="Script" uid="uid://cmvpr42ujor86" path="res://Game/CloseRevealPanelButton.cs" id="3_37esa"]
 [ext_resource type="Script" uid="uid://gd0kci4oyq63" path="res://Lobby/ReturnToMenuButton.cs" id="3_iv3md"]
+[ext_resource type="Script" uid="uid://befagux5jomx7" path="res://Game/Draft.cs" id="4_ghvq8"]
 
 [sub_resource type="LabelSettings" id="LabelSettings_jxerj"]
 font_size = 32
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_vrr3t"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_jxerj"]
+bg_color = Color(0.301961, 0.301961, 0.301961, 1)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_iv3md"]
 border_width_left = 4
@@ -191,6 +195,45 @@ offset_right = 40.0
 offset_bottom = 40.0
 mouse_filter = 2
 script = ExtResource("2_vrr3t")
+
+[node name="DraftPanel" type="Panel" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_jxerj")
+script = ExtResource("4_ghvq8")
+
+[node name="ProtocolsFirstRow" type="HBoxContainer" parent="DraftPanel"]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -20.0
+offset_top = -100.0
+offset_right = 20.0
+offset_bottom = -25.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="ProtocolsSecondRow" type="HBoxContainer" parent="DraftPanel"]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -20.0
+offset_top = 25.0
+offset_right = 20.0
+offset_bottom = 100.0
+grow_horizontal = 2
+grow_vertical = 2
 
 [node name="RevealPanel" type="PanelContainer" parent="."]
 visible = false

@@ -5,11 +5,14 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Cryptography;
+using System.Threading.Tasks;
 
 public partial class Game : Control
 {
     public static Game instance;
     public Player localPlayer;
+    public Draft.DraftType draftType = Draft.DraftType.BanDraft;
+    public Draft draft;
     public HBoxContainer handCardsContainer;
     public HBoxContainer oppCardsContainer;
     public HBoxContainer localProtocolsContainer;
@@ -35,12 +38,15 @@ public partial class Game : Control
     public PanelContainer losePanel;
     public MousePosition mousePosition;
     bool host;
+    bool oppResponse;
 
-    public void Init(int player1Id, int player2Id, bool isHost)
+    public async Task Init(int player1Id, int player2Id, bool isHost)
     {
         GD.Randomize();
         instance = this;
         host = isHost;
+        int oppId = Multiplayer.GetUniqueId() == player1Id ? player2Id : player1Id;
+        draft = GetNode<Draft>("DraftPanel");
         handCardsContainer = GetNode<HBoxContainer>("LocalHandCardsContainer");
         oppCardsContainer = GetNode<HBoxContainer>("OppHandCardsContainer");
         localProtocolsContainer = GetNode<HBoxContainer>("LocalProtocolsContainer");
@@ -63,25 +69,21 @@ public partial class Game : Control
         losePanel = GetNode<PanelContainer>("LosePanel");
         mousePosition = GetNode<MousePosition>("MousePosition");
 
-        String[] localProtocolNames;
-        String[] oppProtocolNames;
-        if (isHost)
+        RpcId(oppId, nameof(OppResponse));
+        await WaitForOppResponse();
+
+        if (isHost) await draft.Init(draftType, oppId);
+        await draft.WaitForDraft();
+
+        foreach (String name in draft.localProtocols)
         {
-            localProtocolNames = new String[] { "Life", "Darkness", "Life" };
-            oppProtocolNames = new String[] { "Darkness", "Life", "Darkness" };
-        } else
-        {
-            localProtocolNames = new String[] { "Darkness", "Life", "Darkness" };
-            oppProtocolNames = new String[] { "Life", "Darkness", "Life" };
-        }
-        foreach (String name in localProtocolNames)
-        {
+            if (host) GD.Print(name);
             PackedScene protocolScene = GD.Load("res://Game/Protocol.tscn") as PackedScene;
             Protocol protocol = protocolScene.Instantiate<Protocol>();
             protocol.info = Cardlist.protocols[name];
             localProtocolsContainer.AddChild(protocol);
         }
-        foreach (String name in oppProtocolNames)
+        foreach (String name in draft.oppProtocols)
         {
             PackedScene protocolScene = GD.Load("res://Game/Protocol.tscn") as PackedScene;
             Protocol protocol = protocolScene.Instantiate<Protocol>();
@@ -115,20 +117,14 @@ public partial class Game : Control
 
         PromptManager.Init();
 
-        if (Multiplayer.GetUniqueId() == player1Id)
-        {
-            localPlayer = new Player(player1Id, player2Id);
-        } else
-        {
-            localPlayer = new Player(player2Id, player1Id);
-        }
+        localPlayer = new Player(Multiplayer.GetUniqueId(), oppId);
         localPlayer.Name = "Player";
 
         AddChild(localPlayer);
-    }
 
-    public void Start()
-    {
+        RpcId(oppId, nameof(OppResponse));
+        await WaitForOppResponse();
+
         localPlayer.Init();
         if (host)
         {
@@ -137,7 +133,8 @@ public partial class Game : Control
 #pragma warning disable CS4014 // Async not awaited warning
                 localPlayer.StartTurn();
 #pragma warning restore CS4014
-            } else
+            }
+            else
             {
                 localPlayer.EndTurn();
             }
@@ -295,5 +292,20 @@ public partial class Game : Control
     {
         if (IsLocal(protocol)) return IndexOfProtocol(protocol);
         else return GetProtocols(false).Count - 1 - IndexOfProtocol(protocol);
+    }
+
+    [Rpc(MultiplayerApi.RpcMode.AnyPeer)]
+    public void OppResponse()
+    {
+        oppResponse = true;
+    }
+
+    public async Task WaitForOppResponse()
+    {
+        while (!oppResponse)
+        {
+            await ToSignal(GetTree().CreateTimer(0.1), "timeout");
+        }
+        oppResponse = false;
     }
 }
