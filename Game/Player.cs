@@ -853,9 +853,11 @@ public partial class Player : Node
             foreach (Card card in command.cards)
             {
                 hand.Remove(card);
+                card.flipped = true;
                 card.GetParent().RemoveChild(card);
                 oppHand.Add(card);
                 Game.instance.oppCardsContainer.AddChild(card);
+                card.Render();
             }
         }
 
@@ -864,9 +866,11 @@ public partial class Player : Node
             foreach (Card card in command.cards)
             {
                 oppHand.Remove(card);
+                card.flipped = false;
                 card.GetParent().RemoveChild(card);
                 hand.Add(card);
                 Game.instance.handCardsContainer.AddChild(card);
+                card.Render();
             }
         }
 
@@ -983,7 +987,7 @@ public partial class Player : Node
         Card card = oppDeck[0];
         oppDeck.Remove(card);
         oppHand.Add(card);
-        //card.flipped = true; UNCOMMENT THIS
+        card.flipped = true;
         card.Render();
         Game.instance.oppCardsContainer.AddChild(card);
     }
@@ -1025,7 +1029,7 @@ public partial class Player : Node
         deck.Remove(card);
         oppHand.Add(card);
         Game.instance.oppCardsContainer.AddChild(card);
-        // card.flipped = true; UNCOMMENT THIS
+        card.flipped = true;
         card.Render();
         RpcId(oppId, nameof(OppResponse));
     }
@@ -1505,9 +1509,11 @@ public partial class Player : Node
             foreach (Card c in handCards)
             {
                 oppHand.Remove(c);
+                c.flipped = false;
                 c.GetParent().RemoveChild(c);
                 hand.Add(c);
                 Game.instance.handCardsContainer.AddChild(c);
+                c.Render();
             }
         }
 
@@ -1516,9 +1522,11 @@ public partial class Player : Node
             foreach (Card c in oppHandCards)
             {
                 hand.Remove(c);
+                c.flipped = true;
                 c.GetParent().RemoveChild(c);
                 oppHand.Add(c);
                 Game.instance.oppCardsContainer.AddChild(c);
+                c.Render();
             }
         }
         RpcId(oppId, nameof(OppResponse));

@@ -68,15 +68,39 @@ public partial class Draft : Control
 
         foreach (Protocol p in GetProtocols()) p.OnClick += PromptManager.OnProtocolClicked;
 
-        while (localProtocols.Count < 3)
-        {
-            promptLabel.Text = "Select a protocol to draft.";
-            PromptManager.PromptAction([PromptManager.Prompt.Select], GetProtocols());
-            Response response = await WaitForResponse();
-            response.protocol.GetNode<Control>("LocalSelectionIndicator").Visible = true;
-            localProtocols.Add(response.protocol.info.name);
-            RpcId(oppId, nameof(OppSelectProtocol), response.protocol.info.name);
-        }
+        promptLabel.Text = "Select a protocol to draft.";
+        PromptManager.PromptAction([PromptManager.Prompt.Select], GetProtocols().
+            FindAll(p => !localProtocols.Contains(p.info.name) && !oppProtocols.Contains(p.info.name)));
+        Response response = await WaitForResponse();
+        response.protocol.GetNode<Control>("LocalSelectionIndicator").Visible = true;
+        localProtocols.Add(response.protocol.info.name);
+        RpcId(oppId, nameof(OppSelectProtocol), response.protocol.info.name);
+        promptLabel.Text = "";
+
+        RpcId(oppId, nameof(OppCommandSelect));
+        await WaitForOppResponse();
+
+        RpcId(oppId, nameof(OppCommandSelect));
+        await WaitForOppResponse();
+
+        promptLabel.Text = "Select a protocol to draft.";
+        PromptManager.PromptAction([PromptManager.Prompt.Select], GetProtocols().
+            FindAll(p => !localProtocols.Contains(p.info.name) && !oppProtocols.Contains(p.info.name)));
+        response = await WaitForResponse();
+        response.protocol.GetNode<Control>("LocalSelectionIndicator").Visible = true;
+        localProtocols.Add(response.protocol.info.name);
+        RpcId(oppId, nameof(OppSelectProtocol), response.protocol.info.name);
+
+        PromptManager.PromptAction([PromptManager.Prompt.Select], GetProtocols().
+            FindAll(p => !localProtocols.Contains(p.info.name) && !oppProtocols.Contains(p.info.name)));
+        response = await WaitForResponse();
+        response.protocol.GetNode<Control>("LocalSelectionIndicator").Visible = true;
+        localProtocols.Add(response.protocol.info.name);
+        RpcId(oppId, nameof(OppSelectProtocol), response.protocol.info.name);
+        promptLabel.Text = "";
+
+        RpcId(oppId, nameof(OppCommandSelect));
+        await WaitForOppResponse();
     }
 
     List<Protocol> GetProtocols()
@@ -105,6 +129,21 @@ public partial class Draft : Control
             else protocolsSecondRow.AddChild(protocol);
         }
         foreach (Protocol p in GetProtocols()) p.OnClick += PromptManager.OnProtocolClicked;
+        RpcId(oppId, nameof(OppResponse));
+    }
+
+    [Rpc(MultiplayerApi.RpcMode.AnyPeer)]
+    async void OppCommandSelect()
+    {
+        promptLabel.Text = "Select a protocol to draft.";
+        PromptManager.PromptAction([PromptManager.Prompt.Select], GetProtocols().
+            FindAll(p => !localProtocols.Contains(p.info.name) && !oppProtocols.Contains(p.info.name)));
+        Response response = await WaitForResponse();
+        response.protocol.GetNode<Control>("LocalSelectionIndicator").Visible = true;
+        localProtocols.Add(response.protocol.info.name);
+        RpcId(oppId, nameof(OppSelectProtocol), response.protocol.info.name);
+        promptLabel.Text = "";
+
         RpcId(oppId, nameof(OppResponse));
     }
 

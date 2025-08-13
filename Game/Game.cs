@@ -74,10 +74,10 @@ public partial class Game : Control
 
         if (isHost) await draft.Init(draftType, oppId);
         await draft.WaitForDraft();
+        draft.Visible = false;
 
         foreach (String name in draft.localProtocols)
         {
-            if (host) GD.Print(name);
             PackedScene protocolScene = GD.Load("res://Game/Protocol.tscn") as PackedScene;
             Protocol protocol = protocolScene.Instantiate<Protocol>();
             protocol.info = Cardlist.protocols[name];
