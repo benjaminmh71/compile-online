@@ -125,7 +125,7 @@ public partial class Game : Control
         RpcId(oppId, nameof(OppResponse));
         await WaitForOppResponse();
 
-        localPlayer.Init();
+        await localPlayer.Init();
         if (host)
         {
             if (GD.Randi() % 2 == 0)

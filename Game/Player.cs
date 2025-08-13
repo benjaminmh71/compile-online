@@ -73,10 +73,11 @@ public partial class Player : Node
         Utility.Shuffle(deck);
     }
 
-    public void Init()
+    public async Task Init()
     {
         RpcId(oppId, nameof(OppSetDeck), deck.Select<Card, String>((Card c) => c.info.GetCardName()).ToArray());
-        Draw(5);
+        await WaitForOppResponse();
+        await Draw(5);
     }
 
     [Rpc(MultiplayerApi.RpcMode.AnyPeer)]
@@ -352,7 +353,7 @@ public partial class Player : Node
 
         for (int i = 0; i < n; i++)
         {
-            Draw();
+            await Draw();
         }
 
         foreach (Card card in Game.instance.GetCards())
@@ -362,7 +363,7 @@ public partial class Player : Node
         }
     }
 
-    public void Draw()
+    public async Task Draw()
     {
         if (deck.Count == 0) // Shuffle in discard
         {
@@ -378,6 +379,7 @@ public partial class Player : Node
             Game.instance.localDeckTop.Render();
             Game.instance.localDiscardTop.Render();
             RpcId(oppId, nameof(OppSetDeck), deck.Select((Card c) => c.info.GetCardName()).ToArray());
+            await WaitForOppResponse();
         }
         if (deck.Count == 1) // Deck has no more cards
         {
@@ -967,6 +969,7 @@ public partial class Player : Node
             card.SetCardInfo(Cardlist.GetCard(cardName));
             oppDeck.Add(card);
         }
+        RpcId(oppId, nameof(OppResponse));
     }
 
     [Rpc(MultiplayerApi.RpcMode.AnyPeer)]
@@ -1003,7 +1006,7 @@ public partial class Player : Node
     }
 
     [Rpc(MultiplayerApi.RpcMode.AnyPeer)]
-    public void OppDrawFromOpp()
+    public async Task OppDrawFromOpp()
     {
         if (deck.Count == 0) // Shuffle in discard
         {
@@ -1019,6 +1022,7 @@ public partial class Player : Node
             Game.instance.localDeckTop.Render();
             Game.instance.localDiscardTop.Render();
             RpcId(oppId, nameof(OppSetDeck), deck.Select((Card c) => c.info.GetCardName()).ToArray());
+            await WaitForOppResponse();
         }
         if (deck.Count == 1) // Deck has no more cards
         {
