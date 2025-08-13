@@ -1,4 +1,4 @@
-[gd_scene load_steps=6 format=3 uid="uid://cyagdyvoltnqq"]
+[gd_scene load_steps=10 format=3 uid="uid://cyagdyvoltnqq"]
 
 [ext_resource type="Script" uid="uid://bi52kra4wrhfv" path="res://Game/Protocol.cs" id="1_dgipo"]
 
@@ -7,6 +7,18 @@ bg_color = Color(1, 1, 1, 1)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_dgipo"]
 bg_color = Color(0.878298, 0.808836, 0.485149, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_f7v5e"]
+bg_color = Color(0.196078, 0.882353, 0.392157, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_tft0o"]
+bg_color = Color(0.196078, 0.882353, 0.392157, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_hpb07"]
+bg_color = Color(0.196078, 0.882353, 0.392157, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_gqk01"]
+bg_color = Color(0.196078, 0.882353, 0.392157, 1)
 
 [sub_resource type="LabelSettings" id="LabelSettings_dgipo"]
 
@@ -52,6 +64,70 @@ offset_bottom = 75.0
 theme_override_styles/panel = SubResource("StyleBoxFlat_dgipo")
 
 [node name="Panel3" type="Panel" parent="SelectionIndicator"]
+layout_mode = 0
+offset_top = 65.0
+offset_right = 150.0
+offset_bottom = 75.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_dgipo")
+
+[node name="LocalSelectionIndicator" type="Control" parent="."]
+visible = false
+anchors_preset = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="Panel2" type="Panel" parent="LocalSelectionIndicator"]
+layout_mode = 0
+offset_right = 150.0
+offset_bottom = 10.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_f7v5e")
+
+[node name="Panel4" type="Panel" parent="LocalSelectionIndicator"]
+layout_mode = 0
+offset_right = 10.0
+offset_bottom = 75.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_tft0o")
+
+[node name="Panel5" type="Panel" parent="LocalSelectionIndicator"]
+layout_mode = 0
+offset_left = 140.0
+offset_right = 150.0
+offset_bottom = 75.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_hpb07")
+
+[node name="Panel3" type="Panel" parent="LocalSelectionIndicator"]
+layout_mode = 0
+offset_top = 65.0
+offset_right = 150.0
+offset_bottom = 75.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_gqk01")
+
+[node name="OppSelectionIndicator" type="Control" parent="."]
+visible = false
+anchors_preset = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="Panel2" type="Panel" parent="OppSelectionIndicator"]
+layout_mode = 0
+offset_right = 150.0
+offset_bottom = 10.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_dgipo")
+
+[node name="Panel4" type="Panel" parent="OppSelectionIndicator"]
+layout_mode = 0
+offset_right = 10.0
+offset_bottom = 75.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_dgipo")
+
+[node name="Panel5" type="Panel" parent="OppSelectionIndicator"]
+layout_mode = 0
+offset_left = 140.0
+offset_right = 150.0
+offset_bottom = 75.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_dgipo")
+
+[node name="Panel3" type="Panel" parent="OppSelectionIndicator"]
 layout_mode = 0
 offset_top = 65.0
 offset_right = 150.0
