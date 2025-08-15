@@ -13,6 +13,7 @@ public partial class Draft : Control
     public enum DraftType { Random, Draft, BanDraft };
     public List<String> localProtocols = new List<String>();
     public List<String> oppProtocols = new List<String>();
+    public List<String> bannedProtocols = new List<String>();
 
     HBoxContainer protocolsFirstRow;
     HBoxContainer protocolsSecondRow;
@@ -45,11 +46,11 @@ public partial class Draft : Control
             RpcId(oppId, nameof(SetProtocols), localProtocols.Aggregate((a, s) => a + "," + s),
                 oppProtocols.Aggregate((a, s) => a + "," + s));
         }
-        else if (draftType == DraftType.Draft)
+        else
         {
             Visible = true;
             List<String> protocols = Cardlist.protocols.Keys.ToList();
-            for (int i = 0; i < 7; i++)
+            for (int i = 0; i < (draftType == DraftType.Draft ? 7 : 8); i++)
             {
                 String protocolString = protocols[Utility.random.RandiRange(0, protocols.Count - 1)];
                 protocols.Remove(protocolString);
@@ -60,7 +61,7 @@ public partial class Draft : Control
                 else protocolsSecondRow.AddChild(protocol);
             }
             String protocolNames = "";
-            foreach (Protocol p in GetProtocols()) protocolNames = 
+            foreach (Protocol p in GetProtocols()) protocolNames =
                     protocolNames + (protocolNames == "" ? "" : ",") + p.info.name;
             RpcId(oppId, nameof(OppInit), protocolNames, Multiplayer.GetUniqueId());
             await WaitForOppResponse();
@@ -68,9 +69,26 @@ public partial class Draft : Control
 
         foreach (Protocol p in GetProtocols()) p.OnClick += PromptManager.OnProtocolClicked;
 
+        if (draftType == DraftType.BanDraft)
+        {
+            promptLabel.Text = "Select a protocol to ban.";
+            PromptManager.PromptAction([PromptManager.Prompt.Select], GetProtocols().
+                FindAll(p => !localProtocols.Contains(p.info.name) && !oppProtocols.Contains(p.info.name)
+                && !bannedProtocols.Contains(p.info.name)));
+            Response banResponse = await WaitForResponse();
+            banResponse.protocol.GetNode<Control>("BannedSelectionIndicator").Visible = true;
+            bannedProtocols.Add(banResponse.protocol.info.name);
+            RpcId(oppId, nameof(OppBanProtocol), banResponse.protocol.info.name);
+            promptLabel.Text = "";
+
+            RpcId(oppId, nameof(OppCommandBan));
+            await WaitForOppResponse();
+        }
+
         promptLabel.Text = "Select a protocol to draft.";
         PromptManager.PromptAction([PromptManager.Prompt.Select], GetProtocols().
-            FindAll(p => !localProtocols.Contains(p.info.name) && !oppProtocols.Contains(p.info.name)));
+            FindAll(p => !localProtocols.Contains(p.info.name) && !oppProtocols.Contains(p.info.name)
+                && !bannedProtocols.Contains(p.info.name)));
         Response response = await WaitForResponse();
         response.protocol.GetNode<Control>("LocalSelectionIndicator").Visible = true;
         localProtocols.Add(response.protocol.info.name);
@@ -85,14 +103,16 @@ public partial class Draft : Control
 
         promptLabel.Text = "Select a protocol to draft.";
         PromptManager.PromptAction([PromptManager.Prompt.Select], GetProtocols().
-            FindAll(p => !localProtocols.Contains(p.info.name) && !oppProtocols.Contains(p.info.name)));
+            FindAll(p => !localProtocols.Contains(p.info.name) && !oppProtocols.Contains(p.info.name)
+                && !bannedProtocols.Contains(p.info.name)));
         response = await WaitForResponse();
         response.protocol.GetNode<Control>("LocalSelectionIndicator").Visible = true;
         localProtocols.Add(response.protocol.info.name);
         RpcId(oppId, nameof(OppSelectProtocol), response.protocol.info.name);
 
         PromptManager.PromptAction([PromptManager.Prompt.Select], GetProtocols().
-            FindAll(p => !localProtocols.Contains(p.info.name) && !oppProtocols.Contains(p.info.name)));
+            FindAll(p => !localProtocols.Contains(p.info.name) && !oppProtocols.Contains(p.info.name)
+                && !bannedProtocols.Contains(p.info.name)));
         response = await WaitForResponse();
         response.protocol.GetNode<Control>("LocalSelectionIndicator").Visible = true;
         localProtocols.Add(response.protocol.info.name);
@@ -137,11 +157,28 @@ public partial class Draft : Control
     {
         promptLabel.Text = "Select a protocol to draft.";
         PromptManager.PromptAction([PromptManager.Prompt.Select], GetProtocols().
-            FindAll(p => !localProtocols.Contains(p.info.name) && !oppProtocols.Contains(p.info.name)));
+            FindAll(p => !localProtocols.Contains(p.info.name) && !oppProtocols.Contains(p.info.name)
+                && !bannedProtocols.Contains(p.info.name)));
         Response response = await WaitForResponse();
         response.protocol.GetNode<Control>("LocalSelectionIndicator").Visible = true;
         localProtocols.Add(response.protocol.info.name);
         RpcId(oppId, nameof(OppSelectProtocol), response.protocol.info.name);
+        promptLabel.Text = "";
+
+        RpcId(oppId, nameof(OppResponse));
+    }
+
+    [Rpc(MultiplayerApi.RpcMode.AnyPeer)]
+    async void OppCommandBan()
+    {
+        promptLabel.Text = "Select a protocol to ban.";
+        PromptManager.PromptAction([PromptManager.Prompt.Select], GetProtocols().
+            FindAll(p => !localProtocols.Contains(p.info.name) && !oppProtocols.Contains(p.info.name)
+                && !bannedProtocols.Contains(p.info.name)));
+        Response response = await WaitForResponse();
+        response.protocol.GetNode<Control>("BannedSelectionIndicator").Visible = true;
+        bannedProtocols.Add(response.protocol.info.name);
+        RpcId(oppId, nameof(OppBanProtocol), response.protocol.info.name);
         promptLabel.Text = "";
 
         RpcId(oppId, nameof(OppResponse));
@@ -153,6 +190,14 @@ public partial class Draft : Control
         Protocol protocol = GetProtocols().Find(p => p.info.name == protocolName);
         protocol.GetNode<Control>("OppSelectionIndicator").Visible = true;
         oppProtocols.Add(protocolName);
+    }
+
+    [Rpc(MultiplayerApi.RpcMode.AnyPeer)]
+    void OppBanProtocol(String protocolName)
+    {
+        Protocol protocol = GetProtocols().Find(p => p.info.name == protocolName);
+        protocol.GetNode<Control>("BannedSelectionIndicator").Visible = true;
+        bannedProtocols.Add(protocolName);
     }
 
     [Rpc(MultiplayerApi.RpcMode.AnyPeer)]
