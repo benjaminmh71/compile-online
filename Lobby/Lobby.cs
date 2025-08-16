@@ -69,6 +69,11 @@ public partial class Lobby : Control
         }
     }
 
+    public void ResetGame()
+    {
+        game = GD.Load<PackedScene>("res://Game/Game.tscn").Instantiate<Game>();
+    }
+
     private void PeerConnected(long id)
     {
         if (isServer)
@@ -76,7 +81,7 @@ public partial class Lobby : Control
             GD.Print("New player");
             foreach (Room room in rooms)
             {
-                RpcId(id, nameof(AddRoom), room.player1Id);
+                RpcId(id, nameof(AddRoom), room.player1Id, room.name, (int)room.draftType, room.password);
             }
         }
     }
@@ -111,7 +116,8 @@ public partial class Lobby : Control
         if (draftCheckBoxes.Find(c => c.Name == "BanDraftCheckBox").IsPressed())
             game.draftType = Draft.DraftType.BanDraft;
 
-        Rpc(nameof(AddRoom), Multiplayer.GetUniqueId(), roomNameTextEdit.Text);
+        Rpc(nameof(AddRoom), Multiplayer.GetUniqueId(), roomNameTextEdit.Text, 
+            (int)game.draftType, roomPasswordTextEdit.Text);
     }
 
     private void _on_create_game_pressed()
@@ -132,16 +138,21 @@ public partial class Lobby : Control
     }
 
     [Rpc(MultiplayerApi.RpcMode.AnyPeer, CallLocal = true)]
-    private void AddRoom(int id, String name)
+    private void AddRoom(int id, String name, int _draftType, String password)
     {
-        Room room = new Room(id);
+        Draft.DraftType draftType = (Draft.DraftType)_draftType;
+        Room room = new Room(id, name, draftType, password);
         rooms.Add(room);
         PackedScene listRoomScene = GD.Load<PackedScene>("res://Lobby/list_room.tscn");
         ListRoom listRoom = listRoomScene.Instantiate<ListRoom>();
         roomListContainer.AddChild(listRoom);
         listRoom.creatorId = id;
-        listRoom.GetNode<Label>("GameInfo").Text = name + ": ";
-        listRoom.GetNode<Button>("JoinButton").Pressed += () => {
+        listRoom.nameLabel.Text = name + ": ";
+        listRoom.draftTypeLabel.Text = draftType == Draft.DraftType.BanDraft ? "8 Ban Draft" :
+            draftType == Draft.DraftType.Draft ? "7 Draft" : "Random Draft";
+        listRoom.passwordLabel.Text = password.Length != 0 ? "Password" : "No password";
+        listRoom.joinButton.Pressed += () => {
+            game.draftType = draftType;
             room.player2Id = Multiplayer.GetUniqueId();
             Rpc(nameof(DeleteRoom), id);
             ClientJoinGame(id, Multiplayer.GetUniqueId());
@@ -175,9 +186,8 @@ public partial class Lobby : Control
         GetTree().Root.AddChild(game);
         GD.Print((p1Id == Multiplayer.GetUniqueId()) ? "Player 1: " + p1Id.ToString() + " " + p2Id.ToString() :
             "Player 2: " + p1Id.ToString() + " " + p2Id.ToString());
-        QueueFree();
+        Visible = false;
         await game.Init(p1Id, p2Id, p1Id == Multiplayer.GetUniqueId());
-        
     }
 
     [Rpc(MultiplayerApi.RpcMode.AnyPeer, CallLocal = false)]
@@ -186,23 +196,8 @@ public partial class Lobby : Control
         GetTree().Root.AddChild(game);
         GD.Print((p1Id == Multiplayer.GetUniqueId()) ? "Player 1: " + p1Id.ToString() + " " + p2Id.ToString() :
             "Player 2: " + p1Id.ToString() + " " + p2Id.ToString());
-        QueueFree();
+        Visible = false;
         await game.Init(p1Id, p2Id, p1Id == Multiplayer.GetUniqueId());
         //RpcId(p2Id, nameof(ClientStartGame), p1Id);
-    }
-
-    [Rpc(MultiplayerApi.RpcMode.AnyPeer, CallLocal = false)]
-    private void ClientStartGame(int hostId)
-    {
-        //game.Start();
-        QueueFree();
-        RpcId(hostId, nameof(HostStartGame));
-    }
-
-    [Rpc(MultiplayerApi.RpcMode.AnyPeer, CallLocal = false)]
-    private void HostStartGame()
-    {
-        //game.Start();
-        QueueFree();
     }
 }

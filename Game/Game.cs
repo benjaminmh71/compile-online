@@ -150,16 +150,9 @@ public partial class Game : Control
         await WaitForOppResponse();
 
         if (first)
-        {
-            if (GD.Randi() % 2 == 0)
-            {
-                localPlayer.StartTurn();
-            }
-            else
-            {
-                await localPlayer.EndTurn();
-            }
-        }
+            localPlayer.StartTurn();
+        else
+            await localPlayer.EndTurn();
     }
 
     public int SumStack(Protocol p)

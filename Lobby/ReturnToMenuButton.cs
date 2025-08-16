@@ -11,6 +11,8 @@ public partial class ReturnToMenuButton : Button
     void OnPressed()
     {
         Game.instance.QueueFree();
-        GetTree().Root.AddChild(GD.Load<PackedScene>("res://Lobby/lobby.tscn").Instantiate<Lobby>());
+        Lobby lobby = GetTree().Root.GetNode<Lobby>("Lobby");
+        lobby.Visible = true;
+        lobby.ResetGame();
     }
 }

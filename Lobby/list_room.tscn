@@ -2,20 +2,40 @@
 
 [ext_resource type="Script" uid="uid://lhasie6vh81h" path="res://Lobby/ListRoom.cs" id="1_0fo8d"]
 
-[node name="ListRoom" type="HBoxContainer"]
+[node name="ListRoom" type="Control"]
+custom_minimum_size = Vector2(0, 90)
+layout_mode = 3
 anchors_preset = 5
 anchor_left = 0.5
 anchor_right = 0.5
 offset_left = -4.0
-offset_right = 4.0
-offset_bottom = 8.0
+offset_right = 151.0
+offset_bottom = 31.0
 grow_horizontal = 2
 script = ExtResource("1_0fo8d")
 
-[node name="GameInfo" type="Label" parent="."]
+[node name="VBoxContainer" type="VBoxContainer" parent="."]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="HBoxContainer" type="HBoxContainer" parent="VBoxContainer"]
+layout_mode = 2
+
+[node name="NameLabel" type="Label" parent="VBoxContainer/HBoxContainer"]
 layout_mode = 2
 text = "Game 1:"
 
-[node name="JoinButton" type="Button" parent="."]
+[node name="JoinButton" type="Button" parent="VBoxContainer/HBoxContainer"]
 layout_mode = 2
 text = "Join Game"
+
+[node name="DraftTypeLabel" type="Label" parent="VBoxContainer"]
+layout_mode = 2
+text = "8 Ban Draft"
+horizontal_alignment = 1
+
+[node name="PasswordLabel" type="Label" parent="VBoxContainer"]
+layout_mode = 2
+text = "No password"
+horizontal_alignment = 1
