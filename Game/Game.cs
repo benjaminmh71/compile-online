@@ -36,6 +36,7 @@ public partial class Game : Control
     public PanelContainer revealPanel;
     public PanelContainer victoryPanel;
     public PanelContainer losePanel;
+    public PanelContainer disconnectPanel;
     public MousePosition mousePosition;
     bool host;
     bool first;
@@ -46,6 +47,7 @@ public partial class Game : Control
     {
         GD.Randomize();
         instance = this;
+        Multiplayer.PeerDisconnected += PeerDisconnected;
         host = isHost;
         oppId = Multiplayer.GetUniqueId() == player1Id ? player2Id : player1Id;
         draft = GetNode<Draft>("DraftPanel");
@@ -69,6 +71,7 @@ public partial class Game : Control
         revealPanel = GetNode<PanelContainer>("RevealPanel");
         victoryPanel = GetNode<PanelContainer>("VictoryPanel");
         losePanel = GetNode<PanelContainer>("LosePanel");
+        disconnectPanel = GetNode<PanelContainer>("DisconnectPanel");
         mousePosition = GetNode<MousePosition>("MousePosition");
 
         RpcId(oppId, nameof(OppResponse));
@@ -130,6 +133,9 @@ public partial class Game : Control
 
         PromptManager.Init();
 
+        RpcId(oppId, nameof(OppResponse));
+        await WaitForOppResponse();
+
         localPlayer = new Player(Multiplayer.GetUniqueId(), oppId);
         localPlayer.Name = "Player";
 
@@ -139,6 +145,10 @@ public partial class Game : Control
         await WaitForOppResponse();
 
         await localPlayer.Init();
+
+        RpcId(oppId, nameof(OppResponse));
+        await WaitForOppResponse();
+
         if (first)
         {
             if (GD.Randi() % 2 == 0)
@@ -325,5 +335,10 @@ public partial class Game : Control
             await ToSignal(GetTree().CreateTimer(0.1), "timeout");
         }
         oppResponse = false;
+    }
+
+    void PeerDisconnected(long id)
+    {
+        disconnectPanel.Visible = true;
     }
 }

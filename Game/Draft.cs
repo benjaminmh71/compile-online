@@ -28,9 +28,9 @@ public partial class Draft : Control
         protocolsFirstRow = GetNode<HBoxContainer>("ProtocolsFirstRow");
         protocolsSecondRow = GetNode<HBoxContainer>("ProtocolsSecondRow");
         promptLabel = GetNode<Label>("PromptLabel");
+        List<String> protocols = Cardlist.protocols.Keys.ToList();
         if (draftType == DraftType.Random)
         {
-            List<String> protocols = Cardlist.protocols.Keys.ToList();
             for (int i = 0; i < 3; i++)
             {
                 String protocol = protocols[Utility.random.RandiRange(0, protocols.Count - 1)];
@@ -45,27 +45,25 @@ public partial class Draft : Control
             }
             RpcId(oppId, nameof(SetProtocols), localProtocols.Aggregate((a, s) => a + "," + s),
                 oppProtocols.Aggregate((a, s) => a + "," + s));
+            return;
         }
-        else
+
+        Visible = true;
+        for (int i = 0; i < (draftType == DraftType.Draft ? 7 : 8); i++)
         {
-            Visible = true;
-            List<String> protocols = Cardlist.protocols.Keys.ToList();
-            for (int i = 0; i < (draftType == DraftType.Draft ? 7 : 8); i++)
-            {
-                String protocolString = protocols[Utility.random.RandiRange(0, protocols.Count - 1)];
-                protocols.Remove(protocolString);
-                PackedScene protocolScene = GD.Load("res://Game/Protocol.tscn") as PackedScene;
-                Protocol protocol = protocolScene.Instantiate<Protocol>();
-                protocol.info = Cardlist.protocols[protocolString];
-                if (i < 4) protocolsFirstRow.AddChild(protocol);
-                else protocolsSecondRow.AddChild(protocol);
-            }
-            String protocolNames = "";
-            foreach (Protocol p in GetProtocols()) protocolNames =
-                    protocolNames + (protocolNames == "" ? "" : ",") + p.info.name;
-            RpcId(oppId, nameof(OppInit), protocolNames, Multiplayer.GetUniqueId());
-            await WaitForOppResponse();
+            String protocolString = protocols[Utility.random.RandiRange(0, protocols.Count - 1)];
+            protocols.Remove(protocolString);
+            PackedScene protocolScene = GD.Load("res://Game/Protocol.tscn") as PackedScene;
+            Protocol protocol = protocolScene.Instantiate<Protocol>();
+            protocol.info = Cardlist.protocols[protocolString];
+            if (i < 4) protocolsFirstRow.AddChild(protocol);
+            else protocolsSecondRow.AddChild(protocol);
         }
+        String protocolNames = "";
+        foreach (Protocol p in GetProtocols()) protocolNames =
+                protocolNames + (protocolNames == "" ? "" : ",") + p.info.name;
+        RpcId(oppId, nameof(OppInit), protocolNames, Multiplayer.GetUniqueId());
+        await WaitForOppResponse();
 
         foreach (Protocol p in GetProtocols()) p.OnClick += PromptManager.OnProtocolClicked;
 
