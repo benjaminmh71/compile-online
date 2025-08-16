@@ -38,14 +38,16 @@ public partial class Game : Control
     public PanelContainer losePanel;
     public MousePosition mousePosition;
     bool host;
+    bool first;
     bool oppResponse;
+    int oppId;
 
     public async Task Init(int player1Id, int player2Id, bool isHost)
     {
         GD.Randomize();
         instance = this;
         host = isHost;
-        int oppId = Multiplayer.GetUniqueId() == player1Id ? player2Id : player1Id;
+        oppId = Multiplayer.GetUniqueId() == player1Id ? player2Id : player1Id;
         draft = GetNode<Draft>("DraftPanel");
         handCardsContainer = GetNode<HBoxContainer>("LocalHandCardsContainer");
         oppCardsContainer = GetNode<HBoxContainer>("OppHandCardsContainer");
@@ -72,7 +74,18 @@ public partial class Game : Control
         RpcId(oppId, nameof(OppResponse));
         await WaitForOppResponse();
 
-        if (isHost) await draft.Init(draftType, oppId);
+        if (host)
+        {
+            first = Utility.random.Randi() % 2 == 0;
+            RpcId(oppId, nameof(SetFirst), !first);
+            await WaitForOppResponse();
+            RpcId(oppId, nameof(OppResponse));
+        } else
+        {
+            await WaitForOppResponse();
+        }
+
+        if (first) await draft.Init(draftType, oppId);
         await draft.WaitForDraft();
         draft.Visible = false;
 
@@ -126,17 +139,15 @@ public partial class Game : Control
         await WaitForOppResponse();
 
         await localPlayer.Init();
-        if (host)
+        if (first)
         {
             if (GD.Randi() % 2 == 0)
             {
-#pragma warning disable CS4014 // Async not awaited warning
                 localPlayer.StartTurn();
-#pragma warning restore CS4014
             }
             else
             {
-                localPlayer.EndTurn();
+                await localPlayer.EndTurn();
             }
         }
     }
@@ -292,6 +303,13 @@ public partial class Game : Control
     {
         if (IsLocal(protocol)) return IndexOfProtocol(protocol);
         else return GetProtocols(false).Count - 1 - IndexOfProtocol(protocol);
+    }
+
+    [Rpc(MultiplayerApi.RpcMode.AnyPeer)]
+    public void SetFirst(bool _first)
+    {
+        first = _first;
+        RpcId(oppId, nameof(OppResponse));
     }
 
     [Rpc(MultiplayerApi.RpcMode.AnyPeer)]
