@@ -162,7 +162,11 @@ public partial class Player : Node
         }
 
         // Play/refresh:
-        PromptManager.PromptAction([PromptManager.Prompt.Play, PromptManager.Prompt.Refresh], hand, Game.instance.GetProtocols(true));
+        if (hand.Count >= 5)
+            PromptManager.PromptAction([PromptManager.Prompt.Play], hand, Game.instance.GetProtocols(true));
+        else
+            PromptManager.PromptAction([PromptManager.Prompt.Play, PromptManager.Prompt.Refresh], 
+                hand, Game.instance.GetProtocols(true));
 
         Response response = await WaitForResponse();
 
