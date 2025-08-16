@@ -16,6 +16,7 @@ public partial class Lobby : Control
     VBoxContainer roomListContainer;
     Panel gameSettingsPanel;
     Panel waitRoomPanel;
+    PanelContainer passwordPanel;
     VBoxContainer gameSettingsVBox;
     List<CheckBox> draftCheckBoxes;
     TextEdit roomNameTextEdit;
@@ -26,6 +27,7 @@ public partial class Lobby : Control
         roomListContainer = GetNode<VBoxContainer>("RoomListContainer");
         gameSettingsPanel = GetNode<Panel>("GameSettingsPanel");
         waitRoomPanel = GetNode<Panel>("WaitRoomPanel");
+        passwordPanel = GetNode<PanelContainer>("PasswordPanel");
         gameSettingsVBox = gameSettingsPanel.GetNode("MarginContainer").GetNode<VBoxContainer>("VBoxContainer");
         draftCheckBoxes = [ gameSettingsVBox.GetNode<CheckBox>("RandomCheckBox"),
         gameSettingsVBox.GetNode<CheckBox>("DraftCheckBox"),
@@ -152,10 +154,26 @@ public partial class Lobby : Control
             draftType == Draft.DraftType.Draft ? "7 Draft" : "Random Draft";
         listRoom.passwordLabel.Text = password.Length != 0 ? "Password" : "No password";
         listRoom.joinButton.Pressed += () => {
-            game.draftType = draftType;
-            room.player2Id = Multiplayer.GetUniqueId();
-            Rpc(nameof(DeleteRoom), id);
-            ClientJoinGame(id, Multiplayer.GetUniqueId());
+            void JoinGame()
+            {
+                game.draftType = draftType;
+                room.player2Id = Multiplayer.GetUniqueId();
+                Rpc(nameof(DeleteRoom), id);
+                ClientJoinGame(id, Multiplayer.GetUniqueId());
+            }
+            void OnPasswordEnter() {
+                String input = passwordPanel.GetNode("VBoxContainer").GetNode<TextEdit>("TextEdit").Text;
+                passwordPanel.GetNode("VBoxContainer").GetNode<TextEdit>("TextEdit").Text = "";
+                passwordPanel.Visible = false;
+                passwordPanel.GetNode("VBoxContainer").GetNode<Button>("EnterButton").Pressed -= OnPasswordEnter;
+                if (input == password) JoinGame();
+            }
+            if (password.Length == 0) JoinGame();
+            else
+            {
+                passwordPanel.Visible = true;
+                passwordPanel.GetNode("VBoxContainer").GetNode<Button>("EnterButton").Pressed += OnPasswordEnter;
+            }
         };
     }
 
