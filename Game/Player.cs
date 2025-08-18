@@ -189,12 +189,12 @@ public partial class Player : Node
         if (hand.Count > 5 && !(passives[Passive.SkipCheckCache] != null && passives[Passive.SkipCheckCache].Value.local))
         {
             await Discard(hand.Count - 5);
-        }
 
-        foreach (Card card in Game.instance.GetCards())
-        {
-            if (Game.instance.IsLocal(card) && !card.flipped)
-                await card.info.OnCheckCache(card);
+            foreach (Card card in Game.instance.GetCards())
+            {
+                if (Game.instance.IsLocal(card) && !card.flipped)
+                    await card.info.OnCheckCache(card);
+            }
         }
 
         foreach (Card card in Game.instance.GetCards())

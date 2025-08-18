@@ -332,6 +332,7 @@ public partial class Game : Control
 
     void PeerDisconnected(long id)
     {
-        disconnectPanel.Visible = true;
+        if (id == oppId) 
+            disconnectPanel.Visible = true;
     }
 }

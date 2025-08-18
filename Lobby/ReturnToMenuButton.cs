@@ -14,5 +14,6 @@ public partial class ReturnToMenuButton : Button
         Lobby lobby = GetTree().Root.GetNode<Lobby>("Lobby");
         lobby.Visible = true;
         lobby.ResetGame();
+        lobby.GetNode<Panel>("WaitRoomPanel").Visible = false;
     }
 }
