@@ -457,8 +457,11 @@ public partial class Player : Node
 
     public async Task Flip(Card card)
     {
-        await card.info.OnFlip(card);
-        if (Game.instance.GetProtocolOfCard(card) == null) return; // May leave field
+        if (Game.instance.IsLocal(card))
+        {
+            await card.info.OnFlip(card);
+            if (Game.instance.GetProtocolOfCard(card) == null) return; // May leave field
+        }
         card.flipped = !card.flipped;
         card.Render();
         var cardLocation = Game.instance.GetCardLocation(card);
@@ -1098,7 +1101,11 @@ public partial class Player : Node
         if (Game.instance.IsLocal(card))
         {
             await card.info.OnFlip(card);
-            if (Game.instance.GetProtocolOfCard(card) == null) return; // May leave field
+            if (Game.instance.GetProtocolOfCard(card) == null)
+            {
+                RpcId(oppId, nameof(OppResponse));
+                return; // May leave field
+            }
         }
         card.flipped = !card.flipped;
         card.Interrupt();

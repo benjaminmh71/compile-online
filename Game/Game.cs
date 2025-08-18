@@ -92,7 +92,7 @@ public partial class Game : Control
         await draft.WaitForDraft();
         draft.Visible = false;
 
-        foreach (String name in draft.localProtocols)
+        foreach (String name in new String[]{ "Metal", "Plague", "Metal" })
         {
             PackedScene protocolScene = GD.Load("res://Game/Protocol.tscn") as PackedScene;
             Protocol protocol = protocolScene.Instantiate<Protocol>();
