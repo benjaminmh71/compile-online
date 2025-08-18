@@ -925,7 +925,7 @@ public partial class Player : Node
     }
 
     [Rpc(MultiplayerApi.RpcMode.AnyPeer)]
-    public void OppPlay(String cardName, int protocolIndex, bool flipped, bool top)
+    public async void OppPlay(String cardName, int protocolIndex, bool flipped, bool top)
     {
         Card card = null;
         if (top)
@@ -942,7 +942,7 @@ public partial class Player : Node
         List<Protocol> protocols = Game.instance.GetProtocols(false);
         if (protocols[protocolIndex].cards.Count > 0)
         {
-            protocols[protocolIndex].cards[protocols[protocolIndex].cards.Count - 1].covered = true;
+            await Cover(protocols[protocolIndex].cards[protocols[protocolIndex].cards.Count - 1], protocols[protocolIndex]);
         }
         foreach (CardInfo.Passive passive in card.info.passives)
         {
