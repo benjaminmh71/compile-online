@@ -147,10 +147,10 @@ public partial class MousePosition : Control
             {
                 if (Geometry2D.IsPointInPolygon(GlobalPosition,
                     [new Vector2(protocol.GlobalPosition.X, protocol.GlobalPosition.Y),
-                    new Vector2(protocol.GlobalPosition.X, protocol.GlobalPosition.Y + (Game.instance.IsLocal(protocol) ? 1 : -1) * Constants.CARD_HEIGHT),
-                    new Vector2(protocol.GlobalPosition.X + (Game.instance.IsLocal(protocol) ? 1 : -1) * Constants.CARD_WIDTH,
-                    protocol.GlobalPosition.Y + (Game.instance.IsLocal(protocol) ? 1 : -1) * Constants.CARD_HEIGHT),
-                    new Vector2(protocol.GlobalPosition.X + (Game.instance.IsLocal(protocol) ? 1 : -1) * Constants.CARD_WIDTH, protocol.GlobalPosition.Y)]))
+                    new Vector2(protocol.GlobalPosition.X, protocol.GlobalPosition.Y + (Game.instance.IsLocal(protocol) ? 1 : -1) * Constants.PROTOCOL_HEIGHT),
+                    new Vector2(protocol.GlobalPosition.X + (Game.instance.IsLocal(protocol) ? 1 : -1) * Constants.PROTOCOL_WIDTH,
+                    protocol.GlobalPosition.Y + (Game.instance.IsLocal(protocol) ? 1 : -1) * Constants.PROTOCOL_HEIGHT),
+                    new Vector2(protocol.GlobalPosition.X + (Game.instance.IsLocal(protocol) ? 1 : -1) * Constants.PROTOCOL_WIDTH, protocol.GlobalPosition.Y)]))
                 {
                     Control copiedProtocol = protocol.Duplicate(0) as Control;
                     draggedProtocol = copiedProtocol;

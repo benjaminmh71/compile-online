@@ -92,7 +92,7 @@ public partial class Game : Control
         await draft.WaitForDraft();
         draft.Visible = false;
 
-        foreach (String name in new String[]{ "Metal", "Plague", "Metal" })
+        foreach (String name in draft.localProtocols)
         {
             PackedScene protocolScene = GD.Load("res://Game/Protocol.tscn") as PackedScene;
             Protocol protocol = protocolScene.Instantiate<Protocol>();
@@ -230,10 +230,12 @@ public partial class Game : Control
         {
             if (Geometry2D.IsPointInPolygon(mousePos,
                     [new Vector2(p.GlobalPosition.X, p.GlobalPosition.Y),
-                    new Vector2(p.GlobalPosition.X, p.GlobalPosition.Y + (IsLocal(p) ? 1 : -1) * Constants.PROTOCOL_HEIGHT),
-                    new Vector2(p.GlobalPosition.X + (IsLocal(p) ? 1 : -1) * Constants.PROTOCOL_WIDTH,
-                    p.GlobalPosition.Y + (IsLocal(p) ? 1 : -1) * Constants.PROTOCOL_HEIGHT),
-                    new Vector2(p.GlobalPosition.X + (IsLocal(p) ? 1 : -1) * Constants.PROTOCOL_WIDTH, p.GlobalPosition.Y)]))
+                    new Vector2(p.GlobalPosition.X, p.GlobalPosition.Y + (Game.instance.IsLocal(p) ? 1 : -1) *
+                    (Constants.PROTOCOL_HEIGHT + Constants.CARD_HEIGHT + p.cards.Count * Constants.CARD_STACK_SEPARATION)),
+                    new Vector2(p.GlobalPosition.X + (Game.instance.IsLocal(p) ? 1 : -1) * Constants.PROTOCOL_WIDTH,
+                    p.GlobalPosition.Y + (Game.instance.IsLocal(p) ? 1 : -1) * (Constants.PROTOCOL_HEIGHT + Constants.CARD_HEIGHT +
+                    p.cards.Count * Constants.CARD_STACK_SEPARATION)),
+                    new Vector2(p.GlobalPosition.X + (Game.instance.IsLocal(p) ? 1 : -1) * Constants.PROTOCOL_WIDTH, p.GlobalPosition.Y)]))
             {
                 return p;
             }
@@ -242,10 +244,12 @@ public partial class Game : Control
         {
             if (Geometry2D.IsPointInPolygon(mousePos,
                     [new Vector2(p.GlobalPosition.X, p.GlobalPosition.Y),
-                    new Vector2(p.GlobalPosition.X, p.GlobalPosition.Y + (IsLocal(p) ? 1 : -1) * Constants.PROTOCOL_HEIGHT),
-                    new Vector2(p.GlobalPosition.X + (IsLocal(p) ? 1 : -1) * Constants.PROTOCOL_WIDTH,
-                    p.GlobalPosition.Y + (IsLocal(p) ? 1 : -1) * Constants.PROTOCOL_HEIGHT),
-                    new Vector2(p.GlobalPosition.X + (IsLocal(p) ? 1 : -1) * Constants.PROTOCOL_WIDTH, p.GlobalPosition.Y)]))
+                    new Vector2(p.GlobalPosition.X, p.GlobalPosition.Y + (Game.instance.IsLocal(p) ? 1 : -1) *
+                    (Constants.PROTOCOL_HEIGHT + Constants.CARD_HEIGHT + p.cards.Count * Constants.CARD_STACK_SEPARATION)),
+                    new Vector2(p.GlobalPosition.X + (Game.instance.IsLocal(p) ? 1 : -1) * Constants.PROTOCOL_WIDTH,
+                    p.GlobalPosition.Y + (Game.instance.IsLocal(p) ? 1 : -1) * (Constants.PROTOCOL_HEIGHT + Constants.CARD_HEIGHT +
+                    p.cards.Count * Constants.CARD_STACK_SEPARATION)),
+                    new Vector2(p.GlobalPosition.X + (Game.instance.IsLocal(p) ? 1 : -1) * Constants.PROTOCOL_WIDTH, p.GlobalPosition.Y)]))
             {
                 return p;
             }

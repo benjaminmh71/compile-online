@@ -24,10 +24,14 @@ public partial class Protocol : Control
         Vector2 GlobalMousePosition = GetGlobalMousePosition();
 
         if (Input.IsActionJustReleased("click") &&
-            GlobalMousePosition.X > GlobalPosition.X &&
-            GlobalMousePosition.X < GlobalPosition.X + Constants.PROTOCOL_WIDTH &&
-            GlobalMousePosition.Y > GlobalPosition.Y &&
-            GlobalMousePosition.Y < GlobalPosition.Y + Constants.PROTOCOL_HEIGHT)
+            Geometry2D.IsPointInPolygon(GlobalMousePosition,
+                    [new Vector2(GlobalPosition.X, GlobalPosition.Y),
+                    new Vector2(GlobalPosition.X, GlobalPosition.Y + (Game.instance.IsLocal(this) ? 1 : -1) * 
+                    (Constants.PROTOCOL_HEIGHT + Constants.CARD_HEIGHT + cards.Count * Constants.CARD_STACK_SEPARATION)),
+                    new Vector2(GlobalPosition.X + (Game.instance.IsLocal(this) ? 1 : -1) * Constants.PROTOCOL_WIDTH,
+                    GlobalPosition.Y + (Game.instance.IsLocal(this) ? 1 : -1) * (Constants.PROTOCOL_HEIGHT + Constants.CARD_HEIGHT +
+                    cards.Count * Constants.CARD_STACK_SEPARATION)),
+                    new Vector2(GlobalPosition.X + (Game.instance.IsLocal(this) ? 1 : -1) * Constants.PROTOCOL_WIDTH, GlobalPosition.Y)]))
         {
             EmitSignal("OnClick", this);
         }
