@@ -1013,7 +1013,7 @@ public partial class Player : Node
     }
 
     [Rpc(MultiplayerApi.RpcMode.AnyPeer)]
-    public async Task OppDrawFromOpp()
+    public async void OppDrawFromOpp()
     {
         if (deck.Count == 0) // Shuffle in discard
         {

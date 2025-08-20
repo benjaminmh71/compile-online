@@ -262,6 +262,16 @@ public partial class Game : Control
         return localProtocolsContainer.GetChildren().Contains(p);
     }
 
+    public bool IsOpp(Protocol p)
+    {
+        return oppProtocolsContainer.GetChildren().Contains(p);
+    }
+
+    public bool IsInGame(Protocol p)
+    {
+        return IsLocal(p) || IsOpp(p);
+    }
+
     public bool IsLocal(Card c)
     {
         if (localPlayer.hand.Contains(c)) return true;

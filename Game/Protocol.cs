@@ -26,12 +26,12 @@ public partial class Protocol : Control
         if (Input.IsActionJustReleased("click") &&
             Geometry2D.IsPointInPolygon(GlobalMousePosition,
                     [new Vector2(GlobalPosition.X, GlobalPosition.Y),
-                    new Vector2(GlobalPosition.X, GlobalPosition.Y + (Game.instance.IsLocal(this) ? 1 : -1) * 
-                    (Constants.PROTOCOL_HEIGHT + Constants.CARD_HEIGHT + cards.Count * Constants.CARD_STACK_SEPARATION)),
-                    new Vector2(GlobalPosition.X + (Game.instance.IsLocal(this) ? 1 : -1) * Constants.PROTOCOL_WIDTH,
-                    GlobalPosition.Y + (Game.instance.IsLocal(this) ? 1 : -1) * (Constants.PROTOCOL_HEIGHT + Constants.CARD_HEIGHT +
-                    cards.Count * Constants.CARD_STACK_SEPARATION)),
-                    new Vector2(GlobalPosition.X + (Game.instance.IsLocal(this) ? 1 : -1) * Constants.PROTOCOL_WIDTH, GlobalPosition.Y)]))
+                    new Vector2(GlobalPosition.X, GlobalPosition.Y + (Game.instance.IsOpp(this) ? -1 : 1) * (Constants.PROTOCOL_HEIGHT + 
+                    (Game.instance.IsInGame(this) ? (Constants.CARD_HEIGHT + cards.Count * Constants.CARD_STACK_SEPARATION):0))),
+                    new Vector2(GlobalPosition.X + (Game.instance.IsOpp(this) ? -1 : 1) * Constants.PROTOCOL_WIDTH,
+                    GlobalPosition.Y + (Game.instance.IsOpp(this) ? -1 : 1) * (Constants.PROTOCOL_HEIGHT + 
+                    (Game.instance.IsInGame(this) ? (Constants.CARD_HEIGHT + cards.Count * Constants.CARD_STACK_SEPARATION):0))),
+                    new Vector2(GlobalPosition.X + (Game.instance.IsOpp(this) ? -1 : 1) * Constants.PROTOCOL_WIDTH, GlobalPosition.Y)]))
         {
             EmitSignal("OnClick", this);
         }
