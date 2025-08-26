@@ -556,6 +556,7 @@ public partial class Player : Node
         {
             oppHand.Add(card);
             card.flipped = true;
+            card.Render();
             Game.instance.oppCardsContainer.AddChild(card);
         }
         if (!wasCovered && protocol.cards.Count > 0)
@@ -745,6 +746,7 @@ public partial class Player : Node
             {
                 oppHand.Add(card);
                 card.flipped = true;
+                card.Render();
                 Game.instance.oppCardsContainer.AddChild(card);
             }
             if (!wasCovered && protocol.cards.Count > 0)
@@ -1353,6 +1355,7 @@ public partial class Player : Node
             {
                 oppHand.Add(card);
                 card.flipped = true;
+                card.Render();
                 Game.instance.oppCardsContainer.AddChild(card);
             }
             if (!wasCovered && protocol.cards.Count > 0)

@@ -168,21 +168,25 @@ public partial class MousePosition : Control
 
             if (draggedCard != null)
             {
+                GD.Print("Place");
                 Protocol protocol = Game.instance.GetHoveredProtocol();
                 if (protocol != null && destinationProtocols.Contains(protocol) && !protocol.cards.Contains(draggedCard)
                     && Game.instance.IsLocal(draggedCard) == Game.instance.IsLocal(protocol)
                     && CanBePlaced(draggedCard, protocol, Game.instance.flippedCheckbox.GetNode<CheckBox>("CheckBox").ButtonPressed))
                 {
+                    GD.Print("Signal");
                     EmitSignal("CardPlaced", protocol, draggedCard);
                 }
                 else
                 {
                     if (draggedCardParent.GetParent() is Protocol)
                     {
+                        GD.Print("Protocol");
                         (draggedCardParent.GetParent() as Protocol).ReparentCard(draggedCardIndex, draggedCard);
                     }
                     else
                     {
+                        GD.Print("Released");
                         draggedCard.GetParent().RemoveChild(draggedCard);
                         draggedCardParent.AddChild(draggedCard);
                         draggedCardParent.MoveChild(draggedCard, draggedCardIndex);
