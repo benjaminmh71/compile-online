@@ -579,6 +579,11 @@ public partial class Player : Node
         Protocol sourceProtocol = Game.instance.GetProtocols(cardLocation.local)[cardLocation.protocolIndex];
         sourceProtocol.cards.Remove(card);
         protocol.AddCard(card);
+        foreach (CardInfo.Passive passive in card.info.passives)
+        {
+            if (!card.flipped)
+                passives[passive] = new PassiveLocation(Game.instance.Line(protocol), Game.instance.IsLocal(card));
+        }
         if (card.covered)
         {
             card.covered = false;
@@ -806,6 +811,11 @@ public partial class Player : Node
         {
             Protocol currProtocol = localCards.Contains(card) ? protocol : Game.instance.GetOpposingProtocol(protocol);
             currProtocol.AddCard(card);
+            foreach (CardInfo.Passive passive in card.info.passives)
+            {
+                if (!card.flipped)
+                    passives[passive] = new PassiveLocation(Game.instance.Line(protocol), Game.instance.IsLocal(card));
+            }
             if (currProtocol.cards.Count > 1)
             {
                 currProtocol.cards[currProtocol.cards.Count - 2].covered = true;
@@ -1218,6 +1228,11 @@ public partial class Player : Node
         Card card = sourceProtocol.cards[cardIndex];
         sourceProtocol.cards.Remove(card);
         protocol.AddCard(card);
+        foreach (CardInfo.Passive passive in card.info.passives)
+        {
+            if (!card.flipped)
+                passives[passive] = new PassiveLocation(Game.instance.Line(protocol), Game.instance.IsLocal(card));
+        }
         if (protocol.cards.Count > 1)
         {
             protocol.cards[protocol.cards.Count - 2].covered = true;
@@ -1424,6 +1439,11 @@ public partial class Player : Node
         {
             Protocol protocol = localCards.Contains(card) ? localProtocol : oppProtocol;
             protocol.AddCard(card);
+            foreach (CardInfo.Passive passive in card.info.passives)
+            {
+                if (!card.flipped)
+                    passives[passive] = new PassiveLocation(Game.instance.Line(protocol), Game.instance.IsLocal(card));
+            }
             if (protocol.cards.Count > 1)
             {
                 protocol.cards[protocol.cards.Count - 2].covered = true;
