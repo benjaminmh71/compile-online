@@ -1,0 +1,10 @@
+<Project Sdk="Godot.NET.Sdk/4.4.0">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <EnableDynamicLoading>true</EnableDynamicLoading>
+    <RootNamespace>CompileOnline</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Godot.NET.Sdk" Version="4.4.0" />
+  </ItemGroup>
+</Project>

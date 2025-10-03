@@ -7,7 +7,7 @@ using System.Linq;
 
 public static class Cardlist
 {
-    public static Dictionary<String, ProtocolInfo> protocols = new Dictionary<String, ProtocolInfo>();
+    public static readonly Dictionary<String, ProtocolInfo> protocols = new Dictionary<String, ProtocolInfo>();
 
     static Cardlist()
     {
@@ -545,7 +545,7 @@ public static class Cardlist
             while ((response = await Game.instance.localPlayer.WaitForResponse()).type != PromptManager.Prompt.EndAction
             && Game.instance.localPlayer.hand.Count > 0)
             {
-                Game.instance.localPlayer.SendToDiscard(response.card);
+                await Game.instance.localPlayer.SendToDiscard(response.card);
                 count++;
                 PromptManager.PromptAction([PromptManager.Prompt.EndAction, PromptManager.Prompt.Select],
                     Game.instance.localPlayer.hand);
@@ -1143,6 +1143,7 @@ public static class Cardlist
         };
         love1.OnEnd = async (Card card) =>
         {
+            if (card.covered) return;
             String prevText = Game.instance.promptLabel.Text;
             Game.instance.promptLabel.Text = "You may give 1 card in your hand to your opponent.";
             PromptManager.PromptAction([PromptManager.Prompt.Select, PromptManager.Prompt.EndAction], Game.instance.localPlayer.hand);
@@ -1353,7 +1354,7 @@ public static class Cardlist
             while ((response = await Game.instance.localPlayer.WaitForResponse()).type != PromptManager.Prompt.EndAction
             && Game.instance.localPlayer.hand.Count > 0)
             {
-                Game.instance.localPlayer.SendToDiscard(response.card);
+                await Game.instance.localPlayer.SendToDiscard(response.card);
                 count++;
                 PromptManager.PromptAction([PromptManager.Prompt.EndAction, PromptManager.Prompt.Select],
                     Game.instance.localPlayer.hand);
@@ -1627,6 +1628,7 @@ public static class Cardlist
         };
         spirit1.OnStart = async (Card card) =>
         {
+            if (card.covered) return;
             if (Game.instance.localPlayer.hand.Count == 0)
             {
                 await Game.instance.localPlayer.Flip(card);

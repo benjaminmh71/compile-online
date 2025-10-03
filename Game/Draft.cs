@@ -77,7 +77,7 @@ public partial class Draft : Control
             banResponse.protocol.GetNode<Control>("BannedSelectionIndicator").Visible = true;
             bannedProtocols.Add(banResponse.protocol.info.name);
             RpcId(oppId, nameof(OppBanProtocol), banResponse.protocol.info.name);
-            promptLabel.Text = "";
+            promptLabel.Text = "Waiting for opponent...";
 
             RpcId(oppId, nameof(OppCommandBan));
             await WaitForOppResponse();
@@ -91,7 +91,7 @@ public partial class Draft : Control
         response.protocol.GetNode<Control>("LocalSelectionIndicator").Visible = true;
         localProtocols.Add(response.protocol.info.name);
         RpcId(oppId, nameof(OppSelectProtocol), response.protocol.info.name);
-        promptLabel.Text = "";
+        promptLabel.Text = "Waiting for opponent...";
 
         RpcId(oppId, nameof(OppCommandSelect));
         await WaitForOppResponse();
@@ -115,7 +115,7 @@ public partial class Draft : Control
         response.protocol.GetNode<Control>("LocalSelectionIndicator").Visible = true;
         localProtocols.Add(response.protocol.info.name);
         RpcId(oppId, nameof(OppSelectProtocol), response.protocol.info.name);
-        promptLabel.Text = "";
+        promptLabel.Text = "Waiting for opponent...";
 
         RpcId(oppId, nameof(OppCommandSelect));
         await WaitForOppResponse();
@@ -161,7 +161,7 @@ public partial class Draft : Control
         response.protocol.GetNode<Control>("LocalSelectionIndicator").Visible = true;
         localProtocols.Add(response.protocol.info.name);
         RpcId(oppId, nameof(OppSelectProtocol), response.protocol.info.name);
-        promptLabel.Text = "";
+        promptLabel.Text = "Waiting for opponent...";
 
         RpcId(oppId, nameof(OppResponse));
     }
@@ -177,7 +177,7 @@ public partial class Draft : Control
         response.protocol.GetNode<Control>("BannedSelectionIndicator").Visible = true;
         bannedProtocols.Add(response.protocol.info.name);
         RpcId(oppId, nameof(OppBanProtocol), response.protocol.info.name);
-        promptLabel.Text = "";
+        promptLabel.Text = "Waiting for opponent...";
 
         RpcId(oppId, nameof(OppResponse));
     }

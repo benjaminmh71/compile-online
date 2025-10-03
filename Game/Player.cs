@@ -1,9 +1,7 @@
 using CompileOnline.Game;
 using Godot;
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Dynamic;
 using System.Linq;
 using System.Threading.Tasks;
 using static CardInfo;
@@ -145,7 +143,7 @@ public partial class Player : Node
 
             String prevText = Game.instance.promptLabel.Text;
             Game.instance.promptLabel.Text = "Select a line to compile.";
-            Response compileResponse = await WaitForResponse();
+            Response compileResponse = await WaitForResponse("compile");
             Game.instance.promptLabel.Text = prevText;
 
             await Compile(compileResponse.protocol);
@@ -168,7 +166,9 @@ public partial class Player : Node
             PromptManager.PromptAction([PromptManager.Prompt.Play, PromptManager.Prompt.Refresh], 
                 hand, Game.instance.GetProtocols(true));
 
-        Response response = await WaitForResponse();
+        Response response = await WaitForResponse("main play");
+
+        GD.Print((Game.instance.host ? "P1" : "P2") + " Played: " + response.card.info.GetCardName());
 
         if (response.type == PromptManager.Prompt.Play)
         {
@@ -217,7 +217,7 @@ public partial class Player : Node
         PromptManager.PromptAction([PromptManager.Prompt.Control], 
             Game.instance.GetProtocols());
 
-        Response response = await WaitForResponse();
+        Response response = await WaitForResponse("control");
 
         List<String> protocolALocations = new List<String>();
         foreach (int p in response.swapA)
@@ -269,12 +269,12 @@ public partial class Player : Node
         for (int i = protocol.cards.Count - 1; i >= 0; i--)
         {
             if (protocol.cards[i].info.OnCompiled == null || protocol.cards[i].flipped)
-                SendToDiscard(protocol.cards[i]);
+                await SendToDiscard(protocol.cards[i]);
         }
         Protocol oppProtocol = Game.instance.GetOpposingProtocol(protocol);
         for (int i = oppProtocol.cards.Count - 1; i >= 0; i--)
         {
-            SendToDiscard(oppProtocol.cards[i]);
+            await SendToDiscard(oppProtocol.cards[i]);
         }
         bool wasCompiled = protocol.compiled;
         protocol.compiled = true;
@@ -291,7 +291,7 @@ public partial class Player : Node
         {
             Game.instance.victoryPanel.Visible = true;
             RpcId(oppId, nameof(OppLose));
-            await WaitForResponse();
+            await WaitForResponse("game end");
         }
 
         if (wasCompiled) await DrawFromOpp();
@@ -425,6 +425,8 @@ public partial class Player : Node
 
     public async Task Discard(int n)
     {
+        if (hand.Count == 0) return;
+        
         String prevText = Game.instance.promptLabel.Text;
         Game.instance.promptLabel.Text = "Discard " + n + (n > 1 ? " cards." : " card.");
 
@@ -442,7 +444,7 @@ public partial class Player : Node
     public async Task Discard(Card card)
     {
         if (!hand.Contains(card)) return;
-        SendToDiscard(card);
+        await SendToDiscard(card);
         RpcId(oppId, nameof(OppDiscardTriggers));
         await WaitForOppResponse();
     }
@@ -451,8 +453,9 @@ public partial class Player : Node
     {
         if (hand.Count == 0) return;
         PromptManager.PromptAction([PromptManager.Prompt.Select], hand);
-        Response response = await WaitForResponse();
-        SendToDiscard(response.card);
+        Response response = await WaitForResponse("discard");
+        GD.Print((Game.instance.host ? "P1" : "P2") + " Discard: " + response.card.info.GetCardName());
+        await SendToDiscard(response.card);
     }
 
     public async Task Flip(Card card)
@@ -463,6 +466,7 @@ public partial class Player : Node
             if (Game.instance.GetProtocolOfCard(card) == null) return; // May leave field
         }
         card.flipped = !card.flipped;
+        card.Interrupt();
         card.Render();
         var cardLocation = Game.instance.GetCardLocation(card);
         if (card.flipped)
@@ -640,7 +644,7 @@ public partial class Player : Node
         RpcId(oppId, nameof(OppApplyTempEffect), (int)effect, time);
     }
 
-    public void SendToDiscard(Card card)
+    public async Task SendToDiscard(Card card)
     {
         if (hand.Contains(card))
         {
@@ -651,6 +655,7 @@ public partial class Player : Node
             Game.instance.localDiscardTop.placeholder = false;
             Game.instance.localDiscardTop.Render();
             RpcId(oppId, nameof(OppSendToDiscard), card.info.GetCardName());
+            await WaitForOppResponse();
         }
         else
         {
@@ -678,6 +683,7 @@ public partial class Player : Node
             }
             RpcId(oppId, nameof(OppSendToDiscard),
                 cardLocation.local, cardLocation.protocolIndex, cardLocation.cardIndex);
+            await WaitForOppResponse();
         }
     }
 
@@ -690,7 +696,7 @@ public partial class Player : Node
             if (protocol.cards.IndexOf(card) > 0 && !cards.Contains(protocol.cards[protocol.cards.IndexOf(card) - 1]))
                 uncoveredCards.Add(protocol.cards[protocol.cards.IndexOf(card) - 1]);
             card.Interrupt();
-            SendToDiscard(card);
+            await SendToDiscard(card);
             if (!card.covered && protocol.cards.Count > 0)
                 protocol.cards[protocol.cards.Count - 1].covered = false;
         }
@@ -1279,6 +1285,8 @@ public partial class Player : Node
         Game.instance.oppDiscardTop.SetCardInfo(card.info);
         Game.instance.oppDiscardTop.placeholder = false;
         Game.instance.oppDiscardTop.Render();
+
+        RpcId(oppId, nameof(OppResponse));
     }
 
     [Rpc(MultiplayerApi.RpcMode.AnyPeer)]
@@ -1298,12 +1306,15 @@ public partial class Player : Node
             Game.instance.oppDiscardTop.SetCardInfo(card.info);
             Game.instance.oppDiscardTop.placeholder = false;
             Game.instance.oppDiscardTop.Render();
-        } else
+        }
+        else
         {
             Game.instance.localDiscardTop.SetCardInfo(card.info);
             Game.instance.localDiscardTop.placeholder = false;
             Game.instance.localDiscardTop.Render();
         }
+        
+        RpcId(oppId, nameof(OppResponse));
     }
 
     [Rpc(MultiplayerApi.RpcMode.AnyPeer)]
@@ -1532,7 +1543,7 @@ public partial class Player : Node
             String prevText = Game.instance.promptLabel.Text;
             Game.instance.promptLabel.Text = text;
             PromptManager.PromptAction([PromptManager.Prompt.Select], cards);
-            Response response = await Game.instance.localPlayer.WaitForResponse();
+            Response response = await WaitForResponse("command");
             Game.instance.promptLabel.Text = prevText;
             await Delete(response.card);
         }
@@ -1581,10 +1592,11 @@ public partial class Player : Node
             && passives[passive].Value.local == local;
     }
 
-    public async Task<Response> WaitForResponse()
+    public async Task<Response> WaitForResponse(String loc = "card")
     {
         while (PromptManager.response == null) 
         {
+            // GD.Print((Game.instance.host ? "P1" : "P2") + " Waiting from " + loc);
             await ToSignal(GetTree().CreateTimer(0.1), "timeout");
         }
         Response response = PromptManager.response;
@@ -1598,12 +1610,15 @@ public partial class Player : Node
         oppResponse = true;
     }
 
-    public async Task WaitForOppResponse()
+    async Task WaitForOppResponse()
     {
+        String prevText = Game.instance.promptLabel.Text;
+        Game.instance.promptLabel.Text = "Waiting for opponent...";
         while (!oppResponse)
         {
             await ToSignal(GetTree().CreateTimer(0.1), "timeout");
         }
         oppResponse = false;
+        Game.instance.promptLabel.Text = prevText;
     }
 }

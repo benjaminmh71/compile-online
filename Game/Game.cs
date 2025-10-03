@@ -38,7 +38,7 @@ public partial class Game : Control
     public PanelContainer losePanel;
     public PanelContainer disconnectPanel;
     public MousePosition mousePosition;
-    bool host;
+    public bool host;
     bool first;
     bool oppResponse;
     int oppId;
@@ -153,7 +153,7 @@ public partial class Game : Control
         if (first)
             localPlayer.StartTurn();
         else
-            await localPlayer.EndTurn();
+            promptLabel.Text = "It is your opponent's turn.";
     }
 
     public int SumStack(Protocol p)
