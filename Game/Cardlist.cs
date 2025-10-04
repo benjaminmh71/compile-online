@@ -1170,9 +1170,12 @@ public static class Cardlist
         love3.OnPlay = async (Card card) =>
         {
             List<Card> oppHand = Game.instance.localPlayer.oppHand;
-            Card randomCard = oppHand[Utility.random.RandiRange(0, oppHand.Count-1)];
-            Command command = new Command(Player.CommandType.Steal, new List<Card> { randomCard });
-            await Game.instance.localPlayer.SendCommand(command);
+            if (oppHand.Count != 0)
+            {
+                Card randomCard = oppHand[Utility.random.RandiRange(0, oppHand.Count - 1)];
+                Command command = new Command(Player.CommandType.Steal, new List<Card> { randomCard });
+                await Game.instance.localPlayer.SendCommand(command);
+            }
             String prevText = Game.instance.promptLabel.Text;
             Game.instance.promptLabel.Text = "Give 1 card in your hand to your opponent.";
             PromptManager.PromptAction([PromptManager.Prompt.Select], Game.instance.localPlayer.hand);
